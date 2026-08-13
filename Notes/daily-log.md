@@ -144,3 +144,67 @@ as of today, i could navigate folder structures fairly easily, create, duplicate
 
 ## Next Step
 - pick up at mission 0.4, creating an ai-assisted program to log my coffee roasting sessions
+
+# 2026-08-01
+Continue with Mission 0.4, setting up a basic coffee roast logger
+
+## Accomplished
+Setup folder structure and created necessary files. Fully populated CoffeeRoaster01.md with the phased instructions.
+
+Added vocabulary terms from 0.4 to vocabulary.md
+
+Practiced creating files and navigating folders from the terminal
+
+## Learned
+Today mostly practiced a particular structured approach that I should be able to iterate going forward.
+
+### Under the hood #1
+When I type "python main.py" what actually happens?
+
+me ->
+    powershell ->
+        windows start python.exe ->
+            python.exe opens main.py ->
+                python interpreter reads program ->
+                    python executes first instruction ->
+                        next instruction ->
+                        next instruction ->
+                        etc. ->
+                            program exits
+                                powershell waits for next command
+
+Powershell has no idea what python is doing.  It launches python.exe then waits. This exemplifies the modular approach to programming.
+
+## Confusing
+I imagine something more will confuse me when I actually get to writing the code, but had to stop before this point today.
+
+## Next step
+Pick up from "Phase 2" in CoffeeRoaster.md, populating the readme with the project goals.
+
+# 2026-08-13
+
+Complete Mission 0.4, starting with the readme.md file for the coffee logger
+
+## Accomplished
+
+Completed the mission, having Qwen write a simple python code to return the string I entered.
+## Learned
+
+Qwen on my humble low spec laptop is crazy impressive.
+
+### Mission 0.4 reflection
+Which line surprised me most?
+- Import sys was unexpected because i was unaware that any such thing would need to be done.  I guess there are numerous libraries that python could call so it makes sense that it does not load these all to RAM by default
+
+Which line did I least understand?
+- The last line is by no means intuitive to me as a non-programmer sys.stdin.read(1)
+- Followed up with Qwen.  sys module looks for standard input in the form of a single character of input. useful in cases such as "press enter to continue..."
+
+If I had to change the question from coffee to tea, what line would I edit?
+- I would change lines 2-4 because I would ask for a tea instead of a coffee, and I would then rename the variable to "tea_name" instead of "coffee_name"
+
+## Confusing
+primarily the sys.stdin.read(1) part, but qwen was able to explain in a way I now understand.
+
+## Next Step
+Moving on to 0.5

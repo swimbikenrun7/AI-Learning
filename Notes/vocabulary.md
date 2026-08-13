@@ -21,3 +21,12 @@ add here as terms are introduced for notation and easy reference
 
 ## Runtime
 - i assume this refers to a runtime environment, a sort of supporting middle layer in the software that enables the code to run by managing the various aspects of running software on the computer e.g. I/O, RAM use, etc.  simplification from ChatGPT - a runtime is the environment that exists while a program is running
+
+## Variable
+A named place to store information while the program is running
+
+## String
+Text
+
+## Function
+A named action that performs some work
