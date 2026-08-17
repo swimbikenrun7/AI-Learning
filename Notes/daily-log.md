@@ -208,3 +208,18 @@ primarily the sys.stdin.read(1) part, but qwen was able to explain in a way I no
 
 ## Next Step
 Moving on to 0.5
+
+# 2026-08-17
+Start Mission 0.5, adding features and calculations to the Coffee Roaster - including function introduction
+
+## Accomplished
+Added inputs for green and finished weight as well as weight loss calculations. Created output based on weight loss percent to return roast level.
+
+## Learned
+Mostly learned some syntax details regarding inputs and storage as character string vs value and how to print stored values.
+
+## Confusing
+Nothing today.
+
+## Next Step
+Continue from Part 8.  Need to incorporate functions in the program.
