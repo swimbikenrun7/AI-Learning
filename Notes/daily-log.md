@@ -228,13 +228,59 @@ Continue from Part 8.  Need to incorporate functions in the program.
 Continue Mission 0.5 from Part 8
 
 ## Accomplished
-asdf
+Updated desktop to Qwen 2.5-coder:14b which is much more capable and runs smoothly.  Used Qwen to modularize the code base for the coffee roasting logger and 
+
+## Mission 0.5 Notes
+
+### Challenge questions
+1. What is a python variable?
+A variable is a named parameter for storing data, such as a number or string.  Variables are referenced by functions to execute the code.
+- Grade A-
+    Correction from ChatGPT: A variable is just a named reference to a value. When supplied to a function, a variable is a parameter. Variables are just names associated with values.
+
+2. String vs number: why does "225" behave differently from 225 when entered in python?
+"225" is a string whereas 225 is a number.  I'm familiar with this distinction from excel.  for numbers which are stored as strings (or vice versa) there are functions to convert in either direction.
+- Grade A
+
+3. Why might putting the weight-loss calculation into a function be better than simply writing the calculation directly in the program?
+By containerizing the code into functions you can modify how the function behaves and not impact the rest of the code.  It's easier to keep organized this way and also allows these functions to be utilized/called if the script is imported as a module by another script.
+- Grade A
+    One added concept: functions create interface.  Whhen a function is defined, the rest of the program doesn't need to know how the calculation works.
+
+4. Which input broke the program most interestingly?
+For this exercise, only 2 hard "breaks" were observed: div 0 error and string entry instead of number error for weights. Both are fairly common in excel as well, so neither was particularly interesting. More interesting was thinking about errors which are not hard breaks and allow the code to run, but produce nonsense. To truly make this usable, I would want for instance, a screen on the weight inputs to question weights in grams above a certain number and confirm entry. I would also want a subscript for when the finished weight is higher than the start weight as it yields negative values. If I wanted to have an AI write this entire program, including simple error checking, my documentation on the function of the code: expected inputs and outputs, etc. (I presume in the .md file) would have to be specific on those expectations.
+
+    - What did the error message tell you?
+    Div 0 is a standard divide by zero error.  Same for the string input instead of number.
+- Grade A+
+    Syntax/runtime errors (hard crashes) vs. logic/data errors. The second type of errors can most of the time not be properly understood or predicted by an AI, this is where the domain knowledge of the user is important. By creating the proper specifications and requirements up-front, the AI has a much better constrained window to define the code base.
+
+    Example: instead of "question weights above a certain number"
+    we write
+        Green coffee weight
+            Must be greater than 0 g.
+            Normal expected range: 50–500 g.
+            Values above 500 g should trigger a confirmation.
+            Values above 2,000 g should be rejected.
+            Decimal values are permitted.
+    This has separated the requirement from the implementation, giving the agent freedom to explore implementation in ways I may not have considered.
+
+    The marriage of domain expertise with well-documented specifications and requirements is what makes for extremely effective agentic software design.
 
 ## Learned
-asdf
+I didn't know what the line "if __name__ == "__main__": main()" accomplished and Qwen explained that if this code was called as a module by another separate script that this would allow it to be imported without running.  This enables different functionality when executed directly vs. when imported.
 
 ## Confusing
-asdf
+Not much other than what's referenced in the above "learned" section
 
 ## Next Step
-asdf
+Going forward, before asking AI to build a feature we are going to incorporate specifications describing:
+    Purpose
+    Inputs
+    Expected outputs
+    Valid inputs
+    Invalid inputs
+    Edge cases
+    Constraints
+
+In Mission 0.6 we'll introduce testing.
