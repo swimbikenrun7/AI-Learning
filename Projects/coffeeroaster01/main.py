@@ -1,8 +1,9 @@
 def get_user_input():
+    roast_date = input("Please enter the date of roast: ")
     coffee_name = input("Please enter the bean roasted: ")
     green_weight = float(input("Enter the green coffee weight in grams: "))
     finished_weight = float(input("Enter the finished coffee weight in grams: "))
-    return coffee_name, green_weight, finished_weight
+    return roast_date, coffee_name, green_weight, finished_weight
 
 def calculate_weight_loss_percentage(green_weight, finished_weight):
     weight_loss = green_weight - finished_weight
@@ -23,7 +24,8 @@ def classify_roast(weight_loss_percentage):
     else:
         return "Italian Roast"
 
-def print_results(coffee_name, green_weight, finished_weight, weight_loss_percentage, classification):
+def print_results(roast_date, coffee_name, green_weight, finished_weight, weight_loss_percentage, classification):
+    print("Date Roasted:", roast_date)
     print("Bean Roasted:", coffee_name)
     print("Green coffee weight: " + str(green_weight) + " grams")
     print("Finished coffee weight: " + str(finished_weight) + " grams")
@@ -31,10 +33,10 @@ def print_results(coffee_name, green_weight, finished_weight, weight_loss_percen
     print("Roast classification: " + classification)
 
 def main():
-    coffee_name, green_weight, finished_weight = get_user_input()
+    roast_date, coffee_name, green_weight, finished_weight = get_user_input()
     weight_loss_percentage = calculate_weight_loss_percentage(green_weight, finished_weight)
     classification = classify_roast(weight_loss_percentage)
-    print_results(coffee_name, green_weight, finished_weight, weight_loss_percentage, classification)
+    print_results(roast_date, coffee_name, green_weight, finished_weight, weight_loss_percentage, classification)
 
 if __name__ == "__main__":
     main()
