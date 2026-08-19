@@ -31,8 +31,10 @@ mv                                  % move item from terminal
 code xxx.aaa                        % opens specified file in vscode
 
 ## Ollama
-ollama pull qwen2.5-coder:7b        % pull the latest qwen model
-ollama run qwen2.5-coder:7b         % run the stored qwen model
+ollama pull qwen2.5-coder:7b        % pull qwen model for laptop
+ollama run qwen2.5-coder:7b         % run qwen model for laptop
+ollama pull qwen2.5-coder:14b        % pull qwen model for desktop
+ollama run qwen2.5-coder:14b         % run qwen model for desktop
 ollama --version                    % returns ollama version
 ollama list                         % returns downloaded models
 /bye                                % end ollama session

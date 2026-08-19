@@ -223,3 +223,18 @@ Nothing today.
 
 ## Next Step
 Continue from Part 8.  Need to incorporate functions in the program.
+
+# 2026-08-19
+Continue Mission 0.5 from Part 8
+
+## Accomplished
+asdf
+
+## Learned
+asdf
+
+## Confusing
+asdf
+
+## Next Step
+asdf

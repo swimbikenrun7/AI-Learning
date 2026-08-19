@@ -16,3 +16,11 @@ If I spend more than 15 minutes working on one error unsuccessfully:
     - your code,
     - what you expected to happen,
     - what you've already tried.
+
+## Guardrail #3
+No unnecessary abstraction.
+
+Without proper prompt guardrails, AI will attempt to "improve" the code with many changes.
+
+The standing instruction to correct this type of behavior is:
+    Solve the smallest problem that moves the project forward
