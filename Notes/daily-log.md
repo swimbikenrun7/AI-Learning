@@ -298,18 +298,26 @@ Completed Mission 0.6. Wrote a simple test script with Qwen's help to verify the
 ### Challenge questions
 1. What problem does automated testing solve that manually running the program doesn't?
 Automated testing can include multiple edge case tests in one run, returning the results of all in one go.  It's much faster than individually running scenarios and it also generates a clean report identifying either the failed tests or indicating that all passed.
+- Grade: A
+    Not just that it can run them quickly, but that it can do it repeatedly - after every change.
 
 2. Test vs program - Why do you think we put tests in a separate file instead of putting them directly into main.py?
 There is no need to load a testing program when running the main script. By creating a separate program which calls on functions from the main program, you simplify the main code and containerize the testing suite. Eventually if I write code that has many modules it would become even more important to not have the testing contained within one specific part of the codebase.
+- Grade: A-
+    Containerization implies something specific which is not what is intended here. Separate or encapsulate is better.
 
 3. Regression - Give me an example of a change to the coffee logger that could accidentally break the weight-loss calculations even though we didn't intentionally change the calculation itself.
 I ran into this when initially running the pytest, because the function name for calculating weight loss was actually different than what you had reported. It was a great first check because it returned only one error and I got to see the format in which the failed testing reported. Changing variable or function names will break the calculation without modifying the calculation itself.
+- Grade: A+
 
 4. Agentic AI - Imagine we eventually give an agent permission to modify main.py. Why is "make the program better" a dangerous instruction? Why is "add roast-level classification. all existing pytest tests must continue to pass" a much safer instruction?
 The first directive gives a lot of leeway for the agent to define how the program might be "better". In an extreme case, it could decide that it would be "better" to eliminate some essential functions and variables from the code, or to add nonsense features that are not useful for roasting coffee. It's the marriage of domain knowledge informing proper specification that enables the agent to effectively write and improve the code. Also, the second instruction is very specific and the resulting change can be clearly tracked and measured.  The first instruction could cause too many changes to the code to truly understand what all has actually changed.
+- Grade: A+
 
 5. Requirements - You identified an important question: what should happen when green weight = 0? What would you specify as the desired behavior?
 I would add an if statement to the code to prompt the user to enter a positive value for green weight. I would also add an if statement for roasted weight (green weight - roasted weight < 0) to prompt the user to enter a value less than the green weight.
+- Grade: B
+    Defining the solution as an "if()" statement is unnecessarily specific. What is better is to specify the requirements for each variable and allow the agent to implement the requirements.
 
 ## Mission 0.7 Notes
 Refactoring code.  Specifically going from:
@@ -327,10 +335,44 @@ Refactoring code.  Specifically going from:
 
 To an architecture where the logic is in a separate module.
 
+### Challenge questions
+1. Separation of concerns - In your own words: Why is it useful for main.py not to contain the actual roast calculations?
+First, for organization it makes it simple to know where to modify the calculations vs. modifying the UI and inputs. Importantly, as features are added and I consider hosting this on the web, for instance, I can generate a new module for that UI but still import the calculations module. I don't have to rewrite an entire codebase just for a web app.
+- Grade: A+
+
+2. Refactoring - What makes this a refactoring rather than a new feature?
+I didn't add any features, I just changed how the code was structured. The change in architecture is a refactor.
+- Grade: A+
+
+3. Reuse - Suppose six months from now we create a web version of the coffee logger. Why is it useful that calculate_weight_loss() doesn't contain any input() or print() statements?
+My assumption is that those input and UI functions will not be the same in the web version, there will be a different syntax.
+- Grade: A
+    The important term here is decoupling: reducing unnecessary dependencies between components.
+
+4. Architecture - Imagine an AI agent proposes creating 10 separate Python files for our current coffee logger. What questions would you ask before accepting its proposal?
+First I would want to know what the purpose of each file is and why it's necessary at this stage. I specifically want to know approximately how many total lines of code the logger will have and ensure that each of these 10 files has a distinct purpose with more than a few lines of code each for now.  I can always refactor later if a particular module becomes cumbersome.
+- Grade: A+
+    One refinement: lines of code are a great measure of whether modules deserve to exist.
+    So your questions should be:
+    1. What responsibility does this module have?
+    2. Why does that responsibility deserve separation?
+    3. Does separating it reduce complexity elsewhere?
+    4. Does it make testing or reuse easier?
+    5. Does it introduce more complexity than it removes?
+
+    The last question is particularly important.
+
+5. Testing - Why was this mission substantially safer to perform after Mission 0.6 than it would have been before we had automated tests?
+I already had a method to verify that the code was working and was able to identify if something broke the code. Doing a refactor before I had that verification might have left me chasing logic errors or other things not related to the refactor.
+- Grade: A+
+
 ## Learned
-asdf
+Learned how to structure testing scripts in python and how to refactor and validate the code with the existing test suite. Beginning to understand more about the structure of proper specifications and where human input adds value vs. where the machine can outperform me by doing the grunt work.
 
 ## Confusing
-asdf
+I still have a lot to learn on syntax and using correct terms/vocabulary.
 
 ## Next Step
+Mission 0.8: Input validation and defensive programming.
+Will introduce some new concepts including separation of validation rules from calculation logic.
+Will write a formal mini-specification for the coffee logger.

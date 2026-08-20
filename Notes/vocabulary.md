@@ -30,3 +30,6 @@ Text
 
 ## Function
 A named action that performs some work
+
+## Decoupling
+Reducing unnecessary dependencies between components.
