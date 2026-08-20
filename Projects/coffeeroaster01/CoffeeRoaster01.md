@@ -36,3 +36,9 @@ Green Weight: 225 g
 Finished Weight: 191 g
 
 Weight Loss: 15.11%
+
+### Tests
+
+Should calculate_weight_loss_percentage(0,x) return anything?
+    No.
+    There needs to be an if statement to require user correction when green weight is entered as zero.
