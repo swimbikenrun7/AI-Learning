@@ -45,3 +45,6 @@ Agent fixes failures
 Human reviews result
 
 But we are not going to give an agent permission to autonomously modify a large project that has no tests. That's a recipe for token-burning and debugging nightmares.
+
+## Guardrail #5
+Use the simplest architecture that solves the current problem.

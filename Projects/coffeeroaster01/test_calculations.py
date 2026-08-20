@@ -1,8 +1,5 @@
-# Import the pytest module
-import pytest
-
 # Import the function from main.py
-from main import calculate_weight_loss_percentage
+from calculations import calculate_weight_loss_percentage
 
 # Define the first test case
 def test_weight_loss_100_to_90():

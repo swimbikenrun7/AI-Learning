@@ -289,7 +289,9 @@ In Mission 0.6 we'll introduce testing.
 Picking up from Mission 0.6: Teach the Computer to Check Its Own Work
 
 ## Accomplished
-Wrote a simple test script with Qwen's help to verify the math is being done correctly.  Broke the program to see what failed tests return.
+Completed Mission 0.6. Wrote a simple test script with Qwen's help to verify the math is being done correctly.  Broke the program to see what failed tests return.
+
+
 
 ## Mission 0.6 Notes
 
@@ -308,6 +310,22 @@ The first directive gives a lot of leeway for the agent to define how the progra
 
 5. Requirements - You identified an important question: what should happen when green weight = 0? What would you specify as the desired behavior?
 I would add an if statement to the code to prompt the user to enter a positive value for green weight. I would also add an if statement for roasted weight (green weight - roasted weight < 0) to prompt the user to enter a value less than the green weight.
+
+## Mission 0.7 Notes
+Refactoring code.  Specifically going from:
+
+                    Coffee Roast Logger
+
+                           main.py
+                              │
+          ┌───────────────────┼───────────────────┐
+          ▼                   ▼                   ▼
+       INPUT               LOGIC              OUTPUT
+          │                   │                   │
+     Ask user            Calculate loss       Print results
+     for weights         Classify roast
+
+To an architecture where the logic is in a separate module.
 
 ## Learned
 asdf

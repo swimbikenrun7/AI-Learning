@@ -13,3 +13,11 @@ Write a command-line application that will record coffee roasting information an
 - Graph trends
 - AI roast recommendations
 - Notes about roast quality/preference
+
+## Architecture
+
+The application currently consists of:
+
+- `main.py` — command-line user interface
+- `calculations.py` — coffee-related calculations
+- `test_calculations.py` — automated tests for calculations
