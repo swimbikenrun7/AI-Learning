@@ -42,3 +42,21 @@ Weight Loss: 15.11%
 Should calculate_weight_loss_percentage(0,x) return anything?
     No.
     There needs to be an if statement to require user correction when green weight is entered as zero.
+
+### Variable requirements
+
+GREEN WEIGHT
+- Must be numeric
+- Must be > 0
+- Must be < 500
+- Otherwise ask again
+
+FINISHED WEIGHT
+- Must be numeric
+- Must be > 0
+- Must be < green weight
+- Otherwise ask again
+
+DATE
+- Must be in the format MM-DD-YYYY (month - day - year)
+- Otherwise ask again

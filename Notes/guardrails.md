@@ -24,3 +24,24 @@ Without proper prompt guardrails, AI will attempt to "improve" the code with man
 
 The standing instruction to correct this type of behavior is:
     Solve the smallest problem that moves the project forward
+
+## Guardrail #4
+The more autonomy we give an agent, the stronger our automated verification needs to be.
+
+As we increase agent autonomy, we're going to progressively move from:
+
+Human writes code
+
+toward:
+
+Human specifies behavior
+        ↓
+Agent writes code
+        ↓
+Automated tests evaluate code
+        ↓
+Agent fixes failures
+        ↓
+Human reviews result
+
+But we are not going to give an agent permission to autonomously modify a large project that has no tests. That's a recipe for token-burning and debugging nightmares.

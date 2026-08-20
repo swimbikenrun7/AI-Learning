@@ -284,3 +284,35 @@ Going forward, before asking AI to build a feature we are going to incorporate s
     Constraints
 
 In Mission 0.6 we'll introduce testing.
+
+# 2026-08-20
+Picking up from Mission 0.6: Teach the Computer to Check Its Own Work
+
+## Accomplished
+Wrote a simple test script with Qwen's help to verify the math is being done correctly.  Broke the program to see what failed tests return.
+
+## Mission 0.6 Notes
+
+### Challenge questions
+1. What problem does automated testing solve that manually running the program doesn't?
+Automated testing can include multiple edge case tests in one run, returning the results of all in one go.  It's much faster than individually running scenarios and it also generates a clean report identifying either the failed tests or indicating that all passed.
+
+2. Test vs program - Why do you think we put tests in a separate file instead of putting them directly into main.py?
+There is no need to load a testing program when running the main script. By creating a separate program which calls on functions from the main program, you simplify the main code and containerize the testing suite. Eventually if I write code that has many modules it would become even more important to not have the testing contained within one specific part of the codebase.
+
+3. Regression - Give me an example of a change to the coffee logger that could accidentally break the weight-loss calculations even though we didn't intentionally change the calculation itself.
+I ran into this when initially running the pytest, because the function name for calculating weight loss was actually different than what you had reported. It was a great first check because it returned only one error and I got to see the format in which the failed testing reported. Changing variable or function names will break the calculation without modifying the calculation itself.
+
+4. Agentic AI - Imagine we eventually give an agent permission to modify main.py. Why is "make the program better" a dangerous instruction? Why is "add roast-level classification. all existing pytest tests must continue to pass" a much safer instruction?
+The first directive gives a lot of leeway for the agent to define how the program might be "better". In an extreme case, it could decide that it would be "better" to eliminate some essential functions and variables from the code, or to add nonsense features that are not useful for roasting coffee. It's the marriage of domain knowledge informing proper specification that enables the agent to effectively write and improve the code. Also, the second instruction is very specific and the resulting change can be clearly tracked and measured.  The first instruction could cause too many changes to the code to truly understand what all has actually changed.
+
+5. Requirements - You identified an important question: what should happen when green weight = 0? What would you specify as the desired behavior?
+I would add an if statement to the code to prompt the user to enter a positive value for green weight. I would also add an if statement for roasted weight (green weight - roasted weight < 0) to prompt the user to enter a value less than the green weight.
+
+## Learned
+asdf
+
+## Confusing
+asdf
+
+## Next Step

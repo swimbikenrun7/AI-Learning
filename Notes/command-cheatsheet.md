@@ -9,6 +9,7 @@ git pull
 git status
 git add .
 git commit -m "description of changes"
+git show --stat                     % to verify which files included in latest local commit
 git push
 
 ## Powershell
