@@ -376,3 +376,57 @@ I still have a lot to learn on syntax and using correct terms/vocabulary.
 Mission 0.8: Input validation and defensive programming.
 Will introduce some new concepts including separation of validation rules from calculation logic.
 Will write a formal mini-specification for the coffee logger.
+
+# 2026-08-24
+Picking up from 0.8
+
+## Accomplished
+
+## Mission 0.8 notes
+Insight: Interactive code is harder to test than pure calculation logic.
+
+### Challenge questions
+1. Exceptions: What's the difference between "the user entered invalid data" and "the program encountered an unexpected exception"?  Why might the first be a normal situation that the program should handle?
+User input can vary pretty widely, depending on the allowed input method. For simple keyboard entry, any number of characters could be entered for data, so a well-written code should have methods for filtering and rejecting invalid inputs. The "unexpected exception" sort of error will be something more fundamental breaking in the code.  This is the sort of code break that an agent should be able to write tests for and troubleshoot without much feedback. It's not a "domain knowledge" sort of issue but a variable or syntax or calculation issue, for instance.
+
+2. Validation: Why is "finished_weight < green_weight" a domain rule rather than simply a python programming rule?
+Negative values aren't disqualifying in themselves, so of course you can't have a rule that doesn't allow them. You have to understand coffee roasting and that the beans are losing moisture in the process to know that they should weigh less at the end.
+
+3. Specification: Why might a SPEC.md be more useful to an AI agent than simply giving it your current source code and saying "add validation"?
+Keeping a SPEC file is a clear way to map out all the requirements and various aspects of domain knowledge. Also, my current code might be wildly inefficient, or the changes that may be required might justify a different architecture. I don't want to unnecessarily tie the hands of the AI to improve aspects of the existing code. Also, without the SPEC the AI may make decisions regarding relative importance of certain variables or calculations without proper context. Having things written out in the spec makes it clear what is in scope or out of scope for "add validation".
+
+4. Testing: Why is it harder to automatically test code that directly calls "input()" than a function like: "calculate_weight_loss(225,191)"?
+Calculations have testable right answers. Calculation is very easy. Defining the correct input() can depend on syntax and format, units (scale), relative values, etc. A lot of forethought has to go into developing proper specification around acceptable inputs.
+
+5. Agent guardrail: Suppose an agent is given this instruction: "add robust validation to the coffee logger." What would you add to that instruction to constrain the agent's behavior and prevent it from making unrelated changes?
+I would personally limit the validation to one input at a time with instruction not to modify any other code. Maybe as I get more experience I might give the instruction to modify a list or a class of inputs depending on how my code is organized, then I could review all changes in that block of code together. But the "just do it" instruction is too vague and may lead to unintended consequences with changes throughout the stack.
+
+## Learned
+Implemented a spec and while/try loops.
+
+### From the end of 0.8
+We're now going to maintain three distinct things:
+CODE
+What the computer does.
+
+SPECIFICATION
+What we want the computer to do.
+
+TESTS
+How we verify that it does what we want.
+
+That triangle is going to become increasingly important:
+
+                 SPEC
+                /    \
+               /      \
+              /        \
+           CODE ───── TESTS
+
+If those three drift apart, we have a problem.
+
+## Confusing
+The exact fuctionality of testing is still tripping me up. I think I need to just encounter it more.
+
+## Next Step
+Mission 0.9
