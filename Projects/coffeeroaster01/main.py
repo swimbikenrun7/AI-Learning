@@ -3,8 +3,35 @@ from calculations import calculate_weight_loss_percentage
 def get_user_input():
     roast_date = input("Please enter the date of roast: ")
     coffee_name = input("Please enter the bean roasted: ")
-    green_weight = float(input("Enter the green coffee weight in grams: "))
-    finished_weight = float(input("Enter the finished coffee weight in grams: "))
+
+    while True:
+        green_weight_input = input("Enter the green coffee weight in grams: ")
+        
+        try:
+            green_weight = float(green_weight_input)
+            
+            if green_weight > 100 and green_weight < 300:
+                break  # Exit the loop if green_weight is valid
+            else:
+                print("Invalid input. The green coffee weight must be between 100 and 300 grams.")
+        
+        except ValueError:
+            print("Invalid input. Please enter a numeric value for the green coffee weight.")
+
+    while True:
+            finished_weight_input = input("Enter the finished coffee weight in grams: ")
+            
+            try:
+                finished_weight = float(finished_weight_input)
+                
+                if finished_weight > 100 and finished_weight < green_weight: 
+                    break  # Exit the loop if green_weight is valid
+                else:
+                    print("Invalid input. The finished coffee weight must be less than green weight and greater than 100g.")
+            
+            except ValueError:
+                print("Invalid input. Please enter a numeric value for the green coffee weight.")
+
     return roast_date, coffee_name, green_weight, finished_weight
 
 def classify_roast(weight_loss_percentage):
