@@ -388,18 +388,47 @@ Insight: Interactive code is harder to test than pure calculation logic.
 ### Challenge questions
 1. Exceptions: What's the difference between "the user entered invalid data" and "the program encountered an unexpected exception"?  Why might the first be a normal situation that the program should handle?
 User input can vary pretty widely, depending on the allowed input method. For simple keyboard entry, any number of characters could be entered for data, so a well-written code should have methods for filtering and rejecting invalid inputs. The "unexpected exception" sort of error will be something more fundamental breaking in the code.  This is the sort of code break that an agent should be able to write tests for and troubleshoot without much feedback. It's not a "domain knowledge" sort of issue but a variable or syntax or calculation issue, for instance.
+    - Grade: A
+    Refinement: Invalid user input is an expected operating condition. An unexpected exception is an unexpected failure of the software.
 
 2. Validation: Why is "finished_weight < green_weight" a domain rule rather than simply a python programming rule?
 Negative values aren't disqualifying in themselves, so of course you can't have a rule that doesn't allow them. You have to understand coffee roasting and that the beans are losing moisture in the process to know that they should weigh less at the end.
+    - Grade: A+
 
 3. Specification: Why might a SPEC.md be more useful to an AI agent than simply giving it your current source code and saying "add validation"?
 Keeping a SPEC file is a clear way to map out all the requirements and various aspects of domain knowledge. Also, my current code might be wildly inefficient, or the changes that may be required might justify a different architecture. I don't want to unnecessarily tie the hands of the AI to improve aspects of the existing code. Also, without the SPEC the AI may make decisions regarding relative importance of certain variables or calculations without proper context. Having things written out in the spec makes it clear what is in scope or out of scope for "add validation".
+    - Grade: A+
+    Constrain the requirements not the implementation.
 
 4. Testing: Why is it harder to automatically test code that directly calls "input()" than a function like: "calculate_weight_loss(225,191)"?
 Calculations have testable right answers. Calculation is very easy. Defining the correct input() can depend on syntax and format, units (scale), relative values, etc. A lot of forethought has to go into developing proper specification around acceptable inputs.
+    - Grade: A-
+    Refinement: Input() itself is very testable, but interactive code introduces more dimensions (m x n matrix). The core issue with input() vs. the calculation is that the input command has a much larger behavioral surface than pure calculation.
 
 5. Agent guardrail: Suppose an agent is given this instruction: "add robust validation to the coffee logger." What would you add to that instruction to constrain the agent's behavior and prevent it from making unrelated changes?
 I would personally limit the validation to one input at a time with instruction not to modify any other code. Maybe as I get more experience I might give the instruction to modify a list or a class of inputs depending on how my code is organized, then I could review all changes in that block of code together. But the "just do it" instruction is too vague and may lead to unintended consequences with changes throughout the stack.
+    - Grade: A
+    Refinement: Here is an example of a more robust structure for assigning this task to the agent
+
+    Task: Add validation for green-weight input.
+
+    Requirements:
+
+    Accept numeric values > 0.
+    Reject nonnumeric values.
+    Reject values ≤ 0.
+    Display an explanatory error.
+    Continue prompting until valid input is received.
+
+    Constraints:
+
+    Do not modify finished-weight handling.
+    Do not modify calculation formulas.
+    Do not add dependencies.
+    All existing pytest tests must continue to pass.
+    Add tests covering the new behavior.
+
+    Verification: Run the complete pytest suite before considering the task complete.
 
 ## Learned
 Implemented a spec and while/try loops.
@@ -430,3 +459,161 @@ The exact fuctionality of testing is still tripping me up. I think I need to jus
 
 ## Next Step
 Mission 0.9
+
+# 2026-08-25
+Picking up from 0.9, having Qwen write a new code stack from the spec file.
+
+## Accomplished
+Got a mostly working code stack developed using a dictionary to house roast data instead of just individual variables.
+
+## Mission 0.9 notes
+Data integrity means that the data stored by your application remains accurate, valid, and internally consistent.
+
+A database containing numbers isn't necessarily a trustworthy dataset.
+
+### Challenge questions
+1. Dictionary vs list: Why is a dictionary a good representation for one roast, while a list is a good representation for multiple roasts?
+The dictionary makes a collection of variables whereas the list is a collection of collections of variables.
+    - Grade: A+
+    Refinement: a dictionary is actually a set of key/value pairs whereas a list is an ordered collection of items.
+
+2. Data modeling: Why is
+
+green_weight
+finished_weight
+roast_time
+first_crack_time
+
+a better representation of a roast than simply storing the calculated weight-loss percentage?
+The minimum data should be stored in the original format as user input.  The calculations can always be done later.  Also a calculation could be modified, and you don't want values from different calculation iterations to be persistent.
+    - Grade: A+
+
+3. Derived data: Suppose we stored both
+
+roast_time = 757
+first_crack = 495
+development_time = 262
+
+What problem could arise if someone later changed first_crack to 500 but forgot to update development_time?
+This builds on the last answer, same argument. This is why you don't store the derived data, because now you have disagreement in values for a variable in the code.
+    - Grade: A+
+
+4. Data integrity: Why is
+
+first_crack = 600
+roast_time = 500
+
+a data integrity problem, rather than simply an unusual roast?
+Because (joking here) you would have to forecast to the future to know when the bean might achieve first crack if you stop roasting before it happens. Anyone with proper domain knowledge knows this result is impossible, so the data was either entered wrong or handled incorrectly by the program.
+    - Grade: A++
+
+5. RAM vs persistent storage: Why does our list of roast dictionaries disappear when the program exits? Where was the data actually stored while the program was running?
+The list is stored in RAM and has no persistence.
+    - Grade: A
+    Refinement: The Python list itself is stored in RAM along with the dictionary objects and their contents while the program is running.
+
+6. Agentic AI: Imagine telling an agent
+
+"We need to store roast records."
+
+It proposes:
+
+"I'll create a PostgreSQL database, a REST API, a React frontend, an authentication system, and Docker containers."
+
+Why might that be a bad agent response even if all of those technologies are useful eventually?
+My mind goes to parsimony. I want the simplest thing that works for the current task. We can always add complexity later as more features are desired, but creating a bloated structure for features that may never be used just makes for confusion and more difficulty in maintaining the code.
+    - Grade: A+
+    Minimum necessary complexity
+    When an agent proposes a solution, ask: What is the simplest architecture that satisfies the current requirements and leaves us a reasonable path to future requirements?
+
+## Learned
+Learned the purpose of dictionaries and lists and how they can be incorporated into programs to organize datasets. Also took my first crack at having Qwen build an entire stack from a SPEC.md file, which felt like crossing the Rubicon.
+
+## Confusing
+The syntax is still very confusing and it takes me a while to debug the code when it fails. So far I've been able to tease it out eventually, but Qwen has not shown itself to be super capable of debugging its own work to-date.
+
+## Next step
+Mission 0.10 - Persistence
+
+# 2026-08-26
+Mission 0.10
+
+## Accomplished
+Completely rebuilt the coffeeroaster enabling storage in json. This version works and has effective tests.
+
+## Mission 0.10 notes
+Key note: Source code and persistent user data are different categories of files and may deserve different version-control policies.
+
+### Challenge questions
+1. Persistence: What's the fundamental difference between storing the roast list in RAM and storing it in roasts.json?
+RAM is temporary quick access storage.  When the program exits the data in RAM is cleared. roasts.json is a data file that can be stored in a hard disk or remote server or some other location and the data can be deserialized by the program and stored in RAM for use by the program, then written back to json by serializing the data.
+    - Grade: A
+
+2. Serialization: In your own words, what does serialization accomplish?
+json expects data in sequence rather than just listed, unsequenced pairs as in python.
+    - Grade: D
+    Serialization isn't about putting data into a sequence. It's about converting an in-memory data structure into a representation that can be stored or transmitted.
+    The important concept is:
+    
+    Serialization converts an object from one representation into another representation suitable for storage or transmission.
+
+3. Representation: Why might the same date reasonably have all three representations?
+    1. 08/26/2026
+    2. 2026-08-26
+    3. Python date object
+What role does each representation serve?
+All 3 can contain the same information, but for instance (1) will be natural for users in the Americas as this is conventional format, (2) is a logical format used to enable sorting by name to also sort by date, (3) is a concise python format for storing and representing dates. Because each has its use case, we can design a program to transform the underlying data to be represented in a number of ways.
+    - Grade: A+
+
+4. Round trip: Why is "Python → JSON → Python" a useful thing to test?
+Read-write errors are fairly common.  You want to make sure that the process of serialization and deserialization doesn't corrupt the data, that it returns to python in the same way it was originally in python.
+    - Grade: A
+    Refinement: Semantics - we don't want the python object merely to contain the same characters, but to retain the same meaning and appropriate types.
+
+5. Data safety: Suppose an agent proposes this solution to corrupted roasts.json: "If the JSON can't be parsed, delete the file and create a new empty one." Why is that potentially dangerous?
+This actually happened while iterating the latest version of the roast logger. This approach doesn't provide the opportunity to repair the existing data and therefore you lose all of it. I instructed Qwen to start the program with a check of the existing json to return an instruction to the user that the data was corrupted and terminating the program rather than collecting all the new data and overwriting. This will be another item to think about in the specification - how to handle corrupted data and/or writing/overwriting data libraries.
+    - Grade: A+
+
+6. Agent guardrail: Write your own improved instruction to an agent for implementing persistence. Include at least three explicit constraints.
+Roast records must persist between program executions.
+The application will use JSON for initial persistent storage.
+The stored representation of dates must be clearly defined and consistently converted to/from the internal Python date representation.
+Existing roast records must not be silently discarded when a new roast is added.
+Do not store calculated values in JSON.
+Before querying user data, the program shall check the JSON file and if corrupted notify the user and exit the program.
+    - Grade: A+
+
+## Learned
+Learned a lot about the use of json files and the necessary syntax to convert python objects to json objects and vice-versa. Stumbled across some new potential issues to consider when defining my specification and introduced a new specification structure.
+
+Requirement
+What the system must do.
+    Example: Roast records must survive between program executions.
+
+Constraint
+What the implementation must not do, or boundaries it must respect.
+    Example: Do not introduce a database.
+
+Implementation
+How the requirement is accomplished.
+    Example: Use Python's json module and a JSON file.
+
+Domain rule
+A rule that comes from the real-world problem, rather than programming itself.
+    Example: First-crack time must be less than total roast time.
+
+This distinction will become extremely important when you start directing agents.
+
+You don't necessarily want to tell an agent: "Create save_roasts() using json.dump()."
+
+You often want to tell it: "Roast records must persist between executions, existing records must not be lost, and no external dependencies may be introduced."
+
+Then let the agent determine an appropriate implementation.
+
+That's where agentic programming becomes interesting: you're increasingly specifying behavior and boundaries while the AI handles more of the implementation.
+
+## Confusing
+Always syntax. The troubleshooting takes a long time because I don't understand all of the functions.
+
+## Next step
+0.11

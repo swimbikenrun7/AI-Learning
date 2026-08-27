@@ -6,6 +6,23 @@ Record coffee roasting sessions and calculate basic roast metrics in Python. The
 ## Requirements
 The code shall have a separate module for calculations.
 Each module shall have a pytest script written for validation testing.
+Tests shall be stored in the tests/ folder in the parent directory.
+Persistent data shall be written to a JSON file in the data/ folder in the parent directory.
+Load existing roast records when the program starts.
+If the data file does not yet exist, start with an empty dataset.
+Save roast records when a new roast is added.
+Preserve all existing roast records when adding a new record.
+Convert dates appropriately between the Python internal representation and JSON storage.
+
+## Constraints
+JSON only; do not introduce a database.
+Do not introduce external dependencies.
+Do not add a GUI.
+Do not change the existing calculation formulas.
+Do not delete existing functionality.
+Keep the architecture reasonably simple.
+Add automated tests for persistence behavior.
+Explain the proposed changes before implementing them.
 
 ## User Inputs
 
@@ -17,6 +34,10 @@ Must be ≤ today's date.
 Future dates are rejected.
 Display an explanatory error for invalid input.
 Continue prompting until valid input is received.
+
+### Bean
+Required.
+May contain any combination of alphanumeric characters.
 
 ### Green Weight
 Required.
@@ -41,14 +62,18 @@ Must be entered in MM:SS format.
 Must be ≥ 04:00.
 Must be < 20:00.
 Display an explanatory error for invalid input.
+The error must display the values in MM:SS format.
 Continue prompting until valid input is received.
+Value must be stored as integer seconds.
 
 ### Time of first crack
 Required.
 Must be entered in MM:SS format.
 Must be less than total roast time.
 Display an explanatory error for invalid input.
+The error must display values in MM:SS format.
 Continue prompting until valid input is received.
+Values must be stored as integer seconds.
 
 ### Roast temperature
 Not included in the current version.
@@ -63,6 +88,14 @@ Weight loss percentage is calculated as:
 ### Development Time
 Roast time after first crack calculated as:
 (total roast time - time of first crack)
+
+## Persistence
+Roast records must persist between program executions.
+The application will use JSON for initial persistent storage.
+The stored representation of dates must be clearly defined and consistently converted to/from the internal Python date representation.
+Existing roast records must not be silently discarded when a new roast is added.
+Do not store calculated values in JSON.
+Before querying user data, the program shall check the JSON file and if corrupted notify the user and exit the program.
 
 ## Tables
 

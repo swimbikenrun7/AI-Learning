@@ -1,0 +1,13 @@
+{
+    "10/28/2025": {
+        "date": "10/28/2025",
+        "bean_name": "asdf",
+        "green_weight": 200.0,
+        "finished_weight": 170.0,
+        "total_roast_time": 540,
+        "time_of_first_crack": 420,
+        "weight_loss": 15.0,
+        "development_time": 120,
+        "roast_classification": "Full City"
+    }
+}
