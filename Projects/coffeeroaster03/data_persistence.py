@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from datetime import datetime
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+DATA_DIR = Path(__file__).resolve().parent / "data"
 ROAST_RECORDS_PATH = DATA_DIR / "roast_records.json"
 
 def load_roast_records():
@@ -23,3 +23,14 @@ def save_roast_records(records):
     os.makedirs(DATA_DIR, exist_ok=True)
     with open(ROAST_RECORDS_PATH, 'w') as file:
         json.dump(records, file, indent=4)
+
+def count_roasts():
+       try:
+           with open('data/roast_records.json', 'r') as file:
+               data = json.load(file)
+               return len(data)
+       except FileNotFoundError:
+           return 0
+       except json.JSONDecodeError:
+           print("Error: The data file is corrupted. Exiting the program.")
+           exit(1)

@@ -1,5 +1,5 @@
 import calculations as calc
-from data_persistence import load_roast_records, save_roast_records
+from data_persistence import load_roast_records, save_roast_records, count_roasts
 from user_input import get_date, get_bean_name, get_green_weight, get_finished_weight, get_roast_time, get_time_of_first_crack
 
 ROAST_RECORDS = load_roast_records()
@@ -7,7 +7,8 @@ ROAST_RECORDS = load_roast_records()
 def display_menu():
     print("1. Add roast")
     print("2. View roasts")
-    print("3. Exit")
+    print("3. Count roasts")
+    print("4. Exit")
 
 def add_roast():
     date = get_date()
@@ -53,13 +54,16 @@ def view_roasts():
 def main():
     while True:
         display_menu()
-        choice = input("Enter your choice (1/2/3): ")
+        choice = input("Enter your choice (1/2/3/4): ")
 
         if choice == '1':
             add_roast()
         elif choice == '2':
             view_roasts()
         elif choice == '3':
+            total_roasts = count_roasts()
+            print(f"Total number of stored roasts: {total_roasts}")
+        elif choice == '4':
             break
         else:
             print("Invalid choice. Please try again.")
