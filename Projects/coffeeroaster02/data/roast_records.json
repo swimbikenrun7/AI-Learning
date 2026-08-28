@@ -9,5 +9,27 @@
         "weight_loss": 15.0,
         "development_time": 120,
         "roast_classification": "Full City"
+    },
+    "08/20/2025": {
+        "date": "08/20/2025",
+        "bean_name": "qwef",
+        "green_weight": 200.0,
+        "finished_weight": 180.0,
+        "total_roast_time": 480,
+        "time_of_first_crack": 390,
+        "weight_loss": 10.0,
+        "development_time": 90,
+        "roast_classification": "City Roast"
+    },
+    "08/14/2023": {
+        "date": "08/14/2023",
+        "bean_name": "oiwe",
+        "green_weight": 205.0,
+        "finished_weight": 182.0,
+        "total_roast_time": 510,
+        "time_of_first_crack": 420,
+        "weight_loss": 11.219512195121952,
+        "development_time": 90,
+        "roast_classification": "City Roast"
     }
 }

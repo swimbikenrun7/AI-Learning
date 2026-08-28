@@ -617,3 +617,69 @@ Always syntax. The troubleshooting takes a long time because I don't understand 
 
 ## Next step
 0.11
+
+# 2026-08-26
+Mission 0.11
+
+## Accomplished
+Completely rebuilt the coffeeroaster again, refactoring and integrating a menu via ui.py. This time I was able to debug all syntax and context issues by reading the code, that felt like a huge step.
+
+## Mission 0.11 notes
+
+
+### Challenge questions
+1. while vs. for: Why is a while loop more appropriate for the main application menu than a for loop?
+Because it's uncertain how many times the user would want to cycle back to the menu. You'd have to implement a counter or something to use a for loop effectively for this instead of a while loop.  This sort of open-ended uncertain end point is exactly where while loops are most effective.
+    - Grade: A
+
+2. Application state: What does the roasts list represent while the program is running?
+The roast list is I believe a list of dictionaries? After the json is deserialized to python I believe it is just sets of key-value pairs.
+    - Grade: B-
+    Refinement: "set" is a distinct data structure in python so it's a poor choice of words. Dictionary is right. And the characterization as a list of dictionaries is right.
+
+3. Separation of concerns: Why shouldn't calculate_weight_loss() need to know that the user entered the numbers through PowerShell?
+The calculations exist as a separate module to isolate the calculation functions from the user input functions. The calculation module is setup to receive input from "a source", whether that be PowerShell or some other form of query.
+    - Grade: A+
+
+4. Testing: Why is testing "calculate_weight_loss(225, 191)" generally easier and more reliable than testing the entire interactive application to determine whether weight loss was calculated correctly?
+Unit testing enables testing of individual functions to ensure the proper function of each. It's simpler, quicker and cleaner to just test the individual function than to sift through errors in the entire code. Also, it's a testing design choice to do the integration testing separately to isolate each aspect of code performance for analysis.
+    - Grade: A+
+
+5. Agent behavior: Suppose your agent encounters a failing pytest after implementing the menu and says: "I updated the test because the expected behavior was obviously wrong." Why should you be skeptical?
+That's a classic issue with machine learning algorithms when given control of the testing environment. If I fail the test, then the easiest solution is to modify the test. But the model we are aiming for is to have really well-defined tests that are persistent, and therefore effectively test changes to the code.
+    - Grade: A+
+    Refinement: It's not that ML systems will always choose the easiest solution as modifying a test, but it's that optimizing toward the objective can have the unintended consequence of being solved in this way when not properly bounded.
+
+6. Architecture: The agent proposes creating:
+    menu.py
+    input_handler.py
+    display.py
+    application_state.py
+    roast_service.py
+    roast_repository.py
+    validation.py
+    calculations.py
+for our relatively small program. Would you accept this architecture? Why or why not?
+No way. Maybe if the program begins to get quite complicated and we are displaying graphs or importing discrete temperature curve data, and exporting roast profiles to programmable machines, etc. etc. But for this stage I feel like the goldilocks zone is where I've arrived at a UI.py, calculations.py, data_persistence.py and user-input.py. Really at this stage ui and user-input could probably be combined, but I can see how in the very near future, each of those individual modules could separately grow and quickly deserve a refactor. I think it's tidy the way it is for the current code.
+    - Grade: A+
+
+## Learned
+New concepts:
+    while loop vs. for loop
+    Boolean expression
+    application state
+    CLI
+    unit test
+    integration test
+    testing boundary
+
+One architectural observation
+    Write your own answer to: Which parts of the coffee logger should know about the user interface, and which parts shouldn't?
+
+In the current format really only the UI cares about the UI.  It's its own module intentionally for gathering inputs from user and displaying menus and outputs to the user.
+
+## Confusing
+unittest comes with its own dizzying set of new variables and statements, but learning by running into incorrect syntax again and again
+
+## Next step
+asdf

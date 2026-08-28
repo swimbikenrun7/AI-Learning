@@ -48,3 +48,7 @@ But we are not going to give an agent permission to autonomously modify a large 
 
 ## Guardrail #5
 Use the simplest architecture that solves the current problem.
+
+## Guardrail #6
+Agent instruction on testing:
+        Do not remove or rewrite existing tests simply to make them pass. If an existing test conflicts with the specification, explain the conflict rather than changing the test automatically.

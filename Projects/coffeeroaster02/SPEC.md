@@ -97,6 +97,18 @@ Existing roast records must not be silently discarded when a new roast is added.
 Do not store calculated values in JSON.
 Before querying user data, the program shall check the JSON file and if corrupted notify the user and exit the program.
 
+## Command-Line Interface
+When the application starts, after checking the json for corrupt data it shall load existing roast records and display a menu.
+The menu shall provide the following options:
+1. Add roast
+2. View roasts
+3. Exit
+Selecting Add roast shall collect and validate the required roast fields and save the resulting record.
+Selecting View roasts shall display existing roast records.
+Selecting Exit shall terminate the application.
+After completing Add roast or View roasts, the application shall return to the main menu.
+An invalid menu selection shall display an appropriate message and return to the menu without terminating the application.
+
 ## Tables
 
 ### Roast Classification
