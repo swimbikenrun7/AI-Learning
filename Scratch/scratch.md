@@ -1,208 +1,237 @@
-Explain each Ruff finding below. For each one, tell me:
+Review the code below and diagnose why roast_records.json is being overwritten instead of appended when option 1 is selected in the menu. i've pasted all modules:
 
-What does the warning mean?
-Why does Ruff consider it undesirable?
-Is this definitely a problem or potentially just a style preference?
-What would a reasonable fix look like?
+# calculations.py
 
-Do not modify my code.
+def calculate_weight_loss(green_weight, finished_weight):
+    if green_weight < 100 or green_weight > 300:
+        raise ValueError(
+            "Green weight must be greater than 100 and less than 300 grams."
+        )
+    return ((green_weight - finished_weight) / green_weight) * 100
 
-I001 [*] Import block is un-sorted or un-formatted
- --> Projects\coffeeroaster03\data_persistence.py:1:1
-  |
-1 | / import json
-2 | | import os
-3 | | from pathlib import Path
-4 | | from datetime import datetime
-  | |_____________________________^
-5 |
-6 |   DATA_DIR = Path(__file__).resolve().parent / "data"
-  |
-help: Organize imports
-  |
-2 | import os
-3 + from datetime import datetime
-4 | from pathlib import Path
-  - from datetime import datetime
-5 |
-  |
 
-DTZ007 Naive datetime constructed using `datetime.datetime.strptime()` without %z
-  --> Projects\coffeeroaster03\data_persistence.py:15:45
-   |
-13 |                   records = json.load(file)
-14 |                   for date in records:
-15 |                       records[date]['date'] = datetime.strptime(records[date]['date'], 
-   |  _____________________________________________^
-16 | | "%m/%d/%Y").strftime("%m/%d/%Y")
-   | |___________^
-17 |                   return records
-18 |               except json.JSONDecodeError:
-   |
-help: Call `.replace(tzinfo=<timezone>)` or `.astimezone()` to convert to an aware datetime
+def calculate_development_time(total_roast_time, time_of_first_crack):
+    if total_roast_time < 240 or time_of_first_crack >= total_roast_time:
+        raise ValueError("Total roast time must be between 04:00 and 20:00.")
+    return total_roast_time - time_of_first_crack
 
-PLR1722 Use `sys.exit()` instead of `exit`
-  --> Projects\coffeeroaster03\data_persistence.py:36:12
-   |
-34 |        except json.JSONDecodeError:
-35 |            print("Error: The data file is corrupted. Exiting the program.")
-36 |            exit(1)
-   |            ^^^^
-help: Replace `exit` with `sys.exit()`
 
-I001 [*] Import block is un-sorted or un-formatted
- --> Projects\coffeeroaster03\test_integration.py:1:1
-  |
-1 | / import unittest
-2 | | import sys
-3 | | from io import StringIO
-4 | | from ui import main
-  | |___________________^
-5 |
-6 |   class TestIntegration(unittest.TestCase):
-  |
-help: Organize imports
-  |
-1 + import sys
-2 | import unittest
-  - import sys
-3 | from io import StringIO
-4 +
-5 | from ui import main
-6 |
-7 +
-8 | class TestIntegration(unittest.TestCase):
-  |
+def classify_roast(weight_loss):
+    ROAST_CLASSIFICATION = {
+        13.01: "City Roast",
+        14.51: "City Plus",
+        15.51: "Full City",
+        16.51: "Full City Plus",
+        18.01: "Vienna Roast"
+    }
+    for threshold, classification in ROAST_CLASSIFICATION.items():
+        if weight_loss < threshold:
+            return classification
+    return "Italian Roast"
 
-I001 [*] Import block is un-sorted or un-formatted
- --> Projects\coffeeroaster03\test_units.py:1:1
-  |
-1 | / import unittest
-2 | | from data_persistence import load_roast_records, save_roast_records
-3 | | from user_input import get_date, get_bean_name, get_green_weight, get_finished_weight, get_roast_time, get_time_of_first_crack
-4 | | from calculations import calculate_weight_loss, calculate_development_time, classify_roast
-5 | | import unittest.mock as mock
-  | |____________________________^
-6 |
-7 |   class TestDataPersistence(unittest.TestCase):
-  |
-help: Organize imports
-   |
-1  | import unittest
-2  + import unittest.mock as mock
-3  +
-4  + from calculations import (
-5  +     calculate_development_time,
-6  +     calculate_weight_loss,
-7  +     classify_roast,
-8  + )
-9  | from data_persistence import load_roast_records, save_roast_records
-   - from user_input import get_date, get_bean_name, get_green_weight, get_finished_weight, get_roast_time, get_time_of_first_crack
-   - from calculations import calculate_weight_loss, calculate_development_time, classify_roast
-   - import unittest.mock as mock
-10 + from user_input import (
-11 +     get_bean_name,
-12 +     get_date,
-13 +     get_finished_weight,
-14 +     get_green_weight,
-15 +     get_roast_time,
-16 +     get_time_of_first_crack,
-17 + )
-18 +
-19 |
-   |
+# data_persistence.py
 
-PLR0402 [*] Use `from unittest import mock` in lieu of alias
- --> Projects\coffeeroaster03\test_units.py:5:8
-  |
-3 | from user_input import get_date, get_bean_name, get_green_weight, get_finished_weight, get_roast_time, get_time_of_first_crack
-4 | from calculations import calculate_weight_loss, calculate_development_time, classify_roast
-5 | import unittest.mock as mock
-  |        ^^^^^^^^^^^^^^^^^^^^^
-6 |
-7 | class TestDataPersistence(unittest.TestCase):
-  |
-help: Replace with `from unittest import mock`
-  |
-4 | from calculations import calculate_weight_loss, calculate_development_time, classify_roast
-  - import unittest.mock as mock
-5 + from unittest import mock
-6 |
-  |
+import sys
+import json
+import os
+from datetime import datetime
+from pathlib import Path
 
-I001 [*] Import block is un-sorted or un-formatted
- --> Projects\coffeeroaster03\ui.py:1:1
-  |
-1 | / import calculations as calc
-2 | | from data_persistence import load_roast_records, save_roast_records, count_roasts
-3 | | from user_input import get_date, get_bean_name, get_green_weight, get_finished_weight, get_roast_time, get_time_of_first_crack
-  | |______________________________________________________________________________________________________________________________^
-4 |
-5 |   ROAST_RECORDS = load_roast_records()
-  |
-help: Organize imports
-   |
-1  | import calculations as calc
-   - from data_persistence import load_roast_records, save_roast_records, count_roasts
-   - from user_input import get_date, get_bean_name, get_green_weight, get_finished_weight, get_roast_time, get_time_of_first_crack
-2  + from data_persistence import count_roasts, load_roast_records, save_roast_records
-3  + from user_input import (
-4  +     get_bean_name,
-5  +     get_date,
-6  +     get_finished_weight,
-7  +     get_green_weight,
-8  +     get_roast_time,
-9  +     get_time_of_first_crack,
-10 + )
-11 |
-   |
+DATA_DIR = Path(__file__).resolve().parent / "data"
+ROAST_RECORDS_PATH = DATA_DIR / "roast_records.json"
 
-PERF102 When using only the values of a dict use the `values()` method
-  --> Projects\coffeeroaster03\ui.py:42:25
-   |
-41 | def view_roasts():
-42 |     for date, record in ROAST_RECORDS.items():
-   |                         ^^^^^^^^^^^^^^^^^^^
-43 |         print(f"Date: {record['date']}")
-44 |         print(f"Bean Name: {record['bean_name']}")
-   |
-help: Replace `.items()` with `.values()`
 
-I001 [*] Import block is un-sorted or un-formatted
- --> Projects\coffeeroaster03\user_input.py:1:1
-  |
-1 | from datetime import datetime
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2 |
-3 | def get_date():
-  |
-help: Organize imports
-  |
-2 |
-3 +
-4 | def get_date():
-  |
+def load_roast_records():
+    if ROAST_RECORDS_PATH.exists():
+        with open(ROAST_RECORDS_PATH, "r") as file:
+            try:
+                records = json.load(file)
+                for date in records:
+                    records[date]['date'] = datetime.strptime(
+                        records[date]['date'], "%m/%d/%Y"
+                    ).strftime("%m/%d/%Y")
+                return records
+            except json.JSONDecodeError:
+                print(
+                    "Failed to decode roast records file. Starting with an empty record set."
+                )
+    return {}
 
-DTZ007 Naive datetime constructed using `datetime.datetime.strptime()` without %z
- --> Projects\coffeeroaster03\user_input.py:7:24
-  |
-5 |         date_str = input("Enter the date (MM/DD/YYYY): ")
-6 |         try:
-7 |             date_obj = datetime.strptime(date_str, "%m/%d/%Y")
-  |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-8 |             if date_obj > datetime.now():
-9 |                 raise ValueError("Date cannot be in the future.")
-  |
-help: Call `.replace(tzinfo=<timezone>)` or `.astimezone()` to convert to an aware datetime
 
-DTZ005 `datetime.datetime.now()` called without a `tz` argument
-  --> Projects\coffeeroaster03\user_input.py:8:27
-   |
- 6 |         try:
- 7 |             date_obj = datetime.strptime(date_str, "%m/%d/%Y")
- 8 |             if date_obj > datetime.now():
-   |                           ^^^^^^^^^^^^^^
- 9 |                 raise ValueError("Date cannot be in the future.")
-10 |             return date_obj.strftime("%m/%d/%Y")
-   |
-help: Pass a `datetime.timezone` object to the `tz` parameter
+def save_roast_records(records):
+    os.makedirs(DATA_DIR, exist_ok=True)
+    with open(ROAST_RECORDS_PATH, "w") as file:
+        json.dump(records, file, indent=4)
+
+
+def count_roasts():
+       try:
+           with open('data/roast_records.json', "r") as file:
+               data = json.load(file)
+               return len(data)
+       except FileNotFoundError:
+           return 0
+       except json.JSONDecodeError:
+           print("Error: The data file is corrupted. Exiting the program.")
+           sys.exit(1)
+
+# ui.py
+
+import calculations as calc
+from data_persistence import count_roasts, load_roast_records, save_roast_records
+from user_input import (
+    get_bean_name,
+    get_date,
+    get_finished_weight,
+    get_green_weight,
+    get_roast_time,
+    get_time_of_first_crack,
+)
+
+ROAST_RECORDS = load_roast_records()
+
+
+def display_menu():
+    print("1. Add roast")
+    print("2. View roasts")
+    print("3. Count roasts")
+    print("4. Exit")
+
+
+def add_roast():
+    date = get_date()
+    bean_name = get_bean_name()
+    green_weight = get_green_weight()
+    finished_weight = get_finished_weight(green_weight)
+    total_roast_time = get_roast_time()
+    time_of_first_crack = get_time_of_first_crack(total_roast_time)
+
+    weight_loss = calc.calculate_weight_loss(green_weight, finished_weight)
+    development_time = calc.calculate_development_time(
+        total_roast_time, time_of_first_crack
+    )
+    roast_classification = calc.classify_roast(weight_loss)
+
+    new_record = {
+        "date": date,
+        "bean_name": bean_name,
+        "green_weight": green_weight,
+        "finished_weight": finished_weight,
+        "total_roast_time": total_roast_time,
+        "time_of_first_crack": time_of_first_crack,
+        "weight_loss": weight_loss,
+        "development_time": development_time,
+        "roast_classification": roast_classification
+    }
+
+    ROAST_RECORDS[date] = new_record
+    save_roast_records(ROAST_RECORDS)
+    print("Roast added successfully.")
+
+
+def view_roasts():
+    for date, record in ROAST_RECORDS.items():
+        print(f"Date: {record['date']}")
+        print(f"Bean Name: {record['bean_name']}")
+        print(f"Green Weight: {record['green_weight']}g")
+        print(f"Finished Weight: {record['finished_weight']}g")
+        print(f"Total Roast Time: {record['total_roast_time']}s")
+        print(f"Time of First Crack: {record['time_of_first_crack']}s")
+        print(f"Weight Loss: {record['weight_loss']:.2f}%")
+        print(f"Development Time: {record['development_time']}s")
+        print(f"Roast Classification: {record['roast_classification']}")
+        print("-" * 40)
+
+
+def main():
+    while True:
+        display_menu()
+        choice = input("Enter your choice (1/2/3/4): ")
+
+        if choice == "1":
+            add_roast()
+        elif choice == "2":
+            view_roasts()
+        elif choice == "3":
+            total_roasts = count_roasts()
+            print(f"Total number of stored roasts: {total_roasts}")
+        elif choice == "4":
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+
+if __name__ == "__main__":
+    main()
+
+# user_input.py
+
+from datetime import datetime
+
+
+def get_date():
+    while True:
+        date_str = input("Enter the date (MM/DD/YYYY): ")
+        try:
+            date_obj = datetime.strptime(date_str, "%m/%d/%Y")
+            if date_obj > datetime.now():
+                raise ValueError("Date cannot be in the future.")
+            return date_obj.strftime("%m/%d/%Y")
+        except ValueError as e:
+            print(f"Invalid input: {e}")
+
+
+def get_bean_name():
+    return input("Enter the bean name: ")
+
+
+def get_green_weight():
+    while True:
+        try:
+            green_weight = float(input("Enter the green weight (in grams): "))
+            if green_weight < 100 or green_weight > 300:
+                raise ValueError
+            return green_weight
+        except ValueError:
+            print(
+                "Invalid input. Please enter a numeric value greater than 100 and less than 300."
+            )
+
+
+def get_finished_weight(green_weight):
+    while True:
+        try:
+            finished_weight = float(input("Enter the finished weight (in grams): "))
+            if finished_weight < 100 or finished_weight > green_weight:
+                raise ValueError
+            return finished_weight
+        except ValueError:
+            print(
+                "Invalid input. Please enter a numeric value greater than 100 and less than the green weight."
+            )
+
+
+def get_roast_time():
+    while True:
+        time_str = input("Enter the total roast time (MM:SS): ")
+        try:
+            minutes, seconds = map(int, time_str.split(":"))
+            total_seconds = minutes * 60 + seconds
+            if total_seconds < 240 or total_seconds >= 1200:
+                raise ValueError
+            return total_seconds
+        except ValueError:
+            print("Invalid input. Please enter a value in MM:SS format.")
+
+
+def get_time_of_first_crack(total_roast_time):
+    while True:
+        time_str = input("Enter the time of first crack (MM:SS): ")
+        try:
+            minutes, seconds = map(int, time_str.split(":"))
+            total_seconds = minutes * 60 + seconds
+            if total_seconds < 240 or total_seconds >= total_roast_time:
+                raise ValueError
+            return total_seconds
+        except ValueError:
+            print("Invalid input. Please enter a value in MM:SS format.")

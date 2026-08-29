@@ -749,4 +749,91 @@ Learned about branch functionality and some useful commands for navigating git.
 Not much in this module.
 
 ## Next step
-0.13
+Mission 0.13
+
+# 2026-08-29
+
+## Accomplished
+Wrote a .gitignore in AI-Learning to leave __pycache__ and *.pyc files untracked in git. Also installed ruff, ran check and format --check as static testing to correct some formatting errors.
+
+## Mission 0.13 notes
+
+### Challenge questions
+1. __pycache__: What is the difference between a .py file and a .pyc file? Why don't we generally need the latter in GitHub?
+.py is a python file whereas .pyc is a python compiled bytecode file. When a python code is executed, python first compiles the code in bytecode and caches this for execution by the python interpreter. If the cached bytecode matches the current .py version then the compilation step can be skipped, improving performance.
+    - Grade: A
+
+2. .gitignore: Suppose you add "*.tmp" to .gitignore. What does that tell Git? And why doesn't it necessarily remove an existing important.tmp file that Git is already tracking?
+It tells git to stop tracking files ending in ".tmp", temporary files. But if temporary files are already tracked, it will not remove those files. If you wanted to do that you would need to remove those files from git using "git rm -r..."
+    - Grade: A-
+    Refinement: It's not necessarily that it tells git to stop tracking files ending in .tmp, it's more precisely that it tells git to ignore matching files that aren't already being tracked.
+
+3. Static vs. dynamic: What's the conceptual difference between "pytest" and "ruff check ."?
+Static tests evaluate the code against design standards and assess the integrity of the code structure without actually executing the code. Ruff is a common tool for reading and evaluating code, it's how we lint. Pytest actually executes parts of the code to determine proper performance, hence dynamic vs static.
+    - Grade: A-
+    Refinement: Ruff output is not "static test" but more precisely "static analysis checks".
+
+4. Functional correctness vs. code quality: Can a program pass every pytest test and still have serious code-quality problems? Give me an example.
+Sure. One example was flagged numerous times by Ruff in my existing code, where datetime was imported without tz information. However, because we're not using datetime in the code to record actual times of day, I determined that it was not an issue in my execution. However if we were adding a record of "time of day" when the roast was completed and the code could be executed in any number of places simultaneously, then tz would be necessary to properly identify the relative timing of the entries. One issue flagged by Ruff was actually incorrect. It identified that i should use ".values()" instead of ".items()" in:
+def view_roasts():
+    for date, record in ROAST_RECORDS.items():
+        print(f"Date: {record['date']}")
+        print(f"Bean Name: {record['bean_name']}")
+        print(f"Green Weight: {record['green_weight']}g")
+        print(f"Finished Weight: {record['finished_weight']}g")
+        print(f"Total Roast Time: {record['total_roast_time']}s")
+        print(f"Time of First Crack: {record['time_of_first_crack']}s")
+        print(f"Weight Loss: {record['weight_loss']:.2f}%")
+        print(f"Development Time: {record['development_time']}s")
+        print(f"Roast Classification: {record['roast_classification']}")
+        print("-" * 40)
+but if I only do .values() then it can't reference the date.  The code doesn't function with .values().
+    - Grade: A
+
+5. --check: Why is "ruff format --check ." safer as a first step than immediately running "ruff format .", especially when you're working with an AI agent?
+In my mind it's similar to running git diff.  --check outputs a list of all the recommended changes and allows the user to review and assess the validity before executing. For instance, in the case of datetime being constantly called out by Ruff, if it had went ahead and made all those changes it would have added an unnecessary complexity to the code that does not need to be there. I want to review proposed changes before committing to them.
+    - Grade: A
+    Subtle distinction: git diff asks "what has changed?" whereas "ruff format --check" asks "would formatting changes be necessary?"
+
+6. Agent guardrails: Compare "Clean up the code." with: "Fix only Ruff findings. Do not change application behavior. All existing pytest tests must continue to pass. Do not modify tests to make them pass. Report every file changed." Why is the second instruction substantially safer?
+Based on what I saw today, Ruff will help me format a messy code to be in alignment with style guides so that it's easier for me to read and diagnose issues, and also easier for others to interpret. Limiting the scope to these sorts of enhancements first of all is fairly low risk, but also provides a specific subset of potential syntactical issues or errors that could need correcting after the agent executes. I want to separate this sort of static iteration to optimize the code from dynamic iteration which may change how the code functions. The second prompt includes specific guardrails to limit the task to static concerns with specific reporting requirements for the changes. The first prompt leaves the agent a lot of freedom to define what "clean up" means.
+    - Grade: A
+    Refinement: It's not necessarily about optimization, it's about separate tasks with distinct goals in editing the code.
+        Formatting
+        Linting
+        Static analysis
+        Refactoring
+        Performance optimization
+        Behavioral changes    
+
+7. Repository hygiene: You encounter a new file in your repository "roast_analysis_final_v2_really_final.csv". You don't recognize it. Would you immediately add it to .gitignore? Why or why not?
+I wouldn't necessarily ignore it. A csv could be a container of a bunch of roast data for instance. I would want to know exactly what the file is and why it's there. It could be a reference dataset or really any number of things - just beacuse I don't recognize it doesn't mean it should be ignored by default.
+    - Grade: A
+
+## Learned
+Add these concepts to your learned notes:
+    generated files
+    Python bytecode
+    __pycache__
+    .gitignore
+    static analysis
+    linting
+    formatting
+    Ruff
+    --check
+    tracked vs. ignored files
+
+And record one conceptual distinction:
+    Tests tell us whether the program behaves as expected. Static analysis tells us whether the source code exhibits patterns that may indicate problems or poor practice.
+
+## Confusing
+Not much in this module.
+
+## Next step
+Review VS Code tutorials on:
+    source control
+    Git
+    Python
+    debugging
+    testing
+0.14 - OpenClaw baby!
