@@ -12,6 +12,17 @@ git commit -m "description of changes"
 git show --stat                     % to verify which files included in latest local commit
 git push
 
+### Branching
+git branch                          % displays branches with * by current branch
+git switch -c XXXXXX                % create a new branch "XXXXXX"
+git switch XXXXXX                   % switch to branch "XXXXXX"
+git merge XXXXXX                    % from current branch, merges "XXXXXX"
+git branch -d XXXXXX                % deletes branch "XXXXXX"
+
+### Misc
+git log --oneline --decorate -5     % returns 5 most recent commits
+git restore XXXXXX                  % discards uncommitted changes to the file
+
 ## Powershell
 get-location                        % returns active directory
 pwd                                 % returns active directory

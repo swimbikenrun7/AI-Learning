@@ -626,7 +626,6 @@ Completely rebuilt the coffeeroaster again, refactoring and integrating a menu v
 
 ## Mission 0.11 notes
 
-
 ### Challenge questions
 1. while vs. for: Why is a while loop more appropriate for the main application menu than a for loop?
 Because it's uncertain how many times the user would want to cycle back to the menu. You'd have to implement a counter or something to use a for loop effectively for this instead of a while loop.  This sort of open-ended uncertain end point is exactly where while loops are most effective.
@@ -682,4 +681,72 @@ In the current format really only the UI cares about the UI.  It's its own modul
 unittest comes with its own dizzying set of new variables and statements, but learning by running into incorrect syntax again and again
 
 ## Next step
-asdf
+0.12
+
+# 2026-08-28
+
+## Accomplished
+Created a branch, added a feature on the branch, then merged the branch to main.  Also identified an issue with the data persistence module writing to the wrong directory (extra .parent reference)
+
+## Mission 0.12 notes
+
+### Challenge questions
+1. Branches: What is a Git branch actually accomplishing? Why is it useful to think of it as a line of development rather than as a second copy of your project?
+I'm a bit unclear on how branch is not just a second copy. Maybe the distinction is that it's **not only** just a second copy, but it's a copy that can be developed in parallel within the same repo. Additionally, it carries information on its shared origin from the state of the code at the time the branch was created.
+    - Grade: B
+    Refinement: A branch is a line of development.  Until a branch is committed, the branch and main still point to the same point in the code.  Once a commit is made on a branch, it then has its own "descendent" history that diverges from main.
+    Concisely: branch - a named pointer to a particular line of commit history.
+
+2. Safety: Suppose main contains a perfectly functioning application and an AI agent is given permission to make substantial changes. Why is it safer to have the agent work on a branch?
+We don't want an agent to modify the main branch because it may be difficult to undo the changes that were made if it breaks the code. By creating a branch we allow the agent free rein to "go fast and break things" with the security of a good known state. We can always just delete the branch, create a new branch and try again if things go off the rails.
+    - Grade: A
+
+3. Diff: Why should you inspect "git diff" before committing AI-generated changes?
+I want to understand the parts of the code that were modified or deleted before committing the changes, and especially before merging branches.
+    - Grade: A
+
+4. Tests + Git: Why are automated tests and Git branches particularly powerful when used together?
+Think about:
+branch
+→ agent changes code
+→ tests
+→ review diff
+→ merge
+A good battery of automated tests enables an agentic loop of iteration to get to working code. If I have failed to provide adequate guardrails to the agent then it's easy to go back to main and create another branch. Because the branch reduces the consequences of failure, I can afford to remove manual intervention steps from the process.
+    - Grade: A
+
+5. Reversibility: What's the difference between an "uncommitted change" and a "committed change" in terms of your ability to recover?
+Before the changes are committed i can always use "restore" to go back to the last committed state. Reminds me of a save checkpoint in a game - some games used to be really punishing if you got in too deep to a situation and set a new save, you could find yourself in a situation that was either impossible or nearly impossible to recover. The habit of running pytest to confirm good functioning code before adding and committing changes is a good practice to help avoid this.
+    - Grade: A-
+    Refinement: It's actually almost the reverse on committing.  If you commit too much it will be hard to understand which commit would be appropriate to return to.  By committing too infrequently you may lose substantial work that was functioning.
+
+    Takeaway - Commit frequently at meaningful known-good states.
+
+6. Merge conflicts: Why can't Git simply decide which side of a merge conflict is "correct"?
+This actually came up in this mission - the pycache files between the branch and main were flagged as a conflict and it wouldn't allow the merge. In this case it was an easy decision - just delete the cache and merge. But not all will be this straightforward and git is not an inference engine. I don't recall exactly how you defined it, but my recollection is that git is sort of like a file tracking system. Its job is to note where things belong, how they were changed, etc., the decision-making on "what is good" is up to some other system (or person).
+    - Grade: A
+
+7. Agent guardrail: Suppose you eventually give OpenClaw this instruction: "Implement the next feature in the application." What additional Git-related constraints would you want in your agent workflow?
+I would create a branch first, have the agent modify the branch and would not allow it to commit changes.
+    - Grade: B+
+    Refinement:
+    1. Agent may only modify its designated feature branch.
+    2. Agent may not modify main.
+    3. Agent may not merge branches.
+    4. Agent may not modify or delete existing tests solely to make them pass.
+    5. Agent must run the test suite after making changes.
+    6. Agent must report test results and summarize changed files.
+    7. Agent must not make unrelated changes.
+    8. Human reviews git diff before committing/merging.
+    And probably keep for now:
+    9. Agent does not commit.
+    Eventually a sophisticated agent may be working on a complicated feature for several hours. Having the commit checkpoints can become useful for inspecting, reverting, redirecting, etc.
+
+## Learned
+Learned about branch functionality and some useful commands for navigating git.
+
+## Confusing
+Not much in this module.
+
+## Next step
+0.13
