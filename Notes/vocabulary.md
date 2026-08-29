@@ -33,3 +33,9 @@ A named action that performs some work
 
 ## Decoupling
 Reducing unnecessary dependencies between components.
+
+## Linting
+I see something potentially problematic.
+
+## Formatting
+Make the source code follow a consistent formatting convention.

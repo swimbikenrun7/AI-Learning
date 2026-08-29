@@ -1,138 +1,208 @@
-The below specification was used to write a working roast logger for writing, storing and reading data related to coffee roasting. The current menu consists of:
-1. Add roast
-2. View roasts
-3. Exit
+Explain each Ruff finding below. For each one, tell me:
 
-I want to add a menu option that will display the total number of stored roasts.
+What does the warning mean?
+Why does Ruff consider it undesirable?
+Is this definitely a problem or potentially just a style preference?
+What would a reasonable fix look like?
 
-The roast logger currently consists of the following modules:
-user_input - gathering user input
-ui - menu, main and display output
-calculations - all calculation functions
-data_persistence - verify, import and update json with roast information
+Do not modify my code.
 
-Review the requirement to add a menu option to display the total number of stored roasts and my current coffee logger architecture. Propose the smallest reasonable implementation for adding a roast-count menu option. Do not modify code yet. Do not introduce new dependencies, modules, classes, databases, or unrelated features. Identify which existing files would need modification and explain why.
+I001 [*] Import block is un-sorted or un-formatted
+ --> Projects\coffeeroaster03\data_persistence.py:1:1
+  |
+1 | / import json
+2 | | import os
+3 | | from pathlib import Path
+4 | | from datetime import datetime
+  | |_____________________________^
+5 |
+6 |   DATA_DIR = Path(__file__).resolve().parent / "data"
+  |
+help: Organize imports
+  |
+2 | import os
+3 + from datetime import datetime
+4 | from pathlib import Path
+  - from datetime import datetime
+5 |
+  |
 
-# Coffee Roast Logger Specification
+DTZ007 Naive datetime constructed using `datetime.datetime.strptime()` without %z
+  --> Projects\coffeeroaster03\data_persistence.py:15:45
+   |
+13 |                   records = json.load(file)
+14 |                   for date in records:
+15 |                       records[date]['date'] = datetime.strptime(records[date]['date'], 
+   |  _____________________________________________^
+16 | | "%m/%d/%Y").strftime("%m/%d/%Y")
+   | |___________^
+17 |                   return records
+18 |               except json.JSONDecodeError:
+   |
+help: Call `.replace(tzinfo=<timezone>)` or `.astimezone()` to convert to an aware datetime
 
-## Purpose
-Record coffee roasting sessions and calculate basic roast metrics in Python. The program requests the user inputs, performs calculations, then returns the user input data and calculation results as well as the roast classification according to weight loss percentage.
+PLR1722 Use `sys.exit()` instead of `exit`
+  --> Projects\coffeeroaster03\data_persistence.py:36:12
+   |
+34 |        except json.JSONDecodeError:
+35 |            print("Error: The data file is corrupted. Exiting the program.")
+36 |            exit(1)
+   |            ^^^^
+help: Replace `exit` with `sys.exit()`
 
-## Requirements
-The code shall have a separate module for calculations.
-Each module shall have a pytest script written for validation testing.
-Tests shall be stored in the tests/ folder in the parent directory.
-Persistent data shall be written to a JSON file in the data/ folder in the parent directory.
-Load existing roast records when the program starts.
-If the data file does not yet exist, start with an empty dataset.
-Save roast records when a new roast is added.
-Preserve all existing roast records when adding a new record.
-Convert dates appropriately between the Python internal representation and JSON storage.
+I001 [*] Import block is un-sorted or un-formatted
+ --> Projects\coffeeroaster03\test_integration.py:1:1
+  |
+1 | / import unittest
+2 | | import sys
+3 | | from io import StringIO
+4 | | from ui import main
+  | |___________________^
+5 |
+6 |   class TestIntegration(unittest.TestCase):
+  |
+help: Organize imports
+  |
+1 + import sys
+2 | import unittest
+  - import sys
+3 | from io import StringIO
+4 +
+5 | from ui import main
+6 |
+7 +
+8 | class TestIntegration(unittest.TestCase):
+  |
 
-## Constraints
-JSON only; do not introduce a database.
-Do not introduce external dependencies.
-Do not add a GUI.
-Do not change the existing calculation formulas.
-Do not delete existing functionality.
-Keep the architecture reasonably simple.
-Add automated tests for persistence behavior.
-Explain the proposed changes before implementing them.
+I001 [*] Import block is un-sorted or un-formatted
+ --> Projects\coffeeroaster03\test_units.py:1:1
+  |
+1 | / import unittest
+2 | | from data_persistence import load_roast_records, save_roast_records
+3 | | from user_input import get_date, get_bean_name, get_green_weight, get_finished_weight, get_roast_time, get_time_of_first_crack
+4 | | from calculations import calculate_weight_loss, calculate_development_time, classify_roast
+5 | | import unittest.mock as mock
+  | |____________________________^
+6 |
+7 |   class TestDataPersistence(unittest.TestCase):
+  |
+help: Organize imports
+   |
+1  | import unittest
+2  + import unittest.mock as mock
+3  +
+4  + from calculations import (
+5  +     calculate_development_time,
+6  +     calculate_weight_loss,
+7  +     classify_roast,
+8  + )
+9  | from data_persistence import load_roast_records, save_roast_records
+   - from user_input import get_date, get_bean_name, get_green_weight, get_finished_weight, get_roast_time, get_time_of_first_crack
+   - from calculations import calculate_weight_loss, calculate_development_time, classify_roast
+   - import unittest.mock as mock
+10 + from user_input import (
+11 +     get_bean_name,
+12 +     get_date,
+13 +     get_finished_weight,
+14 +     get_green_weight,
+15 +     get_roast_time,
+16 +     get_time_of_first_crack,
+17 + )
+18 +
+19 |
+   |
 
-## User Inputs
+PLR0402 [*] Use `from unittest import mock` in lieu of alias
+ --> Projects\coffeeroaster03\test_units.py:5:8
+  |
+3 | from user_input import get_date, get_bean_name, get_green_weight, get_finished_weight, get_roast_time, get_time_of_first_crack
+4 | from calculations import calculate_weight_loss, calculate_development_time, classify_roast
+5 | import unittest.mock as mock
+  |        ^^^^^^^^^^^^^^^^^^^^^
+6 |
+7 | class TestDataPersistence(unittest.TestCase):
+  |
+help: Replace with `from unittest import mock`
+  |
+4 | from calculations import calculate_weight_loss, calculate_development_time, classify_roast
+  - import unittest.mock as mock
+5 + from unittest import mock
+6 |
+  |
 
-### Date
-Required.
-Must be in the format MM/DD/YYYY.
-Must represent a valid calendar date.
-Must be ≤ today's date.
-Future dates are rejected.
-Display an explanatory error for invalid input.
-Continue prompting until valid input is received.
+I001 [*] Import block is un-sorted or un-formatted
+ --> Projects\coffeeroaster03\ui.py:1:1
+  |
+1 | / import calculations as calc
+2 | | from data_persistence import load_roast_records, save_roast_records, count_roasts
+3 | | from user_input import get_date, get_bean_name, get_green_weight, get_finished_weight, get_roast_time, get_time_of_first_crack
+  | |______________________________________________________________________________________________________________________________^
+4 |
+5 |   ROAST_RECORDS = load_roast_records()
+  |
+help: Organize imports
+   |
+1  | import calculations as calc
+   - from data_persistence import load_roast_records, save_roast_records, count_roasts
+   - from user_input import get_date, get_bean_name, get_green_weight, get_finished_weight, get_roast_time, get_time_of_first_crack
+2  + from data_persistence import count_roasts, load_roast_records, save_roast_records
+3  + from user_input import (
+4  +     get_bean_name,
+5  +     get_date,
+6  +     get_finished_weight,
+7  +     get_green_weight,
+8  +     get_roast_time,
+9  +     get_time_of_first_crack,
+10 + )
+11 |
+   |
 
-### Bean
-Required.
-May contain any combination of alphanumeric characters.
+PERF102 When using only the values of a dict use the `values()` method
+  --> Projects\coffeeroaster03\ui.py:42:25
+   |
+41 | def view_roasts():
+42 |     for date, record in ROAST_RECORDS.items():
+   |                         ^^^^^^^^^^^^^^^^^^^
+43 |         print(f"Date: {record['date']}")
+44 |         print(f"Bean Name: {record['bean_name']}")
+   |
+help: Replace `.items()` with `.values()`
 
-### Green Weight
-Required.
-Input must be numeric.
-Input must be greater than 100 and less than 300.
-Invalid input must produce a helpful error.
-User must be allowed to retry.
-User is requested to input a number in grams.
+I001 [*] Import block is un-sorted or un-formatted
+ --> Projects\coffeeroaster03\user_input.py:1:1
+  |
+1 | from datetime import datetime
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2 |
+3 | def get_date():
+  |
+help: Organize imports
+  |
+2 |
+3 +
+4 | def get_date():
+  |
 
-### Finished Weight
-Required.
-Input must be numeric.
-Input must be greater than 100.
-Input must be less than green weight.
-Invalid input must produce a helpful error.
-User must be allowed to retry.
-User is requested to input a number in grams.
+DTZ007 Naive datetime constructed using `datetime.datetime.strptime()` without %z
+ --> Projects\coffeeroaster03\user_input.py:7:24
+  |
+5 |         date_str = input("Enter the date (MM/DD/YYYY): ")
+6 |         try:
+7 |             date_obj = datetime.strptime(date_str, "%m/%d/%Y")
+  |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+8 |             if date_obj > datetime.now():
+9 |                 raise ValueError("Date cannot be in the future.")
+  |
+help: Call `.replace(tzinfo=<timezone>)` or `.astimezone()` to convert to an aware datetime
 
-### Total roast time
-Required.
-Must be entered in MM:SS format.
-Must be ≥ 04:00.
-Must be < 20:00.
-Display an explanatory error for invalid input.
-The error must display the values in MM:SS format.
-Continue prompting until valid input is received.
-Value must be stored as integer seconds.
-
-### Time of first crack
-Required.
-Must be entered in MM:SS format.
-Must be less than total roast time.
-Display an explanatory error for invalid input.
-The error must display values in MM:SS format.
-Continue prompting until valid input is received.
-Values must be stored as integer seconds.
-
-### Roast temperature
-Not included in the current version.
-Future functionality may allow temperature logging at each minute mark against a selected roast profile.
-
-## Calculations
-
-### Weight Loss
-Weight loss percentage is calculated as:
-(green weight - finished weight) / green weight × 100
-
-### Development Time
-Roast time after first crack calculated as:
-(total roast time - time of first crack)
-
-## Persistence
-Roast records must persist between program executions.
-The application will use JSON for initial persistent storage.
-The stored representation of dates must be clearly defined and consistently converted to/from the internal Python date representation.
-Existing roast records must not be silently discarded when a new roast is added.
-Do not store calculated values in JSON.
-Before querying user data, the program shall check the JSON file and if corrupted notify the user and exit the program.
-
-## Command-Line Interface
-When the application starts, after checking the json for corrupt data it shall load existing roast records and display a menu.
-The menu shall provide the following options:
-1. Add roast
-2. View roasts
-3. Exit
-Selecting Add roast shall collect and validate the required roast fields and save the resulting record.
-Selecting View roasts shall display existing roast records.
-Selecting Exit shall terminate the application.
-After completing Add roast or View roasts, the application shall return to the main menu.
-An invalid menu selection shall display an appropriate message and return to the menu without terminating the application.
-
-## Tables
-
-### Roast Classification
-
-weight loss percentage <    |   Roast classification
-13.01                       |   City Roast
-14.51                       |   City Plus
-15.51                       |   Full City
-16.51                       |   Full City Plus
-18.01                       |   Vienna Roast
-
-else: Italian Roast
+DTZ005 `datetime.datetime.now()` called without a `tz` argument
+  --> Projects\coffeeroaster03\user_input.py:8:27
+   |
+ 6 |         try:
+ 7 |             date_obj = datetime.strptime(date_str, "%m/%d/%Y")
+ 8 |             if date_obj > datetime.now():
+   |                           ^^^^^^^^^^^^^^
+ 9 |                 raise ValueError("Date cannot be in the future.")
+10 |             return date_obj.strftime("%m/%d/%Y")
+   |
+help: Pass a `datetime.timezone` object to the `tz` parameter

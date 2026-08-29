@@ -1,0 +1,13 @@
+{
+    "08/28/2026": {
+        "date": "08/28/2026",
+        "bean_name": "18 Rabbit Black",
+        "green_weight": 205.0,
+        "finished_weight": 178.0,
+        "total_roast_time": 480,
+        "time_of_first_crack": 380,
+        "weight_loss": 13.170731707317074,
+        "development_time": 100,
+        "roast_classification": "City Plus"
+    }
+}

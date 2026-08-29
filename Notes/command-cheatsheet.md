@@ -22,6 +22,10 @@ git branch -d XXXXXX                % deletes branch "XXXXXX"
 ### Misc
 git log --oneline --decorate -5     % returns 5 most recent commits
 git restore XXXXXX                  % discards uncommitted changes to the file
+git status --ignored                % checks for files/directories in .gitignore
+git check-ignore -v __pycache__/*   % if there are matching files, git tells you which .gitignore rule cause them 
+                                    % to be ignored
+git rm -r --cached __pycache__      % removes tracking of pycache files in git
 
 ## Powershell
 get-location                        % returns active directory
@@ -40,6 +44,9 @@ remove-item xxx.aaa                 % delete file from terminal
 rm                                  % delete file from terminal
 mv                                  % move item from terminal
 
+get-childitem -recurse -directory -filter "XXX" % returns directory(s) named "XXX"     
+get-childitem -recurse -filter "*.XXX"          % returns location of files with filetype ".XXX"
+
 code xxx.aaa                        % opens specified file in vscode
 
 ## Ollama
@@ -50,3 +57,8 @@ ollama run qwen2.5-coder:14b         % run qwen model for desktop
 ollama --version                    % returns ollama version
 ollama list                         % returns downloaded models
 /bye                                % end ollama session
+
+## Ruff
+ruff --version                      % returns ruff version
+ruff check .                        ruff static tests everything in the folder location
+ruff format --check .               ruff describes whether formatting would change but does not execute
