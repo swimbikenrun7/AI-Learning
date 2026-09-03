@@ -14,6 +14,8 @@ git push
 
 ### Branching
 git branch                          # displays branches with * by current branch
+git branch –vv                      # identifies current branch
+git remote -v			                  # where does the repo sync
 git switch -c XXXXXX                # create a new branch "XXXXXX"
 git switch XXXXXX                   # switch to branch "XXXXXX"
 git merge XXXXXX                    # from current branch, merges "XXXXXX"
@@ -57,6 +59,26 @@ sudo                                # "run this command with elevated administra
 journalctl                          # returns....
 systemctl                           # does....
 Ctrl+c                              # ends current process
+
+## Tmux
+tmux attach			                  # attach to ongoing tmux session
+Ctrl+b c			                    # new window
+Ctrl+b n			                    # next window
+Ctrl+b p                          # previous window
+Ctrl+b d			                    # detach from tmux
+Ctrl+b %			                    # split vertically
+Ctrl+b "			                    # split horizontally
+Ctrl+b x			                    # kill pane
+Ctrl+b [			                    # enter copy mode
+Ctrl+b ]			                    # paste copied text in tmux
+exit				                      # closes shell/process in pane
+
+## hunk
+hunk diff			                    # displays a side-by-side view of the diff for unstaged changes
+hunk diff --staged		            # same as above but for staged changes
+
+## tailscale
+ssh josh@omarchy		              # connect to Desktop via tailscale
 
 ## Openclaw
 openclaw --help                                                 # returns a list of commands
