@@ -1,9 +1,11 @@
 # Standing rules to live by
 
-## Guardrail #1
+## Guardrails
+
+### Guardrail #1
 No AI may modify more code than I am willing to review line-by-line
 
-## Guardrail #2
+### Guardrail #2
 The 15-minute rule:
 
 If I spend more than 15 minutes working on one error unsuccessfully:
@@ -17,7 +19,7 @@ If I spend more than 15 minutes working on one error unsuccessfully:
     - what you expected to happen,
     - what you've already tried.
 
-## Guardrail #3
+### Guardrail #3
 No unnecessary abstraction.
 
 Without proper prompt guardrails, AI will attempt to "improve" the code with many changes.
@@ -25,7 +27,7 @@ Without proper prompt guardrails, AI will attempt to "improve" the code with man
 The standing instruction to correct this type of behavior is:
     Solve the smallest problem that moves the project forward
 
-## Guardrail #4
+### Guardrail #4
 The more autonomy we give an agent, the stronger our automated verification needs to be.
 
 As we increase agent autonomy, we're going to progressively move from:
@@ -46,9 +48,17 @@ Human reviews result
 
 But we are not going to give an agent permission to autonomously modify a large project that has no tests. That's a recipe for token-burning and debugging nightmares.
 
-## Guardrail #5
+### Guardrail #5
 Use the simplest architecture that solves the current problem.
 
-## Guardrail #6
+### Guardrail #6
 Agent instruction on testing:
         Do not remove or rewrite existing tests simply to make them pass. If an existing test conflicts with the specification, explain the conflict rather than changing the test automatically.
+
+## Agent autonomy rules
+
+### Rule #1
+An agent should receive only the permissions necessary to accomplish its current task. Increase permissions deliberately as capabilities are demonstrated and tested.
+
+### Rule #2
+Never expose an agent's control interface to a network until authentication, authorization, and the exposure path have been deliberately configured and tested.
