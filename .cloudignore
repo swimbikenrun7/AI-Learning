@@ -1,0 +1,72 @@
+# ==============================================================================
+# 📦 HEAVY DEPENDENCIES & PACKAGE MANAGERS
+# ==============================================================================
+# These contain millions of lines of external code. Never let an agent read them.
+node_modules/
+bower_components/
+.npm/
+vendor/
+.venv/
+env/
+venv/
+ENV/
+packages/
+
+# ==============================================================================
+# 🔨 BUILD OUTPUTS, COMPILED CODE & DISTRIBUTIONS
+# ==============================================================================
+# Agents should write source files, not read large compiled/minified bundles.
+dist/
+build/
+out/
+target/
+bin/
+obj/
+*.min.js
+*.min.css
+*.map
+
+# ==============================================================================
+# 📊 LARGE DATA, ASSETS & MEDIA
+# ==============================================================================
+# Images, videos, and multi-megabyte data files destroy context windows instantly.
+*.json
+!package.json
+!composer.json
+*.csv
+*.tsv
+*.xml
+*.log
+*.sqlite
+*.db
+*.mp4
+*.mp3
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.pdf
+
+# ==============================================================================
+# 🔒 SENSITIVE DATA, CORES & ENVIRONMENT KEYS
+# ==============================================================================
+# Keep your keys safe and prevent the agent from parsing massive lockfiles.
+.env
+.env.*
+*.lock
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ==============================================================================
+# 🕵️‍♂️ GIT & AGENT RUNTIME INTERNAL CACHES
+# ==============================================================================
+# Prevent the agent from getting stuck reading its own system files.
+.git/
+.github/
+.opencode/
+.openclaw/
+.claude/
+.cache/
+

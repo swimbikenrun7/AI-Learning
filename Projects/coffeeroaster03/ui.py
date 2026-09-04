@@ -27,12 +27,6 @@ def add_roast():
     total_roast_time = get_roast_time()
     time_of_first_crack = get_time_of_first_crack(total_roast_time)
 
-    weight_loss = calc.calculate_weight_loss(green_weight, finished_weight)
-    development_time = calc.calculate_development_time(
-        total_roast_time, time_of_first_crack
-    )
-    roast_classification = calc.classify_roast(weight_loss)
-
     new_record = {
         "date": date,
         "bean_name": bean_name,
@@ -40,9 +34,6 @@ def add_roast():
         "finished_weight": finished_weight,
         "total_roast_time": total_roast_time,
         "time_of_first_crack": time_of_first_crack,
-        "weight_loss": weight_loss,
-        "development_time": development_time,
-        "roast_classification": roast_classification
     }
 
     ROAST_RECORDS[date] = new_record
@@ -50,18 +41,52 @@ def add_roast():
     print("Roast added successfully.")
 
 
+ROAST_TABLE_COLUMNS = [
+    ("Date", 10, "<"),
+    ("Bean Name", 15, "<"),
+    ("Green (g)", 9, ">"),
+    ("Finished (g)", 12, ">"),
+    ("Roast Time (s)", 14, ">"),
+    ("1st Crack (s)", 13, ">"),
+    ("Weight Loss (%)", 15, ">"),
+    ("Dev Time (s)", 12, ">"),
+    ("Classification", 15, "<"),
+]
+
+
 def view_roasts():
+    header = " | ".join(
+        f"{name:{align}{width}}" for name, width, align in ROAST_TABLE_COLUMNS
+    )
+    print(header)
+    print("-" * len(header))
+
     for date, record in ROAST_RECORDS.items():
-        print(f"Date: {record['date']}")
-        print(f"Bean Name: {record['bean_name']}")
-        print(f"Green Weight: {record['green_weight']}g")
-        print(f"Finished Weight: {record['finished_weight']}g")
-        print(f"Total Roast Time: {record['total_roast_time']}s")
-        print(f"Time of First Crack: {record['time_of_first_crack']}s")
-        print(f"Weight Loss: {record['weight_loss']:.2f}%")
-        print(f"Development Time: {record['development_time']}s")
-        print(f"Roast Classification: {record['roast_classification']}")
-        print("-" * 40)
+        weight_loss = calc.calculate_weight_loss(
+            record['green_weight'], record['finished_weight']
+        )
+        development_time = calc.calculate_development_time(
+            record['total_roast_time'], record['time_of_first_crack']
+        )
+        roast_classification = calc.classify_roast(weight_loss)
+
+        row = [
+            record['date'],
+            record['bean_name'],
+            f"{record['green_weight']:.1f}",
+            f"{record['finished_weight']:.1f}",
+            record['total_roast_time'],
+            record['time_of_first_crack'],
+            f"{weight_loss:.2f}",
+            development_time,
+            roast_classification,
+        ]
+        print(
+            " | ".join(
+                f"{value:{align}{width}}"
+                for value, (_, width, align) in zip(row, ROAST_TABLE_COLUMNS)
+            )
+        )
 
 
 def main():

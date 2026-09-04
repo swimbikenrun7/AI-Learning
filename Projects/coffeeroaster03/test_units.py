@@ -1,6 +1,9 @@
+import tempfile
 import unittest
+from pathlib import Path
 from unittest import mock
 
+import data_persistence
 from calculations import (
     calculate_development_time,
     calculate_weight_loss,
@@ -18,6 +21,19 @@ from user_input import (
 
 
 class TestDataPersistence(unittest.TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.patcher = mock.patch.object(
+            data_persistence,
+            "ROAST_RECORDS_PATH",
+            Path(self.temp_dir.name) / "roast_records.json",
+        )
+        self.patcher.start()
+
+    def tearDown(self):
+        self.patcher.stop()
+        self.temp_dir.cleanup()
+
     def test_load_roast_records(self):
         records = load_roast_records()
         self.assertIsInstance(records, dict)
