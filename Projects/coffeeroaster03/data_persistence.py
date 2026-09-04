@@ -13,15 +13,14 @@ def load_roast_records():
         with open(ROAST_RECORDS_PATH, "r") as file:
             try:
                 records = json.load(file)
-                for date in records:
-                    records[date]['date'] = datetime.strptime(
-                        records[date]['date'], "%m/%d/%Y"
+                for record_id in records:
+                    records[record_id]['date'] = datetime.strptime(
+                        records[record_id]['date'], "%m/%d/%Y"
                     ).strftime("%m/%d/%Y")
                 return records
             except json.JSONDecodeError:
-                print(
-                    "Failed to decode roast records file. Starting with an empty record set."
-                )
+                print("Error: The roast records file is corrupted. Exiting the program.")
+                sys.exit(1)
     return {}
 
 
@@ -32,12 +31,12 @@ def save_roast_records(records):
 
 
 def count_roasts():
-       try:
-           with open('data/roast_records.json', "r") as file:
-               data = json.load(file)
-               return len(data)
-       except FileNotFoundError:
-           return 0
-       except json.JSONDecodeError:
-           print("Error: The data file is corrupted. Exiting the program.")
-           sys.exit(1)
+    try:
+        with open(ROAST_RECORDS_PATH, "r") as file:
+            data = json.load(file)
+            return len(data)
+    except FileNotFoundError:
+        return 0
+    except json.JSONDecodeError:
+        print("Error: The data file is corrupted. Exiting the program.")
+        sys.exit(1)

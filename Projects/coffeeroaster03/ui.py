@@ -1,3 +1,5 @@
+import uuid
+
 import calculations as calc
 from data_persistence import count_roasts, load_roast_records, save_roast_records
 from user_input import (
@@ -36,7 +38,8 @@ def add_roast():
         "time_of_first_crack": time_of_first_crack,
     }
 
-    ROAST_RECORDS[date] = new_record
+    record_id = str(uuid.uuid4())
+    ROAST_RECORDS[record_id] = new_record
     save_roast_records(ROAST_RECORDS)
     print("Roast added successfully.")
 
@@ -61,7 +64,7 @@ def view_roasts():
     print(header)
     print("-" * len(header))
 
-    for date, record in ROAST_RECORDS.items():
+    for _, record in ROAST_RECORDS.items():
         weight_loss = calc.calculate_weight_loss(
             record['green_weight'], record['finished_weight']
         )
