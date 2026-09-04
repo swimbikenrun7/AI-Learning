@@ -907,235 +907,6 @@ I do think that it depends on the capability of the model, just as with whether 
      │
      └──────────────────────────────→ risk
 
-## Mission 0.14.3 notes
-Part 1 - establishing baseline
-  Did it answer correctly?: yes
-  Approximately how long did it take?: 01:23
-  Did it invoke any tools?: not that i can tell
-  Did it display any reasoning/tool activity?: not that i can tell
-  Assistant feedback: up arrow 26.9k, down arrow 2, 82%ctx
-Part 2 - A simple tool call
-  approximate elapsed time: 01:20
-  number of tool calls: unclear
-  whether it followed the instruction: it said "hello", but it's unclear that it did this in compliance with my request
-  whether it did anything unnecessary: no, it did not
-  Assistant feedback: up arrow: 27k, down arrow 2, 82%ctx
-Part 3 - File inspection - Observe whether it:
-  Uses the read tool directly.: yes
-  Tries exec.: no
-  Gets confused.: pretty much
-  Takes an excessive amount of time.: 01:32
-  Does something unrelated.: no
-  Repeated the previous error where it refused to navigate sub-folders, giving up when it was not in the parent directory.
-  {
-  "status": "error",
-  "tool": "read",
-  "error": "File not found: /home/josh/.openclaw/workspace/agent_test.txt."
-  }
-  Assistant feedback: up arrow 27k, down arrow 28, 83%ctx
-Part 4 - Navigation
-  Same failure as above. But to its credit this one only took 11 seconds.
-Part 5 - Deliberately introduce a failed assumption
-  I'm not sure this really tested anything new given the failure mode of the previous two parts. It attempted the same read, failed to do so and terminated in the exact same way.
-  Assistant feedback: up arrow 27.1k, down arrow 26, 83%ctx
-Part 6 - Measure context behavior
-  It only reviewed the agent files which OpenClaw generates in Workspace, it did not look for data in any subfolders. AI-Learning is a subfolder of Workspace. It read the 4 files then said it was unable to locate the AI-Learning repository.
-  Assistant feedback: up arrow: 35.2k, down arrow 56, 100%ctx
-
-## Mission 0.14.3A
-Part 1 - establish the workspace
-  Correctly returned the workspace
-Part 2 - establish openclaw's config
-{
-  "wizard": {
-    "securityAcknowledgedAt": "2026-09-02T13:18:17.498Z",
-    "accessMode": "full",
-    "localModelLeanAutoModel": "ollama/qwen3:8b",
-    "lastRunAt": "2026-09-02T14:23:59.167Z",
-    "lastRunVersion": "2026.8.2",
-    "lastRunCommand": "doctor",
-    "lastRunMode": "local"
-  },
-  "telemetry": {
-    "enabled": false,
-    "consentedAt": "2026-09-02T13:18:38.099Z"
-  },
-  "meta": {
-    "migrations": {
-      "modelPolicyAllowlist": true
-    },
-    "lastTouchedVersion": "2026.8.2"
-  },
-  "agents": {
-    "defaults": {
-      "experimental": {
-        "localModelLean": false
-      },
-      "model": "ollama/qwen3:8b"
-    },
-    "entries": {
-      "main": {
-        "models": {
-          "ollama/qwen3:8b": {
-            "agentRuntime": {
-              "id": "openclaw"
-            }
-          }
-        }
-      }
-    }
-  },
-  "plugins": {
-    "entries": {
-      "ollama": {
-        "enabled": true
-      }
-    }
-  },
-  "models": {
-    "providers": {
-      "ollama": {
-        "baseUrl": "http://127.0.0.1:11434",
-        "api": "ollama",
-        "models": [
-          {
-            "id": "qwen3:8b",
-            "name": "qwen3:8b",
-            "reasoning": true,
-            "input": [
-              "text"
-            ],
-            "cost": {
-              "input": 0,
-              "output": 0,
-              "cacheRead": 0,
-              "cacheWrite": 0
-            },
-            "contextWindow": 40960,
-            "maxTokens": 8192,
-            "compat": {
-              "supportsTools": true,
-              "supportsUsageInStreaming": true,
-              "supportsJsonSchemaResponseFormat": true
-            },
-            "contextTokens": 32768,
-            "params": {
-              "num_ctx": 40960,
-              "thinking": false
-            }
-          }
-        ],
-        "apiKey": "ollama-local"
-      }
-    }
-  },
-  "gateway": {
-    "mode": "local",
-    "auth": {
-      "mode": "token",
-      "token": "98b19d1a377dd2e6b0c6ef23d629af446dcce376e110b670"
-    },
-    "port": 18789,
-    "bind": "loopback",
-    "tailscale": {
-      "mode": "serve"
-    }
-  },
-  "tools": {
-    "profile": "full"
-  },
-  "hooks": {
-    "internal": {
-      "entries": {
-        "session-memory": {
-          "enabled": true
-        }
-      }
-    }
-  }
-  All skills false
-Part 3
-  Workspace: openclaw status does not indicate workspace
-  Model: qwen3:8b with 33k ctx via ~/.openclaw/agents/main/agent/openclaw-agent.sqlite
-  Context: 33k ctx
-  Tools: openclaw status does not indicate tools
-  Gateway: local ws://127.0.0.1:18789
-  skills: openclaw status does not indicate skills
-Part 4
-AI-Learning mission-0.14.2-agent  ? ❯ find ~/.openclaw/workspace -maxdepth 2 -type f -printf '%p\n' | sort
-/home/josh/.openclaw/workspace/AGENTS.md
-/home/josh/.openclaw/workspace/DREAMS.md
-/home/josh/.openclaw/workspace/IDENTITY.md
-/home/josh/.openclaw/workspace/memory/2026-09-02-1011.md
-/home/josh/.openclaw/workspace/memory/2026-09-02-1021-2.md
-/home/josh/.openclaw/workspace/memory/2026-09-02-1021.md
-/home/josh/.openclaw/workspace/memory/2026-09-02-1024.md
-/home/josh/.openclaw/workspace/memory/2026-09-02-1025.md
-/home/josh/.openclaw/workspace/memory/2026-09-02-1038.md
-/home/josh/.openclaw/workspace/memory/2026-09-02-1105.md
-/home/josh/.openclaw/workspace/memory/2026-09-02.md
-/home/josh/.openclaw/workspace/memory/2026-09-03-0740.md
-/home/josh/.openclaw/workspace/memory/2026-09-03-0804.md
-/home/josh/.openclaw/workspace/memory/2026-09-03-0818.md
-/home/josh/.openclaw/workspace/memory/2026-09-03-1353.md
-/home/josh/.openclaw/workspace/memory/2026-09-03-1407.md
-/home/josh/.openclaw/workspace/memory/2026-09-03-1419.md
-/home/josh/.openclaw/workspace/memory/2026-09-03-1427.md
-/home/josh/.openclaw/workspace/memory/2026-09-03-1432.md
-/home/josh/.openclaw/workspace/memory/2026-09-03-1437.md
-/home/josh/.openclaw/workspace/memory/2026-09-03-1441.md
-/home/josh/.openclaw/workspace/memory/2026-09-03.md
-/home/josh/.openclaw/workspace/SOUL.md
-/home/josh/.openclaw/workspace/USER.md
-
-AI-Learning mission-0.14.2-agent  ? ❯ find ~/.openclaw/workspace -maxdepth 2 -type d -printf '%p\n' | sort
-/home/josh/.openclaw/workspace
-/home/josh/.openclaw/workspace/memory
-/home/josh/.openclaw/workspace/memory/dreaming
-/home/josh/.openclaw/workspace/memory/.dreams
-/home/josh/.openclaw/workspace/src
-/home/josh/.openclaw/workspace/src/AI-Learning
-Part 5
-  Yes, shell itself returned everything readily.
-Part 6
-  This is just the exact same as before.
-  Elapsed time: 01:23
-  Input context: 26.9k
-  Output token: 2
-  Context percentage: 82%
-  Tools invoked: no
-Part 7
-FILE                                                               SIZE bytes
----                                                                 --- bytes
-/home/josh/.openclaw/workspace/AGENTS.md	7927 bytes
-/home/josh/.openclaw/workspace/DREAMS.md	1824 bytes
-/home/josh/.openclaw/workspace/IDENTITY.md	1278 bytes
-/home/josh/.openclaw/workspace/memory/2026-09-02-1011.md	1283 bytes
-/home/josh/.openclaw/workspace/memory/2026-09-02-1021-2.md	1283 bytes
-/home/josh/.openclaw/workspace/memory/2026-09-02-1021.md	992 bytes
-/home/josh/.openclaw/workspace/memory/2026-09-02-1024.md	499 bytes
-/home/josh/.openclaw/workspace/memory/2026-09-02-1025.md	219 bytes
-/home/josh/.openclaw/workspace/memory/2026-09-02-1038.md	572 bytes
-/home/josh/.openclaw/workspace/memory/2026-09-02-1105.md	2366 bytes
-/home/josh/.openclaw/workspace/memory/2026-09-02.md	15 bytes
-/home/josh/.openclaw/workspace/memory/2026-09-03-0740.md	11065 bytes
-/home/josh/.openclaw/workspace/memory/2026-09-03-0804.md	869 bytes
-/home/josh/.openclaw/workspace/memory/2026-09-03-0818.md	2408 bytes
-/home/josh/.openclaw/workspace/memory/2026-09-03-1353.md	10355 bytes
-/home/josh/.openclaw/workspace/memory/2026-09-03-1407.md	219 bytes
-/home/josh/.openclaw/workspace/memory/2026-09-03-1419.md	299 bytes
-/home/josh/.openclaw/workspace/memory/2026-09-03-1427.md	423 bytes
-/home/josh/.openclaw/workspace/memory/2026-09-03-1432.md	550 bytes
-/home/josh/.openclaw/workspace/memory/2026-09-03-1437.md	567 bytes
-/home/josh/.openclaw/workspace/memory/2026-09-03-1441.md	576 bytes
-/home/josh/.openclaw/workspace/memory/2026-09-03-1521.md	1035 bytes
-/home/josh/.openclaw/workspace/memory/2026-09-03.md	2604 bytes
-/home/josh/.openclaw/workspace/SOUL.md	1518 bytes
-/home/josh/.openclaw/workspace/USER.md	871 bytes
-Line counts: 581 total
-Part 8
-I verified that all sessions were empty, in fact deleted any that had been generated. Main is using 0/33k before execution. Result: 01:22, 27k / 82% so pretty much the same.
-
 ## Learned
 Learned a lot about navigation of OpenClaw and the various programs preferred in Omarchy. It's easy to be frustrated with some of the churn and lose sight of the success: the agent did successfully perform read and write tasks. We can build on that.
 
@@ -1144,3 +915,85 @@ Navigation in Neovim particularly is still not intuitive.
 
 ## Next step
 0.14.3 in opencode and not openclaw
+
+# 2026-09-04
+
+## Accomplished
+See notes below.
+
+## Mission 0.14.3 notes
+Uninstalled Openclaw and changed the work directory to the conventional "Projects" folder in Omarchy and generated a branch for the session. Successfully executed the first 5 parts but then ran into significant issues with Part 6 which I go into detail describing in the challenge questions. Performance is better with Opencode, but still not great. I have set the context limit in Ollama to 12228. According to my research, Openclaw and Opencode handle context differently, so the token limits are prescribed differently.
+  - Grade: A-
+
+### Challenge questions
+1. Baseline: What did the 2 + 2 test tell you that the tool-call test could not?
+The 2+2 test told me that the agent was capable of limiting its scope to basic calculation, giving the model that simple task and relaying only the output. Tool-call test gave me in some ways a more expansive result but also a more limited result. It proved that the agent could select the right tools, but it didn't have to take the next step of placing its own guardrails based on the prompt and returning the most concise answer (only the number 4, done successfully). In the tool-call testing, we just had it perform a direct read or exec command.
+  - Grade: B+
+  Refinement: Separate instruction following from the fundamental baseline. What's really different is that the 2+2 baseline proved model inference directly whereas the tool test established that the agent could select/invoke a tool and incorporate its result.
+
+2. Tool selection: In Part 3, why did we explicitly tell the agent "Do not use shell commands." What were we actually testing?
+It could have used a command in shell to return the contents of the .txt, but we specifically wanted it to call the read tool (which it did successfully)
+  - Grade: A
+
+3. Navigation: Suppose the agent successfully read agent_test.txt when you gave it the filename, but struggled to find the file when you didn't. What does that tell you about the difference between tool capability and agent capability?
+I noticed this in several instances, that when forming the instructions for sub-agents the instructions are not clear or are malformed. I believe this is a limitation of the model itself, I think I'm finding a capability ceiling for qwen3:8b. From what I've observed, the agent is capably managing the machinations of coordinating the agents and sub-agents, but the issues in output appear to be related to the content generated by agents/subagents, then interpreted by the same. If I understand the architecture correctly, these agents/subagents are only as capable as the models they are given to use. Having seen other implementations using more capable models, I'm confident the issues I'm seeing are not implementation of Opencode but rather model capability.
+  - Grade: A-
+  Refinement: I'm jumping quickly to a conclusion that the limitation is the model itself, that's not been strictly proven by this experiment.
+  Tool capability:
+  "I have a tool capable of reading files."
+
+  Agent capability:
+  "I can figure out that I need that tool, determine which path to use, and recover when my assumption is wrong."
+
+4. Failure recovery: Why is Part 5 potentially more important than Part 3? What makes an agent that can recover from a failed assumption substantially more useful than one that merely succeeds when everything goes according to plan?
+Part 5 tests whether the agent can successfully abort and provide correct feedback assessing existence or nonexistence of the specified file. Optimizing token usage is incredibly important, so correctly identifying an issue and redirecting as necessary to either complete the task or recognize the issue as fatal is a key capability. If the agent can only succeed when everything is specified perfectly for them, then the user will be required more frequently in the loop to validate assumptions and responses, reducing the effectiveness of the agentic loop.
+  - Grade: A
+
+5. Context: You observed that OpenClaw was repeatedly reaching the context limit and compacting. Explain, in your own words - why can an agentic task consume dramatically more context than simply asking Qwen the same programming question as a chatbot?
+The agent's first step is to read and understand the prompt which is very similar to what happens with a chatbot, but the differences begin in the next step. In an agent environment, the agent is building an architecture for how it will answer the prompt, determining what tools are required and determining whether subagent instances need to be created to run those different tool calls and how it will combine the subagent-produced data into a return format to the user. That step is particularly important for agentic workflows because the agent can direct subagent tasks to directly write to files or execute shell commands, not merely output a result. So for a simple "read and tell me what's there" prompt the agent would be slower, but that's because the chatbot could not produce the same result for a more complicated task - only return an output to the user.
+  - Grade: A-
+  Refinement: I said "the agent is building an architecture for how it will answer the prompt" - not necessarily. Sophisticated agents may engage in that step but agents can also operate through iterative explicit reasoning.
+  Key takeaway: A chatbot can answer from the conversation. An agent has to maintain a history of its interaction with an external environment.
+
+6. The SKILL.md mystery: Based on what you've now observed, give your best current hypothesis for why the agent might repeatedly attempt to access a nonexistent SKILL.md. You don't need to know the definitive answer. I want your reasoning and what evidence would help distinguish among competing explanations.
+I now think the agent created a subtask to read a file that did not exist and the subagent failed to read the file. Rather than aborting, the agent saw that it had no expected response to skill.md and kept querying the subagent. Alternately, it could be that the subagent itself was stuck on a list of .md's to find and had no exit condition for if it failed to find a particular .md. I should be more specific: the task was structured by the agent as a read task, with a list of expected .md files. The subagent was not given a task to execute shell commands to identify the directories and files, and the agent did not perform this step first, so the read task could not be completed.
+  - Grade: A-
+
+7. Model vs. system: Suppose we make the exact same OpenClaw configuration available to:
+Qwen3:8B
+Qwen3:30B - a strong current cloud coding model
+and the larger models navigate the repository correctly while 8B repeatedly chooses inappropriate tools.
+What would that suggest? It would suggest that the smaller model may be poorly suited to agentic tasks. It may lack the required intelligence to correctly select tools and structure subagent tasks.
+What wouldn't it prove? It wouldn't prove in and of itself that Qwen3:30b is a particularly good model either. It would just show that it is better at tool calling.
+  - Grade: A
+
+8. Engineering diagnosis: You observe
+2 + 2                 → 2 seconds
+simple shell command  → 10 seconds
+file read             → 45 seconds
+repository inspection → 5 minutes
+What are at least three different hypotheses that could explain the increasing delays?
+First, task complexity increases requiring more time to structure appropriate responses and structure subagent tasks. Second, it could be that the context limit is being reached, requiring the context to be condensed prior to executing additional tasks. Third, it could be that the underlying model has disparate performance characteristics regarding different types of tasks, e.g. arithmetic - good, shell commands - good, file read - ok, multi-step shell + tool call - not good.
+  - Grade: A
+  Refinement: Add a fourth: tool overhead. When multiple tools are required, round-trip architecture performing multiple tool calls can make the total slow even if the substeps are fast.
+
+9. Your current assessment: Based on 0.14.2 and this mission, give Qwen3:8B/Opencode a candid rating for each:
+Capability	Grade
+Conversational programming tutor	B+ Overall it's pretty good. But it doesn't optimize the output and in some cases I have found syntax errors that need corrected when implementing.
+Simple tool execution	C+ I think I need to specify that I'm drawing a distinction here between structuring the task to call the right tool and the execution of the tool itself. On the former, that's covered by the multi-step agentic programming grade below. On the latter, I'm giving it a poor grade based on speed. It's really hard to fault on failure to execute something like "write" because I think this is more reflecting poor multi-step agentic programming than its ability to write, which we've demonstrated. It really struggles when given anything more than a simple "do this specific thing" task.
+File manipulation	C Again, more of the same from above. I think the ability to manipulate files is there but probably being masked by agent failures.
+Repository navigation	B It seems to have no issue navigating the repo, but penalty for speed.
+Multi-step agentic programming	D This is where it has been pretty awful. What's weird now is that I gave it a clear task in Part 6, and tried running it in numerous different fresh instances, getting some different failures but no successes. Sometimes it failed in one step, as if it just ran out of context or otherwise couldn't understand the prompt. In the most promising cases, the agent created subagent tasks to review the directories and return information relating to structure or contents, but the subagent instructions were malformed and the subagents gave up when they couldn't find information in the prescribed format. I think the ceiling for agentic execution with the current model may be navigating into the directory containing the code to be modified and giving the agent one task to implement using read/write, making it one step above a chatbot.
+Explain your grades.
+  - Grade: A
+
+10. The practical question: If your goal were only to learn Python, would you continue using this local agent setup despite its current limitations? If your goal were to have an AI autonomously develop a real application, would your answer be different? Explain why.
+I think if my goal were to learn python I could use an agent in this format to help, but agents in general would be unnecessary. I've learned a lot by troubleshooting these issues, but I haven't necessarily learned more about the semantics of python. I think I could easily do that through a chatbot interface. Although a good agent could create issues within the code for me to diagnose or otherwise directly structure exercises within a repo, so I can see how that could be useful. If I want autonomous development I need a more capable underlying model. There is too much manual intervention here and inconsistent response. If I want something production-quality I need much better tools.
+
+## Learned
+I actually learned a ton through progressive troubleshooting of these issues. I have a much better understanding of how agentic workflows are structured and context limitations. I also got some valuable "time on tools" with all of the new software in Omarchy and I'm becoming more comfortable in the environment.
+
+## Confusing
+Lazyvim uses different keyboard shortcuts and Omarchy enforces everywhere else. I want to see if there is a practical way to merge these into one version for the sake of muscle memory.
+
+## Next step
