@@ -837,3 +837,310 @@ Review VS Code tutorials on:
     debugging
     testing
 0.14 - OpenClaw baby!
+
+# 2026-09-03
+
+## Accomplished
+Dabbled in Omarchy default programs, including hunk (git diff), tmux, neovim and omawrite. Successfully executed an agentic loop with qwen3:8b though it was very slow.
+
+## Mission 0.14.2 notes
+Overall, my main impression of this mission was that the process was very slow. Acting as a chatbot, the qwen models impressed me with their speed, especially on my desktop vs. laptop. However in this agentic context, the opposite was true. Even a simple read task takes several minutes. The context window is regularly being maxed out, then compacted by OpenClaw. And one of the guardrail concerns was the agent doing too much - but I didn't find that at all in this mission. Rather, it was very difficult to get the agent to string together more than one or two very simple tasks.
+
+### Challenge questions
+1. Agent authority: What is the fundamental difference between the agent's ability to read, write, and execute? Why is giving an agent all three capabilities materially different from using Qwen as a conversational tutor?
+Read allows the agent to inspect the contents of files. Write allows the agent to modify or create files. Execute allows the agent to use shell commands. With these three, the agent can view and modify documents within the environment it is capable of accessing, and navigate in and out of parts of that environment as it sees fit. A chatbot has no such interface to my machine - it is only capable of taking information I give it within the context window (text and/or uploaded files), then responding back within that same context window. Now, on the server side the modern models can engage in agentic loops of their own to create outputs, but that is all remote to the user, and what is provided to the user is an output.
+  - Grade: A
+
+2. Specification vs. implementation: Why did we tell the agent what the calculation should accomplish without telling it exactly which lines of code to change? What capability are we testing?
+We wanted to determine the agent's ability to read an abstract requirement and infer what steps should be accomplished, then execute those steps without human input. In the case of this mission, it took about 20 minutes for the agent to finally identify the correct files in workspace. I did have to be quite explicit in detailing the exact path which was discouraging - it leads me to believe that the models which can capably run on my current graphics card will be insufficient for serious agentic workflows. I want to continue pushing the boundaries with what can be achieved locally and there is quite a bit of learning to be done on syntax and navigation and setting up workflows and such, but I have a feeling that by the time I'm ready to develop a serious application I'll probably buy a closed weight model subscription.
+  - Grade: A
+
+3. Git branch: Why did we create mission-0.14.2-agent before allowing the agent to modify the project? What problem does the branch solve that simply having a backup copy of the project does not?
+By creating the branch git is able to track all changes to the file independent of main. We can commit changes and build out the branch without risking main. In the end, we will want agents to be capable of working on a branch and staging commits autonomously and then doing verification (such as git diff) to validate the new code before merging branches. Branching solves the problem of having random disconnected copies floating around - by branching git recognizes this as being connected to the same code in main.
+  - Grade: AI
+  - Refinement: "git is able to track all changes to the file independent of main" - more precisely: git tracks the repo's history, while the branch gives those commits a separate line of development.
+
+4. Tests: Suppose OpenClaw changes the calculation and reports "All tests pass." Why isn't that sufficient evidence that the change is correct? Give at least two different reasons.
+I can think of two easy scenarios - one where the agent creates new function(s) or variable(s) that aren't covered by existing tests. Even if I include unit tests in the prompts, git diff will verify that the appropriate tests were actually established. The other scenario could be that the agent didn't actually run the tests at all. I had repeated situations in this sub-mission where the agent said they had written code but diff showed no modifications.  Just because the agent reports that they did it doesn't meant that it happened.
+  - Grade: A
+
+5. Human review: Why are we deliberately having you inspect git diff even though the agent itself can inspect its own changes? What information or judgment does the human reviewer provide that the agent cannot reliably provide by itself?
+The above answer partially touches on this. To expound, I would say for one I am ultimately responsible for the code, so I need to understand what is changing. But also, aside from the case of the agent not actually executing a task or executing some shortcut, I may also review the architecture they chose and have a different preference, such as if the agent created many modules where just a few could adequately handle the task. At the end of the day, at this stage in agentic AI I do not want the AI doing everything unattended, choosing the correct checkpoints to verify the work is necessary.
+  - Grade: A
+
+6. Guardrails: Which of these instructions are scope guardrails, and which are behavioral requirements?
+  "Do not modify files outside the repository." - scope - limits the scope to a particular repo
+  "Do not commit." - scope - limits the endpoint of the task so that no commit is made **CORRECTION** - authority/action
+  "Calculate weight loss percentage." - scope - specifies the exact requirement for the task **CORRECTION** - task requirement
+  "Do not modify existing tests." - scope - existing tests are not in scope for changes **CORRECTION** - scope/change constraint
+  "Do not perform unrelated cleanup." - behavior - not specific to particular tasks or objects **CORRECTION** scope/change constraint
+Explain your classification.
+  - Grade: B
+  - Refinement: This one is a bit annoying because the scope of the question was a dichotomy, whereas the answer identified 4 different layers:
+  Task - what we're trying to accomplish
+  Scope - where it is allowed to operate
+  Authority - what actions it is permitted to take
+  Change Constraints - how it accomplishes the task
+
+7. The SKILL.md incident: You encountered an agent getting stuck repeatedly inspecting SKILL.md. What does that teach you about the relationship between model capability, tool capability, and agent behavior?
+I'm not really sure. What was specifically interesting about this one is that SKILL.md does not exist as a file. I'm not exactly sure why it was trying to invent this file in the first place. One suspicion that arose from later in the mission was when I was trying to understand why the agent couldn't identify the files in the workspace.  When reviewing the errors from one of the tasks, I noticed that it was calling "read" instead of a file/exec tool for determining path. Because it failed "read" it gave up. I'm not sure if this is a model limitation, or if there are some settings I can use to get the model to move beyond the first assumption when it fails. We disabled "thinking" for the model to enable its use in OpenClaw so I do wonder if to some extent we will just be stuck with this behavior. If that's the case, the model's utility will be limited.
+  - Grade: B
+  - Refinement: 3 separate things potentially involved: MODEL - decides what to do -> TOOLS - perform the action -> ENVIRONMENT
+  In your example, the model apparently formed the idea: "I need to read SKILL.md." That is a model decision.
+
+  Whether a SKILL.md actually exists is an environment fact. Whether the model has an appropriate tool for determining that is a tool/interface question.
+
+8. The big one: Imagine that six months from now you have a solar design application containing engineering calculations that customers are paying for. Would you want an agent to have the same level of autonomy we are giving it in this mission? Why or why not? Don't answer simply "yes" or "no." Describe what you would want the agent to be allowed to do automatically, what should require human review, and what should be prohibited.
+I do think that it depends on the capability of the model, just as with whether you would trust a task to a subordinate person or not. I think at this stage in agentic development, it's prudent to have the agent work only on branches, but with a capable setup I think an agentic loop can work with a fair amount of autonomy. It's a matter of setting up the right gates to have human review of the staged commits before merging with main.
+  - Grade: A-
+  AI autonomy
+     ↑
+     │
+     │      ┌── high confidence / low consequence
+     │      │       → automatic
+     │      │
+     │      ├── medium consequence
+     │      │       → automated tests + review
+     │      │
+     │      └── high consequence
+     │              → mandatory human gate
+     │
+     └──────────────────────────────→ risk
+
+## Mission 0.14.3 notes
+Part 1 - establishing baseline
+  Did it answer correctly?: yes
+  Approximately how long did it take?: 01:23
+  Did it invoke any tools?: not that i can tell
+  Did it display any reasoning/tool activity?: not that i can tell
+  Assistant feedback: up arrow 26.9k, down arrow 2, 82%ctx
+Part 2 - A simple tool call
+  approximate elapsed time: 01:20
+  number of tool calls: unclear
+  whether it followed the instruction: it said "hello", but it's unclear that it did this in compliance with my request
+  whether it did anything unnecessary: no, it did not
+  Assistant feedback: up arrow: 27k, down arrow 2, 82%ctx
+Part 3 - File inspection - Observe whether it:
+  Uses the read tool directly.: yes
+  Tries exec.: no
+  Gets confused.: pretty much
+  Takes an excessive amount of time.: 01:32
+  Does something unrelated.: no
+  Repeated the previous error where it refused to navigate sub-folders, giving up when it was not in the parent directory.
+  {
+  "status": "error",
+  "tool": "read",
+  "error": "File not found: /home/josh/.openclaw/workspace/agent_test.txt."
+  }
+  Assistant feedback: up arrow 27k, down arrow 28, 83%ctx
+Part 4 - Navigation
+  Same failure as above. But to its credit this one only took 11 seconds.
+Part 5 - Deliberately introduce a failed assumption
+  I'm not sure this really tested anything new given the failure mode of the previous two parts. It attempted the same read, failed to do so and terminated in the exact same way.
+  Assistant feedback: up arrow 27.1k, down arrow 26, 83%ctx
+Part 6 - Measure context behavior
+  It only reviewed the agent files which OpenClaw generates in Workspace, it did not look for data in any subfolders. AI-Learning is a subfolder of Workspace. It read the 4 files then said it was unable to locate the AI-Learning repository.
+  Assistant feedback: up arrow: 35.2k, down arrow 56, 100%ctx
+
+## Mission 0.14.3A
+Part 1 - establish the workspace
+  Correctly returned the workspace
+Part 2 - establish openclaw's config
+{
+  "wizard": {
+    "securityAcknowledgedAt": "2026-09-02T13:18:17.498Z",
+    "accessMode": "full",
+    "localModelLeanAutoModel": "ollama/qwen3:8b",
+    "lastRunAt": "2026-09-02T14:23:59.167Z",
+    "lastRunVersion": "2026.8.2",
+    "lastRunCommand": "doctor",
+    "lastRunMode": "local"
+  },
+  "telemetry": {
+    "enabled": false,
+    "consentedAt": "2026-09-02T13:18:38.099Z"
+  },
+  "meta": {
+    "migrations": {
+      "modelPolicyAllowlist": true
+    },
+    "lastTouchedVersion": "2026.8.2"
+  },
+  "agents": {
+    "defaults": {
+      "experimental": {
+        "localModelLean": false
+      },
+      "model": "ollama/qwen3:8b"
+    },
+    "entries": {
+      "main": {
+        "models": {
+          "ollama/qwen3:8b": {
+            "agentRuntime": {
+              "id": "openclaw"
+            }
+          }
+        }
+      }
+    }
+  },
+  "plugins": {
+    "entries": {
+      "ollama": {
+        "enabled": true
+      }
+    }
+  },
+  "models": {
+    "providers": {
+      "ollama": {
+        "baseUrl": "http://127.0.0.1:11434",
+        "api": "ollama",
+        "models": [
+          {
+            "id": "qwen3:8b",
+            "name": "qwen3:8b",
+            "reasoning": true,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 40960,
+            "maxTokens": 8192,
+            "compat": {
+              "supportsTools": true,
+              "supportsUsageInStreaming": true,
+              "supportsJsonSchemaResponseFormat": true
+            },
+            "contextTokens": 32768,
+            "params": {
+              "num_ctx": 40960,
+              "thinking": false
+            }
+          }
+        ],
+        "apiKey": "ollama-local"
+      }
+    }
+  },
+  "gateway": {
+    "mode": "local",
+    "auth": {
+      "mode": "token",
+      "token": "98b19d1a377dd2e6b0c6ef23d629af446dcce376e110b670"
+    },
+    "port": 18789,
+    "bind": "loopback",
+    "tailscale": {
+      "mode": "serve"
+    }
+  },
+  "tools": {
+    "profile": "full"
+  },
+  "hooks": {
+    "internal": {
+      "entries": {
+        "session-memory": {
+          "enabled": true
+        }
+      }
+    }
+  }
+  All skills false
+Part 3
+  Workspace: openclaw status does not indicate workspace
+  Model: qwen3:8b with 33k ctx via ~/.openclaw/agents/main/agent/openclaw-agent.sqlite
+  Context: 33k ctx
+  Tools: openclaw status does not indicate tools
+  Gateway: local ws://127.0.0.1:18789
+  skills: openclaw status does not indicate skills
+Part 4
+AI-Learning mission-0.14.2-agent  ? ❯ find ~/.openclaw/workspace -maxdepth 2 -type f -printf '%p\n' | sort
+/home/josh/.openclaw/workspace/AGENTS.md
+/home/josh/.openclaw/workspace/DREAMS.md
+/home/josh/.openclaw/workspace/IDENTITY.md
+/home/josh/.openclaw/workspace/memory/2026-09-02-1011.md
+/home/josh/.openclaw/workspace/memory/2026-09-02-1021-2.md
+/home/josh/.openclaw/workspace/memory/2026-09-02-1021.md
+/home/josh/.openclaw/workspace/memory/2026-09-02-1024.md
+/home/josh/.openclaw/workspace/memory/2026-09-02-1025.md
+/home/josh/.openclaw/workspace/memory/2026-09-02-1038.md
+/home/josh/.openclaw/workspace/memory/2026-09-02-1105.md
+/home/josh/.openclaw/workspace/memory/2026-09-02.md
+/home/josh/.openclaw/workspace/memory/2026-09-03-0740.md
+/home/josh/.openclaw/workspace/memory/2026-09-03-0804.md
+/home/josh/.openclaw/workspace/memory/2026-09-03-0818.md
+/home/josh/.openclaw/workspace/memory/2026-09-03-1353.md
+/home/josh/.openclaw/workspace/memory/2026-09-03-1407.md
+/home/josh/.openclaw/workspace/memory/2026-09-03-1419.md
+/home/josh/.openclaw/workspace/memory/2026-09-03-1427.md
+/home/josh/.openclaw/workspace/memory/2026-09-03-1432.md
+/home/josh/.openclaw/workspace/memory/2026-09-03-1437.md
+/home/josh/.openclaw/workspace/memory/2026-09-03-1441.md
+/home/josh/.openclaw/workspace/memory/2026-09-03.md
+/home/josh/.openclaw/workspace/SOUL.md
+/home/josh/.openclaw/workspace/USER.md
+
+AI-Learning mission-0.14.2-agent  ? ❯ find ~/.openclaw/workspace -maxdepth 2 -type d -printf '%p\n' | sort
+/home/josh/.openclaw/workspace
+/home/josh/.openclaw/workspace/memory
+/home/josh/.openclaw/workspace/memory/dreaming
+/home/josh/.openclaw/workspace/memory/.dreams
+/home/josh/.openclaw/workspace/src
+/home/josh/.openclaw/workspace/src/AI-Learning
+Part 5
+  Yes, shell itself returned everything readily.
+Part 6
+  This is just the exact same as before.
+  Elapsed time: 01:23
+  Input context: 26.9k
+  Output token: 2
+  Context percentage: 82%
+  Tools invoked: no
+Part 7
+FILE                                                               SIZE bytes
+---                                                                 --- bytes
+/home/josh/.openclaw/workspace/AGENTS.md	7927 bytes
+/home/josh/.openclaw/workspace/DREAMS.md	1824 bytes
+/home/josh/.openclaw/workspace/IDENTITY.md	1278 bytes
+/home/josh/.openclaw/workspace/memory/2026-09-02-1011.md	1283 bytes
+/home/josh/.openclaw/workspace/memory/2026-09-02-1021-2.md	1283 bytes
+/home/josh/.openclaw/workspace/memory/2026-09-02-1021.md	992 bytes
+/home/josh/.openclaw/workspace/memory/2026-09-02-1024.md	499 bytes
+/home/josh/.openclaw/workspace/memory/2026-09-02-1025.md	219 bytes
+/home/josh/.openclaw/workspace/memory/2026-09-02-1038.md	572 bytes
+/home/josh/.openclaw/workspace/memory/2026-09-02-1105.md	2366 bytes
+/home/josh/.openclaw/workspace/memory/2026-09-02.md	15 bytes
+/home/josh/.openclaw/workspace/memory/2026-09-03-0740.md	11065 bytes
+/home/josh/.openclaw/workspace/memory/2026-09-03-0804.md	869 bytes
+/home/josh/.openclaw/workspace/memory/2026-09-03-0818.md	2408 bytes
+/home/josh/.openclaw/workspace/memory/2026-09-03-1353.md	10355 bytes
+/home/josh/.openclaw/workspace/memory/2026-09-03-1407.md	219 bytes
+/home/josh/.openclaw/workspace/memory/2026-09-03-1419.md	299 bytes
+/home/josh/.openclaw/workspace/memory/2026-09-03-1427.md	423 bytes
+/home/josh/.openclaw/workspace/memory/2026-09-03-1432.md	550 bytes
+/home/josh/.openclaw/workspace/memory/2026-09-03-1437.md	567 bytes
+/home/josh/.openclaw/workspace/memory/2026-09-03-1441.md	576 bytes
+/home/josh/.openclaw/workspace/memory/2026-09-03-1521.md	1035 bytes
+/home/josh/.openclaw/workspace/memory/2026-09-03.md	2604 bytes
+/home/josh/.openclaw/workspace/SOUL.md	1518 bytes
+/home/josh/.openclaw/workspace/USER.md	871 bytes
+Line counts: 581 total
+Part 8
+I verified that all sessions were empty, in fact deleted any that had been generated. Main is using 0/33k before execution. Result: 01:22, 27k / 82% so pretty much the same.
+
+## Learned
+Learned a lot about navigation of OpenClaw and the various programs preferred in Omarchy. It's easy to be frustrated with some of the churn and lose sight of the success: the agent did successfully perform read and write tasks. We can build on that.
+
+## Confusing
+Navigation in Neovim particularly is still not intuitive.
+
+## Next step
+0.14.3 in opencode and not openclaw
