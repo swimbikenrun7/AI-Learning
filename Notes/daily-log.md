@@ -997,3 +997,63 @@ I actually learned a ton through progressive troubleshooting of these issues. I 
 Lazyvim uses different keyboard shortcuts and Omarchy enforces everywhere else. I want to see if there is a practical way to merge these into one version for the sake of muscle memory.
 
 ## Next step
+We may rejigger the coursework to move onto Claude entirely since I have a subscription now.
+
+# 2026-09-05
+
+## Accomplished
+Activated a Claude Pro subscription and swapped to Claude Code. WOW what a better experience.
+
+## Mission 0.14.4 notes
+Updated coffeeroaster03 to correct the data_persistence issue of overwriting existing roast records. Removed calculated values from the saved roast record and having them calculated when requested by the UI module. Added a Textual GUI and new unit and integration tests. Installed ruff and applied recommended format changes.
+
+### Challenge questions
+1. Decomposition: Why is "Build the roast summary feature" a worse agent task than a set of smaller bounded tasks? What specifically changes for the agent when the work is decomposed?
+"Build the roast summary feature" may be ok as a prompt in the context of already having a really well-defined spec.md that the agent knows to reference. But aside from this, I do think the idea of task size appropriateness depends largely on the capability of the underlying model. I attempted to complete this mission with local models and ran into another multi-hour troubleshooting loop trying to understand why tool calling was failing and gave up on the local model format. Using a frontier model, the experience is much more collaborative and my trust in the model is much higher. We started by inspecting the spec.md and drafting modifications, then once the specification was known and understood, my prompts have only been 2 or 3 sentences. When the model encounters an issue or question, such as a conflict with the guardrails or a requirement in the spec, an issue is raised and we address it. It's a very different experience than the "barely better than a chatbot". The decomposition of the task is handled quite well by a capable agent and the agent has raised many issues I would not have considered had I bounded them with such a decomposed prompt.
+  - Grade: A
+
+2. Context: What information did you provide to the agent that it needed, and what information did you deliberately leave for it to discover? Why is giving the agent the entire project history potentially counterproductive?
+I provided the feature that I wanted to implement and/or the bug I wanted addressed. I deliberately did not refer to specific variables or functions. There is no need for the historical context to modify something of limited scope. My spec is already well defined and available, so a bunch of extra input is just wasting context and adding potential for confusion or disagreement between requirements.
+  - Grade: A
+
+3. Requirements vs implementation: Explain the difference between: "Add development-time calculation to the calculation layer." and: "Create calculate_development_time() in calculations.py using integer seconds." When is it appropriate for the human to prescribe the implementation?
+The first situation leaves the agent to analyze the existing code and identify the functions and modules themselves, leaving them free to their own structure and naming convention. The second prescribes the exact function name and module. If there are external dependencies the agent is unaware of then the prescription would be appropriate.
+  - Grade: A-
+  Refinement: External dependencies aren't necessarily the reason to prescribe implementation. The stronger reason is when the implementation itself is a requirement or constraint. e.g. "this muse use library x because the rest of the application depends on it". This is a fine hair refinement because this is essentially what I meant.
+
+4. Acceptance criteria: Why are acceptance criteria particularly important when working with an agent rather than simply writing the code yourself?
+The acceptance requirement allows the agent to work autonomously without human input. If I'm writing the code myself I a continually evaluating the state and whether I'm satisfied or not, but passing off the task to an external party of any kind requires a way for that party to measure success.
+  - Grade: A
+
+5. Verification: Why isn't "the agent says all tests pass" sufficient evidence that the task is correct? What are you verifying with git diff that the test suite alone doesn't necessarily tell you?
+The git diff lets me verify that the structural changes to the code and/or tests are not self-fulfilling. e.g. "all tests must pass" -> clear the existing tests and setup 8 tests that satisfy themselves - that would be an extreme example of meeting the goal but not the intent.
+  - Grade: A+
+
+6. Task granularity: Suppose you notice that an agent is consistently successful when given five-file tasks but frequently fails when given fifteen-file tasks. What does that tell you? Does it necessarily mean the model is bad?
+It could tell me a few things.  Either the harness layer is not effective in properly utilizing the model(s) or perhaps the underlying model is insufficient, or has insufficient context available. I ran into this issue repeatedly, where the Ollama models available to me just were not syntactically compatible with OpenCode. I spent literally hours modifying the .json file for OpenCode, trying different models, updating system .config, etc. and just kept running into issues with the effective coordination of tasks. It's more than just the model, the whole system has to work together cohesively.
+  - Grade: A-
+
+7. Recovery: Suppose Task 2 fails halfway through and leaves three modified files in an undesirable state. Why is this easier to recover from when Task 2 was narrowly scoped than if you had given the agent the entire feature at once?
+If narrowly scoped (and properly staged and committed), it's possible I could just restore a previous commit state. It depends on not only narrowly scoping, but also strategically committing changes.
+  - Grade: A
+
+8. Model vs workflow: Imagine that you replace Qwen3:8B with a much stronger coding model. Which problems from 0.14.3 would you expect to disappear or improve because of the model, and which problems would still exist because they are fundamentally workflow/engineering problems?
+I can tell you based on this experience that all of the problems went away. I think if I had continued to use OpenCode or Openclaw it would have been likely to run into some interface issues between agent layer and model layer, because the boundaries between those software layers are defined by different parties and the handshake can be done better or worse. It would be very hard for an open source agent harness to optimally interface with all underlying models.
+  - Grade: A
+  Refinement: A sufficiently capable model can make many apparent workflow problems disappear because it can compensate for ambiguity, recover from mistakes, reason across context, and make better tool decisions.
+
+9. Solar application: Your eventual solar application will be considerably more complex than the coffee logger. Give an example of how you might decompose a hypothetical feature such as "generate a permit-ready electrical one-line diagram from a system configuration" into agent-sized tasks. You don't need to know how to implement the one-line generator yet. I'm testing whether you can identify appropriate boundaries of work.
+I think my first step will be to define a really solid readme and spec. In the readme I would collaborate with the agent to lay out my vision and place the project into logical, sequential steps for development (e.g. nail the calculations first), with growing complexity and verification. Given this background we would then define the spec and make updates as the scope grows. By the time we got to "generate a permit-ready electrical one-line diagram" I think I'd first be looking at developing a module to generate the required graphics in general, starting from some basic blueprint. I'm unfamiliar with this area of programming so I imagine the agent would have an opinion on the options for implementing this and we would first create some malleable one-line generator, then move on to defining specifically how it should be suited to the project. "Permit-readiness" will be up to me to define the state at which the output from the module is good enough for submission.
+  - Grade: A
+
+10. The big lesson: Complete this statement in your own words: A good AI-assisted engineer does not primarily try to make the agent autonomous; instead, they ________. This one is intentionally open-ended.
+Provide the proper domain knowledge, guardrails, goals and other context to enable agents to achieve their goals in the clearest, token-scarce way possible. If the same task can be completed for fewer tokens, engineer optimization is understanding how to improve the workflow to reduce that usage.
+
+## Learned
+I'm ready to start programming some real stuff.
+
+## Confusing
+I may dig into Textual more, but I'm not sure how much I'll use it.
+
+## Next step
+Migrating to Claude.
