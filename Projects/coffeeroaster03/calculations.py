@@ -18,7 +18,7 @@ def classify_roast(weight_loss):
         14.51: "City Plus",
         15.51: "Full City",
         16.51: "Full City Plus",
-        18.01: "Vienna Roast"
+        18.01: "Vienna Roast",
     }
     for threshold, classification in ROAST_CLASSIFICATION.items():
         if weight_loss < threshold:

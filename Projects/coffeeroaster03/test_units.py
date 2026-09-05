@@ -10,13 +10,13 @@ from calculations import (
     classify_roast,
 )
 from data_persistence import count_roasts, load_roast_records, save_roast_records
-from user_input import (
-    get_bean_name,
-    get_date,
-    get_finished_weight,
-    get_green_weight,
-    get_roast_time,
-    get_time_of_first_crack,
+from validators import (
+    validate_bean_name,
+    validate_date,
+    validate_finished_weight,
+    validate_first_crack,
+    validate_green_weight,
+    validate_roast_time,
 )
 
 
@@ -100,78 +100,52 @@ class TestDataPersistence(unittest.TestCase):
             count_roasts()
 
 
-class TestUserInput(unittest.TestCase):
-    @mock.patch("builtins.input")
-    def test_get_date(self, mock_input):
-        mock_input.return_value = "04/15/2023"
-        date = get_date()
-        self.assertEqual(date, "04/15/2023")
+class TestValidators(unittest.TestCase):
+    def test_validate_date(self):
+        self.assertEqual(validate_date("04/15/2023"), "04/15/2023")
 
-    @mock.patch("builtins.input")
-    def test_get_date_retries_on_invalid_format(self, mock_input):
-        mock_input.side_effect = ["not-a-date", "04/15/2023"]
-        date = get_date()
-        self.assertEqual(date, "04/15/2023")
+    def test_validate_date_rejects_invalid_format(self):
+        with self.assertRaises(ValueError):
+            validate_date("not-a-date")
 
-    @mock.patch("builtins.input")
-    def test_get_date_rejects_future_date(self, mock_input):
-        mock_input.side_effect = ["12/31/2099", "04/15/2023"]
-        date = get_date()
-        self.assertEqual(date, "04/15/2023")
+    def test_validate_date_rejects_future_date(self):
+        with self.assertRaises(ValueError):
+            validate_date("12/31/2099")
 
-    @mock.patch("builtins.input")
-    def test_get_bean_name(self, mock_input):
-        mock_input.return_value = "Arabica"
-        bean_name = get_bean_name()
-        self.assertEqual(bean_name, "Arabica")
+    def test_validate_bean_name(self):
+        self.assertEqual(validate_bean_name("Arabica"), "Arabica")
 
-    @mock.patch("builtins.input")
-    def test_get_green_weight(self, mock_input):
-        mock_input.return_value = "250"
-        green_weight = get_green_weight()
-        self.assertEqual(green_weight, 250)
+    def test_validate_bean_name_rejects_empty(self):
+        with self.assertRaises(ValueError):
+            validate_bean_name("")
 
-    @mock.patch("builtins.input")
-    def test_get_green_weight_retries_on_invalid_input(self, mock_input):
-        mock_input.side_effect = ["50", "250"]
-        green_weight = get_green_weight()
-        self.assertEqual(green_weight, 250)
+    def test_validate_green_weight(self):
+        self.assertEqual(validate_green_weight("250"), 250)
 
-    @mock.patch("builtins.input")
-    def test_get_finished_weight(self, mock_input):
-        mock_input.return_value = "180"
-        finished_weight = get_finished_weight(250)
-        self.assertEqual(finished_weight, 180)
+    def test_validate_green_weight_rejects_out_of_range(self):
+        with self.assertRaises(ValueError):
+            validate_green_weight("50")
 
-    @mock.patch("builtins.input")
-    def test_get_finished_weight_retries_on_invalid_input(self, mock_input):
-        mock_input.side_effect = ["50", "180"]
-        finished_weight = get_finished_weight(250)
-        self.assertEqual(finished_weight, 180)
+    def test_validate_finished_weight(self):
+        self.assertEqual(validate_finished_weight("180", 250), 180)
 
-    @mock.patch("builtins.input")
-    def test_get_roast_time(self, mock_input):
-        mock_input.return_value = "08:30"
-        total_roast_time = get_roast_time()
-        self.assertEqual(total_roast_time, 510)
+    def test_validate_finished_weight_rejects_out_of_range(self):
+        with self.assertRaises(ValueError):
+            validate_finished_weight("50", 250)
 
-    @mock.patch("builtins.input")
-    def test_get_roast_time_retries_on_invalid_input(self, mock_input):
-        mock_input.side_effect = ["03:00", "08:30"]
-        total_roast_time = get_roast_time()
-        self.assertEqual(total_roast_time, 510)
+    def test_validate_roast_time(self):
+        self.assertEqual(validate_roast_time("08:30"), 510)
 
-    @mock.patch("builtins.input")
-    def test_get_time_of_first_crack(self, mock_input):
-        mock_input.return_value = "06:45"
-        time_of_first_crack = get_time_of_first_crack(510)
-        self.assertEqual(time_of_first_crack, 405)
+    def test_validate_roast_time_rejects_out_of_range(self):
+        with self.assertRaises(ValueError):
+            validate_roast_time("03:00")
 
-    @mock.patch("builtins.input")
-    def test_get_time_of_first_crack_retries_on_invalid_input(self, mock_input):
-        mock_input.side_effect = ["09:00", "06:45"]
-        time_of_first_crack = get_time_of_first_crack(510)
-        self.assertEqual(time_of_first_crack, 405)
+    def test_validate_first_crack(self):
+        self.assertEqual(validate_first_crack("06:45", 510), 405)
+
+    def test_validate_first_crack_rejects_out_of_range(self):
+        with self.assertRaises(ValueError):
+            validate_first_crack("09:00", 510)
 
 
 class TestCalculations(unittest.TestCase):

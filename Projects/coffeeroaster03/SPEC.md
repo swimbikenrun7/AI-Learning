@@ -5,6 +5,8 @@ Record coffee roasting sessions and calculate basic roast metrics in Python. The
 
 ## Requirements
 The code shall have a separate module for calculations.
+The code shall have a separate module (or package) for the Textual interface, isolated from calculations.py and data_persistence.py.
+calculations.py and data_persistence.py shall not import from or depend on the Textual UI module.
 Each module shall have a pytest script written for validation testing.
 Tests shall be stored in the tests/ folder in the parent directory.
 Persistent data shall be written to a JSON file in the data/ folder in the parent directory.
@@ -16,8 +18,8 @@ Convert dates appropriately between the Python internal representation and JSON 
 
 ## Constraints
 JSON only; do not introduce a database.
-Do not introduce external dependencies.
-Do not add a GUI.
+Do not introduce external dependencies except the `textual` package (and its own required dependencies) for the UI layer.
+The UI shall be built with Textual (a terminal UI, not a desktop/web GUI).
 Do not change the existing calculation formulas.
 Do not delete existing functionality.
 Keep the architecture reasonably simple.
@@ -33,7 +35,7 @@ Must represent a valid calendar date.
 Must be ≤ today's date.
 Future dates are rejected.
 Display an explanatory error for invalid input.
-Continue prompting until valid input is received.
+The field shall remain editable and the record shall not be submitted until the value is valid.
 
 ### Bean
 Required.
@@ -44,7 +46,7 @@ Required.
 Input must be numeric.
 Input must be greater than 100 and less than 300.
 Invalid input must produce a helpful error.
-User must be allowed to retry.
+The field shall remain editable after an invalid entry.
 User is requested to input a number in grams.
 
 ### Finished Weight
@@ -53,7 +55,7 @@ Input must be numeric.
 Input must be greater than 100.
 Input must be less than green weight.
 Invalid input must produce a helpful error.
-User must be allowed to retry.
+The field shall remain editable after an invalid entry.
 User is requested to input a number in grams.
 
 ### Total roast time
@@ -63,7 +65,7 @@ Must be ≥ 04:00.
 Must be < 20:00.
 Display an explanatory error for invalid input.
 The error must display the values in MM:SS format.
-Continue prompting until valid input is received.
+The field shall remain editable and the record shall not be submitted until the value is valid.
 Value must be stored as integer seconds.
 
 ### Time of first crack
@@ -72,7 +74,7 @@ Must be entered in MM:SS format.
 Must be less than total roast time.
 Display an explanatory error for invalid input.
 The error must display values in MM:SS format.
-Continue prompting until valid input is received.
+The field shall remain editable and the record shall not be submitted until the value is valid.
 Values must be stored as integer seconds.
 
 ### Roast temperature
@@ -97,17 +99,17 @@ Existing roast records must not be silently discarded when a new roast is added.
 Do not store calculated values in JSON.
 Before querying user data, the program shall check the JSON file and if corrupted notify the user and exit the program.
 
-## Command-Line Interface
-When the application starts, after checking the json for corrupt data it shall load existing roast records and display a menu.
-The menu shall provide the following options:
+## User Interface
+When the application starts, after checking the JSON for corrupt data it shall load existing roast records and display the main screen.
+The main screen shall provide the following actions:
 1. Add roast
 2. View roasts
 3. Exit
-Selecting Add roast shall collect and validate the required roast fields and save the resulting record.
-Selecting View roasts shall display existing roast records.
+Selecting Add roast shall present a form to collect the required roast fields, validate them inline, and save the resulting record on submission.
+Selecting View roasts shall display existing roast records in a table/data-grid widget.
 Selecting Exit shall terminate the application.
-After completing Add roast or View roasts, the application shall return to the main menu.
-An invalid menu selection shall display an appropriate message and return to the menu without terminating the application.
+After completing Add roast or View roasts, the application shall return to the main screen.
+Roast records table shall be rendered using the same fields/order as ROAST_TABLE_COLUMNS in the current implementation.
 
 ## Tables
 

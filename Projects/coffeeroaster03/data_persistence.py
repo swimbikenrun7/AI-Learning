@@ -1,6 +1,6 @@
-import sys
 import json
 import os
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -14,12 +14,14 @@ def load_roast_records():
             try:
                 records = json.load(file)
                 for record_id in records:
-                    records[record_id]['date'] = datetime.strptime(
-                        records[record_id]['date'], "%m/%d/%Y"
+                    records[record_id]["date"] = datetime.strptime(
+                        records[record_id]["date"], "%m/%d/%Y"
                     ).strftime("%m/%d/%Y")
                 return records
             except json.JSONDecodeError:
-                print("Error: The roast records file is corrupted. Exiting the program.")
+                print(
+                    "Error: The roast records file is corrupted. Exiting the program."
+                )
                 sys.exit(1)
     return {}
 
