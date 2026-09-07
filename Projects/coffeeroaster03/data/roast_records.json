@@ -1,18 +1,18 @@
 {
-    "08/28/2026": {
-        "date": "08/28/2026",
-        "bean_name": "18 Rabbit Black",
-        "green_weight": 205.0,
-        "finished_weight": 178.0,
-        "total_roast_time": 480,
-        "time_of_first_crack": 380
+    "e6b2887c-dfd4-464c-aee2-88535e39748c": {
+        "date": "09/07/2026",
+        "bean_name": "Mysore Nuggets",
+        "green_weight": 202.3,
+        "finished_weight": 175.2,
+        "total_roast_time": 450,
+        "time_of_first_crack": 375
     },
-    "09/02/2026": {
-        "date": "09/02/2026",
-        "bean_name": "woeij",
-        "green_weight": 205.0,
-        "finished_weight": 184.0,
-        "total_roast_time": 480,
+    "93e78f64-4f0e-48f8-8b21-ee8fbd354544": {
+        "date": "09/07/2026",
+        "bean_name": "Finca la Siberia",
+        "green_weight": 204.4,
+        "finished_weight": 175.9,
+        "total_roast_time": 460,
         "time_of_first_crack": 400
     }
 }
