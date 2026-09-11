@@ -1057,3 +1057,98 @@ I may dig into Textual more, but I'm not sure how much I'll use it.
 
 ## Next step
 Migrating to Claude.
+
+# 2026-09-10
+
+## Accomplished
+Migrated to Claude and completed Mission 1.1. The Claude structure for this mission was very dense, we've got work to do to make these missions more bite-size.
+
+## Mission 1.1 Notes
+
+### Challenge Questions
+1. Vision
+Your vision statement was constrained to exclude all technology. What did that constraint force you to notice that you would otherwise have skipped?
+Software delights most when it solves a real problem in a beautiful way. By ignoring jargon and technology I was forced to focus on the real, core issues that drove me to want to develop an app in the first place. Technology is a means to that end, it's not the destination itself.
+    - Grade: C+
+    Refinement: The finding is in your own draft. Your first vision paragraph opened with a feature list — string voltages, energy needs, projected output, one-lines, structural calcs — and buried the thesis in the last two sentences: the services that remove the friction are purchasable, which prices out the people most likely to self-install. The constraint is what made that inversion visible. The feature list could adjudicate nothing; the thesis can adjudicate for years.
+    Name the specific discovery, not the category it belongs to.
+
+2. Scope
+Pick one item you placed in OUT OF SCOPE. Describe a plausible future situation in which you would be tempted to move it to DEFERRED. What would have to be true for that to be the right decision rather than scope creep?
+I think there is a legitimate future for balcony solar, where the user is not a homeowner. Most places in the US the regulatory framework does not yet support backfeeding to an outlet, but I could see a future where - once the regulatory framework exists - the app could be expanded to help these sort of less "permanent installation" users. There is already a market for this with RV hookups, but most of these users prefer packaged setups that are designed to be mobile, ultimately it's unlikely I would develop in this direction.
+    - Grade: B+
+    Refinement: The second half went unanswered. You said what would make you tempted; you didn't say what would make it the right call rather than scope creep. The test isn't the regulatory change. It's whether the new population consumes capability you already built or demands new capability. Balcony solar running your existing string and interconnection logic against a different topology is expansion. A parallel calculation engine is a different product wearing your product's name.
+
+3. The code-edition assumption
+You committed to a target code edition. Where in the application will that assumption physically live, and what would it cost you if it were spread across forty calculation functions as literal numbers instead?
+I think it makes sense to house the various required information from the codes as mini databases of sorts, so that a code and year can be called based on other database information (the particular regulatory requirements of a municipality) and return the appropriate values to the calculation function. The bigger challenge I consider is how to practically stay on top of a growing database of specific requirements.
+    - Grade: B
+    Refinement: What you skipped is the cost side. Forty literal numbers means you cannot answer "what changes under the 2026 NEC" without reading forty functions, you cannot diff two editions, and you cannot tell whether a given number was a code limit or someone's assumption. The table makes the code edition auditable. That's the actual payoff, and it's worth being able to articulate.
+
+4. Domain boundary
+You assigned floating-point comparison tolerance to one of the two columns. Defend that placement. Then argue the opposite position as well as you can.
+After consideration floating-point comparison belongs in both my decision space as well as "any programmer's" depending on context. For purposes of a value such as Voc calculation, I own the interpretation. But for purposes of UI or comparison tools, these could easily be determined by any programmer.
+    - Grade: B
+    Refinement: The cleaner cut is that engineering margin to a code limit and numerical representation tolerance have nothing in common except the English word "tolerance." One asks whether 597.3 V is acceptable against a 600 V limit. The other asks whether 597.3000001 equals 597.3. They aren't the same decision in different contexts; they're different decisions that collided in vocabulary.
+
+5. Decomposition
+Why does the rule "no phase may depend on a later phase" matter more for an AI-assisted project than for one you write entirely yourself?
+I have ideas about direction that I have not committed to paper, or maybe have inelegantly translated into text. Because I am offloading work to a subordinate, I need to be clear in that direction, and current phase dependence on later phases is asking someone else to make a strategic decision. That sort of contingency planning and mapping is something that I have to do up front to provide direction to the agent.
+    - Grade: C
+    Refinement: The real answer isn't more up-front planning. When you write code yourself and hit a circular dependency, you hit a wall — you can't proceed, so you notice and reorder. An agent never hits the wall. It satisfies the stated dependency by inventing the missing piece, confidently, and hands you an abstraction shaped around a phase that doesn't exist yet. You inherit the decision without ever seeing it made.
+    The protection isn't a better plan. It's that each phase must be self-contained enough to be checkable on its own — which is exactly the property your rewritten Phase 1 definition of done now has. Those are the same idea, and the connection was available to you.
+
+6. Definition of done
+Compare these two definitions of done for a calculation phase:
+A: "The string voltage calculation is implemented and the tests pass."
+B: "For five documented input cases spanning the expected range, the
+    program's output matches an independently hand-computed value."
+
+Both sound rigorous. Explain precisely what B protects you from that A does not — and connect this to something you already learned in the 0.x series.
+This is one I'm going to have to work on. I've never been huge on putting my ideas to paper, so I default to the former sort of explanation knowing that I'll figure it out later. But every postponed decision is a future stop in my workflow and another potential gap where the agent can make a decision I may not have accounted for. B protects me from the agent creating tests that while passing, don't tell me anything about whether the calculation achieves its intended purpose. I have to apply domain knowledge to define plausible edge cases to test the underlying logic and ensure the testing is rigorous.
+    - Grade: A-
+    Refinement: The only thing missing is what the question explicitly asked for — the connection to the 0.x series. You lived this already, somewhere in the testing work. Find it and name it. Recalling where you've already been burned makes it stick harder than me telling you.
+
+7. Context
+This mission produced documents rather than code. Explain how those documents change what you have to type into an agent prompt six months from now, and why that is worth two hours today.
+Having reference documentation of the sort developed in this module provides clear, standing instruction to the agent on the context of the project and reduces ambiguity. If everything I do in interacting with the agent is through the prompt window and these documents don't exist, that context stays within one conversation. If I open a different agent window, or compress the context, I have no control over what gets lost in translation. Creating a clear document structure is worth the time because it will be easier for me to maintain throughout the project and will always be the source of truth for both the agents and me.
+    - Grade: A
+
+8. The scaffolding temptation
+Suppose you had opened with: *"Set up a Python project for a residential solar design application."* List at least four decisions the agent would have made for you. For each, state whether you would have noticed.
+- It would have decided an architecture. I would have definitely noticed.
+- It would have decided what the limits of "design" were. This would have taken some digging to understand exactly where the boundary was set.
+- It would have decided how data would be queried and stored. I would have noticed this.
+- It would have decided what the final output would be - standalone desktop app? web page? I would have noticed, but it would have the potential to waste a lot of effort developing in the wrong direction.
+    - Grade: C+
+    Refinement: You said you'd "definitely" have noticed the architecture decision. You're a programming novice by your own description. You'd have seen a folder structure — you would not have known which alternatives it foreclosed or had a basis to object. Your second item, "would have taken some digging to understand where the boundary was set," is the honest register. It should apply to most of the list.
+    You also missed the genuinely invisible ones, which is the actual lesson: Python version, dependency and packaging tool, test framework, src-layout versus flat, type checking, license, .gitignore contents. Nobody notices those. They're load-bearing for years.
+    The question was really testing whether you can tell the difference between decisions you'd catch and decisions you'd inherit. That gap is the risk.
+
+9. Transfer
+Structural engineering has an equivalent of this mission — the work done before any member is sized. Name the equivalent, and identify one place where the analogy **breaks down**. The failure of the analogy is the interesting part.
+In structural engineering you gather information on the boundary conditions - the external loads, environmental data, location and application, etc. You have to understand what the purpose of the member is and the context surrounding it in order to define its properties. Similarly, in this mission we are exploring the boundary conditions of the problem and the purpose of the project. I think the key difference is that in structural design there are prescriptive rules and physics that govern the envelope of viable solutions, and most seasoned practitioners will come to the same or similar conclusion for a given problem. In the case of developing this project, some of the regulatory specifics are very clear, but most of the questions around "why" are we doing this are much less clear. This sort of strategic, qualitative analysis is much less bounded and requires the responsible party (in this case me) to set those clear boundaries.
+    - Grade: A
+    Refinement: There's a second break underneath yours. In structural work the boundary conditions are looked up. You don't choose the wind speed. Here you choose your constraints, which means you can be wrong about the constraints themselves and not merely about the solution. Structural engineering mostly protects you from that failure mode. This project won't.
+
+10. Honest assessment
+Rate your current confidence, and be candid rather than generous:
+
+| Item | Confidence (1–5) |
+| ---- | ---------------- |
+| I know what this application is for | 4 |
+| I know what it will not do | 4 |
+| I know what the first working version contains | 3 |
+| I could hand Phase 1 to an agent and check its work | 3 |
+| I could explain this project to another engineer in five minutes | 4 |
+
+Any score of 3 or below tells us where Mission 1.2 needs to spend its time. Under-report rather than over-report — an inflated score costs you a mission spent in the wrong place.
+
+## Learned
+Scoping is still the most difficult part of this process for me. I'm naturally averse to writing down my thoughts, I need to be intentional about setting up agent workflows to help me get these foundational steps organized and completed.
+
+## Confusing
+Nothing much here.
+
+## Next step
+Mission 1.2
