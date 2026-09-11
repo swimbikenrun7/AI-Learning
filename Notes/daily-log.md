@@ -1152,3 +1152,58 @@ Nothing much here.
 
 ## Next step
 Mission 1.2
+
+# 2026-09-11
+
+## Accomplished
+
+## Mission 1.2 Notes
+
+### Challenge Questions
+
+1. Derivation
+Name one field that would almost certainly have appeared in an imagined-first data model, but is absent from yours. Why did nothing need it?
+Maybe I've thought about this problem enough that the calculation in this mission was not that unknown to me. I hadn't done the hand calc, but I already knew the variables, so I think the question is a bit too abstract for me to really conceptualize. I'm also in the habit of performing calculations in my work, so I don't often go about just naming and storing a bunch of variables. My habit is to read the relevant codes and standards, then build a calculation tool calling the required variables. If I look to future developments, I think of something like conductor sizing: I haven't researched this topic much, so I could see a possibility if I did not review the relevant codes first that I could define a number of variables that would not be relevant. Am I wrong here? Wouldn't proper research of a code preclude this sort of thing?
+    - Grade: B
+    Refinement: A default model would have imported all the named variables from the datasheet, but the review stepped parsed the variables down to only what was required for the calculation. My model is 1/3 the size of what the obvious model would be to an outside observer without first reviewing the calculation requirements.
+
+2. Units
+Where did a unit conversion appear in your hand calculation? Where should it live in code — at input, at storage, at calculation, or at display? Defend the choice.
+There were no unit conversions, all calculations were done in native units (% / degC, degC, V, etc.). For UI purposes, conversion will need to be added later. Most Americans will use or prefer degF if given a choice - although it would only be needed for displaying the temperature outputs in degF. The native data is all degC and will be pulled from a database based on user-selected location data. There is no need to confuse the database and calculations with different units.
+    - Grade: B+
+    Refinement: I need to update my domain decisions table with this answer, it still says pending. That table is useless if it's not evergreen, I need to establish this habit.
+
+3. Property vs. assumption
+You split the values into equipment properties and design assumptions. Give one value where the split was genuinely ambiguous, and explain what tipped it.
+I added a different designation for this reason, because I didn't like those buckets. I chose "derived", "design assumption", and "fixed" for this reason. Derived at values that arise necessarily from the underlying data - typically a combination of fixed properties (such as equation structure) and data from a design assumption. Design assumptions are user-selected values. There is more nuance than this but I didn't want the selection to get too complicated. For instance selecting a temperature is not something you can freely do, it is constrained by RAGAGEP. But it is dependent on selecting the right location and returning the correct value from a database. I felt that all the variables I put in this class shared this sort of property - these variables are the open questions that truly determine the validity of the final calculation. Fixed are the items that come directly from the code or an equipment datasheet. These are strictly given values.
+    - Grade: A-
+    Refinement: "fixed" has a double meaning. I need to further separate universal constants from site-specific values. I also ignored the explicit instruction to identify an ambiguous value and Tadd was a great example under my nose.
+
+4. The boundary
+You decided how close to the limit counts as a pass. State the rule and the reasoning. Then state what an agent would have chosen if you hadn't specified it, and what that would have cost.
+There are design factors already built into these limits, there is no need to add additional design factors. As long as the calculated value is strictly less than the overcurrent voltage and greater than the minimum operating voltage from the inverter manufacturer, then the design is acceptable. I modified the domain decisions table to specify a rounddown treatment for min and roundup treatment for max, and additionally specified that panel numbers shall be whole numbers in the calculations. An agent could have chosen either to round differently, or add their own safety factor in the face of ambiguity, which could have cost me in the former case by producing invalid results and in the second case by precluding some possible configurations.
+    - Grade: A-
+    Refinement: Explicitly state what happens with the "=" case.
+
+5. Mutability
+You made a call on `frozen=True`. Argue the opposing position as well as you can, then say whether it changed your mind.
+For the module and inverter data 'frozen=True' is the correct choice for my application, because i want the values selected to be immutable. That would be true for anything in my variables table that is "fixed". Panel number is a more interesting one. The calculation can determine min and max numbers of panels, those would be 'frozen=True', but the variable for number of panels to be chosen by the user will not be frozen. Calculation logic will have to reject numbers which don't conform (not whole numbers, less than min, greater than max), ideally with the min and max values incorporated as instructions to the user when selecting the value. The opposing argument to selection of 'True' may be that the value is subject to change up until final specification for generation of the permit set, but I don't find this as convincing because rather than change the value directly the program should call a different immutable value from the database. Otherwise the user risks unintentionally corrupting their data and validating an invalid design.
+    - Grade: A-
+    Refinement: The steelman was soft. The genuine argument against frozen=True isn't that values change before final spec — it's ergonomic: adjusting one field means reconstructing the whole object, and that gets tedious fast. The answer is that replace() makes it cheap and leaves an explicit new object rather than a silent mutation. You'd have found that if you'd pushed the opposing case harder, and the question asked you to.
+
+6. Assumptions you invented
+Part 3(c) required assumptions no document supplied. List them. For each: is it a domain decision, a research question, or something a competent programmer could pick? Anything in the first two categories belongs in the repository before the next mission.
+I think the only real assumption was in the choice of min and max temperature for the Voc and Vmp calcs. I did a little research into convention for these and found that it is a bit ambiguous, but that best practice is to select the 20-year or 50-year extremes. I chose the 50-year in conservatism which I believe is defensible. I think it was a research question, but I already performed the research rather than leave unfinished business.
+    - Grade: C+
+    Refinement: "only real assumption" drastically undercounts. Here are a number of assumptions made:
+    * gamma substitution - This is the one that matters, and it's undeclared. Using a Pmax coefficient where the calculation needs a Vmp coefficient is an assumption with a known direction of error. It's currently invisible in every document written. Although a conventional substitution it needs to be documented.
+    * method choice for Voc - Coefficient-based correction vs. table-based which is also allowed per NEC 690. I picked coefficient and didn't record why.
+
+## Learned
+Continuing to learn more about proper organization and documentation.
+
+## Confusing
+Syntax on the equipment.py file. Claude was able to explain the '(frozen=True)' concept for me.
+
+## Next step
+Mission 1.3
