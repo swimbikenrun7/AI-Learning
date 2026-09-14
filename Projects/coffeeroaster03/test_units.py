@@ -9,6 +9,7 @@ from calculations import (
     calculate_weight_loss,
     classify_roast,
     fill_forward,
+    resolve_actual_temps,
 )
 from data_persistence import (
     count_roasts,
@@ -305,6 +306,29 @@ class TestCalculations(unittest.TestCase):
     def test_fill_forward_all_none(self):
         values = [None, None, None]
         self.assertEqual(fill_forward(values), [None, None, None])
+
+    def test_resolve_actual_temps_fills_up_to_total_roast_time(self):
+        # 8:30 roast -> 8 whole minutes elapsed; minute 6 carries to 7 and 8.
+        entered = [200, 210, 220, 230, 240, 250, None, None, None, None, None, None]
+        result = resolve_actual_temps(entered, 510)
+        self.assertEqual(
+            result,
+            [200, 210, 220, 230, 240, 250, 250, 250, None, None, None, None],
+        )
+
+    def test_resolve_actual_temps_ignores_entries_past_total_roast_time(self):
+        # 6:00 roast -> only the first 6 minutes are meaningful.
+        entered = [200, 210, 220, 230, 240, 250, 999, 999, 999, 999, 999, 999]
+        result = resolve_actual_temps(entered, 360)
+        self.assertEqual(
+            result,
+            [200, 210, 220, 230, 240, 250, None, None, None, None, None, None],
+        )
+
+    def test_resolve_actual_temps_full_length_roast(self):
+        entered = [200] + [None] * 11
+        result = resolve_actual_temps(entered, 900)
+        self.assertEqual(result, [200] * 12)
 
 
 if __name__ == "__main__":

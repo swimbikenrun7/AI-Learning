@@ -22,6 +22,13 @@ def fill_forward(values):
     return filled
 
 
+def resolve_actual_temps(entered_temps, total_roast_time):
+    total_minutes = total_roast_time // 60
+    relevant_count = min(len(entered_temps), total_minutes)
+    within_roast = fill_forward(entered_temps[:relevant_count])
+    return within_roast + [None] * (len(entered_temps) - relevant_count)
+
+
 def classify_roast(weight_loss):
     ROAST_CLASSIFICATION = {
         13.01: "City Roast",

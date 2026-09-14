@@ -1,7 +1,7 @@
 import uuid
 
 from textual.app import App, ComposeResult
-from textual.containers import Vertical, VerticalScroll
+from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.screen import Screen
 from textual.widgets import Button, DataTable, Footer, Header, Input, Label, Static
 
@@ -50,7 +50,7 @@ class MainScreen(Screen):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "add_roast":
-            self.app.push_screen(AddRoastScreen())
+            self.app.push_screen(SelectProfileScreen())
         elif event.button.id == "view_roasts":
             self.app.push_screen(ViewRoastsScreen())
         elif event.button.id == "roast_profiles":
@@ -60,15 +60,48 @@ class MainScreen(Screen):
 
 
 class AddRoastScreen(Screen):
+    def __init__(self, profile_id, profile_data):
+        super().__init__()
+        self.profile_id = profile_id
+        self.profile_data = profile_data
+
     def compose(self) -> ComposeResult:
         yield Header()
-        yield Vertical(
+        target_temps = calc.fill_forward(self.profile_data.get("temps", [None] * 12))
+        fields = [
             Label("Date (MM/DD/YYYY)"),
             Input(placeholder="MM/DD/YYYY", id="date"),
             Label("Bean name"),
             Input(placeholder="Bean name", id="bean_name"),
             Label("Green weight (g)"),
             Input(placeholder="Green weight", id="green_weight"),
+            Label(f"Roast profile: {self.profile_data.get('name', '')}"),
+            Horizontal(
+                Static("Time", classes="temp_cell"),
+                Static("Actual (°F)", classes="temp_cell"),
+                Static("Target (°F)", classes="temp_cell"),
+                classes="temp_row",
+            ),
+        ]
+        for minute in range(1, 13):
+            target = target_temps[minute - 1]
+            fields.append(
+                Horizontal(
+                    Static(f"{minute}:00", classes="temp_cell"),
+                    Input(
+                        placeholder="°F (optional)",
+                        id=f"actual_temp_{minute}",
+                        classes="temp_input",
+                    ),
+                    Static(
+                        "-" if target is None else f"{target:g}",
+                        id=f"target_temp_{minute}",
+                        classes="temp_cell",
+                    ),
+                    classes="temp_row",
+                )
+            )
+        fields += [
             Label("Time of first crack (MM:SS)"),
             Input(placeholder="MM:SS", id="first_crack"),
             Label("Total roast time (MM:SS)"),
@@ -78,8 +111,8 @@ class AddRoastScreen(Screen):
             Static("", id="error"),
             Button("Submit", id="submit", variant="primary"),
             Button("Cancel", id="cancel"),
-            id="form",
-        )
+        ]
+        yield VerticalScroll(*fields, id="form")
         yield Footer()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -96,6 +129,12 @@ class AddRoastScreen(Screen):
             green_weight = validate_green_weight(
                 self.query_one("#green_weight", Input).value
             )
+            entered_actual_temps = [
+                validate_temperature(
+                    self.query_one(f"#actual_temp_{minute}", Input).value
+                )
+                for minute in range(1, 13)
+            ]
             total_roast_time = validate_roast_time(
                 self.query_one("#roast_time", Input).value
             )
@@ -109,6 +148,11 @@ class AddRoastScreen(Screen):
             error_widget.update(str(error))
             return
 
+        target_temps = calc.fill_forward(self.profile_data.get("temps", [None] * 12))
+        actual_temps = calc.resolve_actual_temps(
+            entered_actual_temps, total_roast_time
+        )
+
         new_record = {
             "date": date,
             "bean_name": bean_name,
@@ -116,6 +160,9 @@ class AddRoastScreen(Screen):
             "finished_weight": finished_weight,
             "total_roast_time": total_roast_time,
             "time_of_first_crack": time_of_first_crack,
+            "roast_profile_id": self.profile_id,
+            "target_temps": target_temps,
+            "actual_temps": actual_temps,
         }
         record_id = str(uuid.uuid4())
         self.app.roast_records[record_id] = new_record
@@ -156,6 +203,47 @@ class ViewRoastsScreen(Screen):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "back":
+            self.app.pop_screen()
+
+
+class SelectProfileScreen(Screen):
+    def compose(self) -> ComposeResult:
+        yield Header()
+        if self.app.roast_profiles:
+            yield DataTable(id="select_profile_table", cursor_type="row")
+            yield Button("Back", id="back")
+        else:
+            yield Vertical(
+                Static(
+                    "No roast profiles exist yet. Add one to start a roast.",
+                    id="no_profiles_message",
+                ),
+                Button("Add new profile", id="add_profile"),
+                Button("Back", id="back"),
+                id="menu",
+            )
+        yield Footer()
+
+    def on_mount(self) -> None:
+        if self.app.roast_profiles:
+            table = self.query_one("#select_profile_table", DataTable)
+            table.add_columns("Profile name")
+            for profile_id, profile in self.app.roast_profiles.items():
+                table.add_row(profile["name"], key=profile_id)
+
+    def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
+        profile_id = event.row_key.value
+        profile_data = self.app.roast_profiles[profile_id]
+        self.app.pop_screen()
+        self.app.push_screen(
+            AddRoastScreen(profile_id=profile_id, profile_data=profile_data)
+        )
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "add_profile":
+            self.app.pop_screen()
+            self.app.push_screen(AddEditProfileScreen())
+        elif event.button.id == "back":
             self.app.pop_screen()
 
 
@@ -264,13 +352,27 @@ class ProfileListScreen(Screen):
 
 class RoastLoggerApp(App):
     CSS = """
-    #menu, #form, #profile_form {
+    #menu, #profile_form {
         width: 60;
+        margin: 1 2;
+    }
+    #form {
+        width: 64;
         margin: 1 2;
     }
     #error {
         color: red;
         margin-bottom: 1;
+    }
+    .temp_row {
+        height: 3;
+    }
+    .temp_cell {
+        width: 18;
+        content-align: left middle;
+    }
+    .temp_input {
+        width: 24;
     }
     """
 
