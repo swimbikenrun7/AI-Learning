@@ -26,6 +26,7 @@ from validators import (
 ROAST_TABLE_COLUMNS = [
     ("Date", 10, "<"),
     ("Bean Name", 15, "<"),
+    ("Roast Profile", 15, "<"),
     ("Green (g)", 9, ">"),
     ("Finished (g)", 12, ">"),
     ("Roast Time (s)", 14, ">"),
@@ -149,9 +150,7 @@ class AddRoastScreen(Screen):
             return
 
         target_temps = calc.fill_forward(self.profile_data.get("temps", [None] * 12))
-        actual_temps = calc.resolve_actual_temps(
-            entered_actual_temps, total_roast_time
-        )
+        actual_temps = calc.resolve_actual_temps(entered_actual_temps, total_roast_time)
 
         new_record = {
             "date": date,
@@ -174,14 +173,14 @@ class AddRoastScreen(Screen):
 class ViewRoastsScreen(Screen):
     def compose(self) -> ComposeResult:
         yield Header()
-        yield DataTable(id="roast_table")
+        yield DataTable(id="roast_table", cursor_type="row")
         yield Button("Back", id="back")
         yield Footer()
 
     def on_mount(self) -> None:
         table = self.query_one("#roast_table", DataTable)
         table.add_columns(*(name for name, _, _ in ROAST_TABLE_COLUMNS))
-        for record in self.app.roast_records.values():
+        for record_id, record in self.app.roast_records.items():
             weight_loss = calc.calculate_weight_loss(
                 record["green_weight"], record["finished_weight"]
             )
@@ -189,9 +188,12 @@ class ViewRoastsScreen(Screen):
                 record["total_roast_time"], record["time_of_first_crack"]
             )
             roast_classification = calc.classify_roast(weight_loss)
+            profile = self.app.roast_profiles.get(record.get("roast_profile_id"))
+            profile_name = profile["name"] if profile else "-"
             table.add_row(
                 record["date"],
                 record["bean_name"],
+                profile_name,
                 f"{record['green_weight']:.1f}",
                 f"{record['finished_weight']:.1f}",
                 record["total_roast_time"],
@@ -199,7 +201,65 @@ class ViewRoastsScreen(Screen):
                 f"{weight_loss:.2f}",
                 development_time,
                 roast_classification,
+                key=record_id,
             )
+
+    def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
+        record_id = event.row_key.value
+        record = self.app.roast_records[record_id]
+        self.app.push_screen(RoastDetailScreen(record))
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "back":
+            self.app.pop_screen()
+
+
+class RoastDetailScreen(Screen):
+    def __init__(self, record):
+        super().__init__()
+        self.record = record
+
+    def compose(self) -> ComposeResult:
+        yield Header()
+        record = self.record
+        target_temps = record.get("target_temps") or [None] * 12
+        actual_temps = record.get("actual_temps") or [None] * 12
+        fields = [
+            Static(f"Date: {record['date']}"),
+            Static(f"Bean: {record['bean_name']}"),
+            Horizontal(
+                Static("Time", classes="temp_cell"),
+                Static("Actual (°F)", classes="temp_cell"),
+                Static("Target (°F)", classes="temp_cell"),
+                classes="temp_row",
+            ),
+        ]
+        for minute in range(1, 13):
+            actual = (
+                actual_temps[minute - 1] if minute - 1 < len(actual_temps) else None
+            )
+            target = (
+                target_temps[minute - 1] if minute - 1 < len(target_temps) else None
+            )
+            fields.append(
+                Horizontal(
+                    Static(f"{minute}:00", classes="temp_cell"),
+                    Static(
+                        "-" if actual is None else f"{actual:g}",
+                        id=f"detail_actual_{minute}",
+                        classes="temp_cell",
+                    ),
+                    Static(
+                        "-" if target is None else f"{target:g}",
+                        id=f"detail_target_{minute}",
+                        classes="temp_cell",
+                    ),
+                    classes="temp_row",
+                )
+            )
+        fields.append(Button("Back", id="back"))
+        yield VerticalScroll(*fields, id="detail")
+        yield Footer()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "back":
@@ -356,7 +416,7 @@ class RoastLoggerApp(App):
         width: 60;
         margin: 1 2;
     }
-    #form {
+    #form, #detail {
         width: 64;
         margin: 1 2;
     }

@@ -130,7 +130,8 @@ The main screen shall provide the following actions:
 3. View and edit roast profiles
 4. Exit
 Selecting Add roast shall first prompt the user to select a roast profile, then present a form to collect the required roast fields (including the profile's temperature table), validate them inline, and save the resulting record on submission.
-Selecting View roasts shall display existing roast records in a table/data-grid widget.
+Selecting View roasts shall display existing roast records in a table/data-grid widget, including a Roast Profile column.
+Selecting a row in the roast records table shall open a detail view showing that roast's full time/actual/target temperature table (1:00-12:00).
 Selecting View and edit roast profiles shall present a submenu to add a new roast profile or view/edit existing ones.
 Selecting Exit shall terminate the application.
 After completing Add roast or View roasts, the application shall return to the main screen.

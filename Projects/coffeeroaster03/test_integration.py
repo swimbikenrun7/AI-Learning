@@ -10,6 +10,7 @@ from tui_app import (
     AddRoastScreen,
     MainScreen,
     ProfileListScreen,
+    RoastDetailScreen,
     RoastLoggerApp,
     RoastProfilesMenuScreen,
     ViewRoastsScreen,
@@ -44,11 +45,12 @@ class TestIntegration(unittest.TestCase):
         roast_profiles = {"profile-1": {"name": "Test Profile", "temps": [None] * 12}}
         return RoastLoggerApp(data_persistence.load_roast_records(), roast_profiles)
 
-    async def _fill_add_roast_form(self, pilot, values):
+    async def _fill_add_roast_form(self, pilot, values, select_profile=True):
         app = pilot.app
-        table = app.screen.query_one("#select_profile_table")
-        table.cursor_coordinate = (0, 0)
-        await pilot.press("enter")
+        if select_profile:
+            table = app.screen.query_one("#select_profile_table")
+            table.cursor_coordinate = (0, 0)
+            await pilot.press("enter")
 
         field_ids = [
             "date",
@@ -142,6 +144,37 @@ class TestIntegration(unittest.TestCase):
 
                 table = app.screen.query_one("#roast_table")
                 self.assertEqual(table.row_count, 1)
+                row = table.get_row_at(0)
+                self.assertIn("Test Profile", row)
+
+        self._run(scenario())
+
+    def test_view_roasts_row_select_opens_detail_with_temps(self):
+        async def scenario():
+            app = self._make_app()
+            async with app.run_test(size=(80, 130)) as pilot:
+                await pilot.click("#add_roast")
+                table = app.screen.query_one("#select_profile_table")
+                table.cursor_coordinate = (0, 0)
+                await pilot.press("enter")
+                app.screen.query_one("#actual_temp_1").value = "300"
+                await self._fill_add_roast_form(
+                    pilot,
+                    ["04/15/2023", "Arabica", "250", "180", "08:30", "07:00"],
+                    select_profile=False,
+                )
+
+                await pilot.click("#view_roasts")
+                roast_table = app.screen.query_one("#roast_table")
+                roast_table.cursor_coordinate = (0, 0)
+                await pilot.press("enter")
+
+                self.assertIsInstance(app.screen, RoastDetailScreen)
+                self.assertEqual(
+                    str(app.screen.query_one("#detail_actual_1").render()), "300"
+                )
+                await pilot.click("#back")
+                self.assertIsInstance(app.screen, ViewRoastsScreen)
 
         self._run(scenario())
 
@@ -198,13 +231,23 @@ class TestAddRoastWithProfile(unittest.TestCase):
             roast_profiles = {
                 "profile-1": {
                     "name": "City Roast",
-                    "temps": [300, None, None, 350, None, None, None, None, None,
-                              None, None, None],
+                    "temps": [
+                        300,
+                        None,
+                        None,
+                        350,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                    ],
                 }
             }
-            app = RoastLoggerApp(
-                data_persistence.load_roast_records(), roast_profiles
-            )
+            app = RoastLoggerApp(data_persistence.load_roast_records(), roast_profiles)
             async with app.run_test(size=(80, 130)) as pilot:
                 await pilot.click("#add_roast")
                 table = app.screen.query_one("#select_profile_table")

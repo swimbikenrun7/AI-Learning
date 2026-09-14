@@ -142,9 +142,7 @@ class TestRoastProfilesPersistence(unittest.TestCase):
         self.assertEqual(loaded_profiles["profile-1"]["name"], "City Roast")
 
     def test_save_roast_profiles_preserves_existing_profiles(self):
-        save_roast_profiles(
-            {"profile-1": {"name": "City Roast", "temps": [None] * 12}}
-        )
+        save_roast_profiles({"profile-1": {"name": "City Roast", "temps": [None] * 12}})
         profiles = load_roast_profiles()
         profiles["profile-2"] = {"name": "Full City", "temps": [None] * 12}
         save_roast_profiles(profiles)
