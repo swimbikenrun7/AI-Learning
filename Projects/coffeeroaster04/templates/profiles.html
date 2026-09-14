@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Roast profiles{% endblock %}
+{% block content %}
+  <a class="back-link" href="/">&larr; Back to roasts</a>
+  <h1>Roast profiles</h1>
+  <p><a href="/profiles/new">+ Add new profile</a></p>
+  {% if profiles %}
+    <ul>
+      {% for profile_id, profile in profiles.items() %}
+        <li><a href="/profiles/{{ profile_id }}">{{ profile.name }}</a></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No roast profiles exist yet.</p>
+  {% endif %}
+{% endblock %}

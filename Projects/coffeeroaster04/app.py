@@ -6,6 +6,7 @@ import calculations as calc
 from data_persistence import (
     load_roast_profiles,
     load_roast_records,
+    save_roast_profiles,
     save_roast_records,
 )
 from validators import (
@@ -14,6 +15,7 @@ from validators import (
     validate_finished_weight,
     validate_first_crack,
     validate_green_weight,
+    validate_profile_name,
     validate_roast_time,
     validate_temperature,
 )
@@ -163,6 +165,54 @@ def add_roast(profile_id):
         profile_id=profile_id,
         minutes=minutes,
         target_temps=target_temps,
+        values=values,
+        error=error,
+    )
+
+
+@app.route("/profiles")
+def list_profiles():
+    return render_template("profiles.html", profiles=roast_profiles)
+
+
+@app.route("/profiles/new", methods=["GET", "POST"])
+@app.route("/profiles/<profile_id>", methods=["GET", "POST"])
+def add_edit_profile(profile_id=None):
+    existing_profile = None
+    if profile_id is not None:
+        existing_profile = roast_profiles.get(profile_id)
+        if existing_profile is None:
+            abort(404)
+
+    minutes = list(range(1, 13))
+    existing_temps = existing_profile["temps"] if existing_profile else [None] * 12
+    values = {
+        "name": existing_profile["name"] if existing_profile else "",
+        "temps": ["" if temp is None else str(temp) for temp in existing_temps],
+    }
+    error = None
+
+    if request.method == "POST":
+        values["name"] = request.form.get("name", "")
+        values["temps"] = [
+            request.form.get(f"temp_{minute}", "") for minute in minutes
+        ]
+
+        try:
+            name = validate_profile_name(values["name"])
+            temps = [validate_temperature(value) for value in values["temps"]]
+        except ValueError as exc:
+            error = str(exc)
+        else:
+            saved_profile_id = profile_id or str(uuid.uuid4())
+            roast_profiles[saved_profile_id] = {"name": name, "temps": temps}
+            save_roast_profiles(roast_profiles)
+            return redirect(url_for("list_profiles"))
+
+    return render_template(
+        "profile_form.html",
+        profile_id=profile_id,
+        minutes=minutes,
         values=values,
         error=error,
     )

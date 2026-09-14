@@ -154,5 +154,111 @@ class TestAddRoast(unittest.TestCase):
         self.assertEqual(self.records, {})
 
 
+class TestListProfiles(unittest.TestCase):
+    def setUp(self):
+        self.client = app.app.test_client()
+
+    def test_lists_existing_profiles(self):
+        profiles = {"profile-1": {"name": "Test Profile", "temps": [None] * 12}}
+        with mock.patch.object(app, "roast_profiles", profiles):
+            response = self.client.get("/profiles")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Test Profile", response.get_data(as_text=True))
+
+    def test_shows_message_when_no_profiles_exist(self):
+        with mock.patch.object(app, "roast_profiles", {}):
+            response = self.client.get("/profiles")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("No roast profiles exist yet", response.get_data(as_text=True))
+
+
+class TestAddEditProfile(unittest.TestCase):
+    def setUp(self):
+        self.profiles = {
+            "profile-1": {
+                "name": "Existing Profile",
+                "temps": [320, 365, 400] + [None] * 9,
+            }
+        }
+        self.profiles_patcher = mock.patch.object(app, "roast_profiles", self.profiles)
+        self.save_patcher = mock.patch.object(app, "save_roast_profiles")
+        self.profiles_patcher.start()
+        self.save_patcher.start()
+        self.client = app.app.test_client()
+
+    def tearDown(self):
+        self.profiles_patcher.stop()
+        self.save_patcher.stop()
+
+    def blank_temp_form(self, **overrides):
+        data = {f"temp_{minute}": "" for minute in range(1, 13)}
+        data.update(overrides)
+        return data
+
+    def test_new_profile_shows_blank_form(self):
+        response = self.client.get("/profiles/new")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Add roast profile", response.get_data(as_text=True))
+
+    def test_edit_profile_missing_returns_404(self):
+        response = self.client.get("/profiles/does-not-exist")
+        self.assertEqual(response.status_code, 404)
+
+    def test_edit_profile_shows_existing_values(self):
+        response = self.client.get("/profiles/profile-1")
+        self.assertEqual(response.status_code, 200)
+        body = response.get_data(as_text=True)
+        self.assertIn("Existing Profile", body)
+        self.assertIn('value="320"', body)
+
+    def test_post_new_profile_creates_and_redirects(self):
+        data = self.blank_temp_form(
+            name="Brand New Profile", temp_1="300", temp_2="340", temp_3="380"
+        )
+        response = self.client.post("/profiles/new", data=data)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/profiles", response.headers["Location"])
+        new_profiles = [
+            profile
+            for profile in self.profiles.values()
+            if profile["name"] == "Brand New Profile"
+        ]
+        self.assertEqual(len(new_profiles), 1)
+        self.assertEqual(new_profiles[0]["temps"][:3], [300, 340, 380])
+        app.save_roast_profiles.assert_called_once_with(self.profiles)
+
+    def test_post_new_profile_invalid_shows_error_and_preserves_input(self):
+        data = self.blank_temp_form(name="", temp_1="999")
+        response = self.client.post("/profiles/new", data=data)
+        self.assertEqual(response.status_code, 200)
+        body = response.get_data(as_text=True)
+        self.assertIn("Profile name is required", body)
+        self.assertIn('value="999"', body)
+
+    def test_post_edit_updates_existing_profile_in_place(self):
+        data = self.blank_temp_form(name="Updated Name")
+        response = self.client.post("/profiles/profile-1", data=data)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(set(self.profiles), {"profile-1"})
+        self.assertEqual(self.profiles["profile-1"]["name"], "Updated Name")
+
+    def test_editing_profile_does_not_alter_saved_roast_snapshot(self):
+        saved_target_temps = [320, 365, 400] + [None] * 9
+        roast_records = {
+            "record-1": {
+                "roast_profile_id": "profile-1",
+                "target_temps": list(saved_target_temps),
+            }
+        }
+        with mock.patch.object(app, "roast_records", roast_records):
+            data = self.blank_temp_form(
+                name="Changed Targets", **{f"temp_{m}": "999" for m in range(1, 13)}
+            )
+            self.client.post("/profiles/profile-1", data=data)
+            self.assertEqual(
+                roast_records["record-1"]["target_temps"], saved_target_temps
+            )
+
+
 if __name__ == "__main__":
     unittest.main()

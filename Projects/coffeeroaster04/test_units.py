@@ -24,6 +24,7 @@ from validators import (
     validate_finished_weight,
     validate_first_crack,
     validate_green_weight,
+    validate_profile_name,
     validate_roast_time,
     validate_temperature,
 )
@@ -203,6 +204,13 @@ class TestValidators(unittest.TestCase):
     def test_validate_first_crack_rejects_out_of_range(self):
         with self.assertRaises(ValueError):
             validate_first_crack("09:00", 510)
+
+    def test_validate_profile_name(self):
+        self.assertEqual(validate_profile_name("City Roast"), "City Roast")
+
+    def test_validate_profile_name_rejects_empty(self):
+        with self.assertRaises(ValueError):
+            validate_profile_name("")
 
     def test_validate_temperature(self):
         self.assertEqual(validate_temperature("350"), 350)
