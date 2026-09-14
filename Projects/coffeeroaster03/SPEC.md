@@ -78,8 +78,31 @@ The field shall remain editable and the record shall not be submitted until the 
 Values must be stored as integer seconds.
 
 ### Roast temperature
-Not included in the current version.
-Future functionality may allow temperature logging at each minute mark against a selected roast profile.
+See Roast Profiles below. Collected as part of Add roast via a selected roast profile, not as a standalone field.
+
+## Roast Profiles
+
+### Requirements
+The main screen shall provide a "View and edit roast profiles" action leading to a submenu offering: add a new roast profile, and view/edit existing roast profiles.
+A roast profile shall consist of a name and a target temperature (°F) for each whole-minute interval from 1:00 through 12:00 (12 data points).
+Temperature entries within a profile are optional per minute.
+Any minute interval left blank in a profile shall default to the most recently entered temperature at an earlier interval (carry-forward). An interval with no earlier entry has no default.
+Selecting Add roast shall first require selecting an existing roast profile before the roast entry form is shown.
+If no roast profiles exist, the user shall be directed to create one before a roast can be added.
+The Add roast form shall present a table of time / actual temperature (°F) / target temperature (°F) for minutes 1:00 through 12:00, positioned after Green Weight and before Time of First Crack, which remains a standalone field.
+The target temperature column shall be pre-populated and read-only, sourced from the selected profile with carry-forward applied.
+The actual temperature column shall be manually entered by the user; entries are optional per minute.
+At submission, if total roast time exceeds the last whole minute at which an actual temperature was entered, the latest entered actual temperature shall be used to populate the remaining whole-minute intervals up to total roast time.
+Each saved roast record shall store the id of the selected roast profile and a snapshot of the resolved (carry-forward-applied) target temperatures as of the time the roast was saved.
+
+### Constraints
+Temperature values (profile targets and actual roast entries) must be numeric and between 60 and 500 °F when provided.
+Editing a roast profile after a roast has been saved against it shall not alter the target temperatures already stored on that roast record (snapshot at save time, not a live reference).
+Roast profile persistence shall use its own JSON file in the data/ folder, following the same load/corruption-check/save pattern as roast records.
+
+### Domain rules
+Roast profile intervals are defined in whole minutes only; there is no sub-minute granularity.
+A profile's (or a roast's actual) temperature at any interval beyond the last explicitly entered value equals that last entered value, since a roast in progress, or a profile author, may only have data through a given point in time.
 
 ## Calculations
 
@@ -104,9 +127,11 @@ When the application starts, after checking the JSON for corrupt data it shall l
 The main screen shall provide the following actions:
 1. Add roast
 2. View roasts
-3. Exit
-Selecting Add roast shall present a form to collect the required roast fields, validate them inline, and save the resulting record on submission.
+3. View and edit roast profiles
+4. Exit
+Selecting Add roast shall first prompt the user to select a roast profile, then present a form to collect the required roast fields (including the profile's temperature table), validate them inline, and save the resulting record on submission.
 Selecting View roasts shall display existing roast records in a table/data-grid widget.
+Selecting View and edit roast profiles shall present a submenu to add a new roast profile or view/edit existing ones.
 Selecting Exit shall terminate the application.
 After completing Add roast or View roasts, the application shall return to the main screen.
 Roast records table shall be rendered using the same fields/order as ROAST_TABLE_COLUMNS in the current implementation.

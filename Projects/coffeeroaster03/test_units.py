@@ -8,15 +8,24 @@ from calculations import (
     calculate_development_time,
     calculate_weight_loss,
     classify_roast,
+    fill_forward,
 )
-from data_persistence import count_roasts, load_roast_records, save_roast_records
+from data_persistence import (
+    count_roasts,
+    load_roast_profiles,
+    load_roast_records,
+    save_roast_profiles,
+    save_roast_records,
+)
 from validators import (
     validate_bean_name,
     validate_date,
     validate_finished_weight,
     validate_first_crack,
     validate_green_weight,
+    validate_profile_name,
     validate_roast_time,
+    validate_temperature,
 )
 
 
@@ -100,6 +109,56 @@ class TestDataPersistence(unittest.TestCase):
             count_roasts()
 
 
+class TestRoastProfilesPersistence(unittest.TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.patcher = mock.patch.object(
+            data_persistence,
+            "ROAST_PROFILES_PATH",
+            Path(self.temp_dir.name) / "roast_profiles.json",
+        )
+        self.patcher.start()
+
+    def tearDown(self):
+        self.patcher.stop()
+        self.temp_dir.cleanup()
+
+    def test_load_roast_profiles_missing_file(self):
+        profiles = load_roast_profiles()
+        self.assertIsInstance(profiles, dict)
+        self.assertEqual(profiles, {})
+
+    def test_save_and_load_roast_profiles(self):
+        profiles = {
+            "profile-1": {
+                "name": "City Roast",
+                "temps": [None] * 12,
+            }
+        }
+        save_roast_profiles(profiles)
+        loaded_profiles = load_roast_profiles()
+        self.assertIn("profile-1", loaded_profiles)
+        self.assertEqual(loaded_profiles["profile-1"]["name"], "City Roast")
+
+    def test_save_roast_profiles_preserves_existing_profiles(self):
+        save_roast_profiles(
+            {"profile-1": {"name": "City Roast", "temps": [None] * 12}}
+        )
+        profiles = load_roast_profiles()
+        profiles["profile-2"] = {"name": "Full City", "temps": [None] * 12}
+        save_roast_profiles(profiles)
+
+        reloaded_profiles = load_roast_profiles()
+        self.assertIn("profile-1", reloaded_profiles)
+        self.assertIn("profile-2", reloaded_profiles)
+
+    def test_load_roast_profiles_corrupted_file_exits(self):
+        with open(data_persistence.ROAST_PROFILES_PATH, "w") as file:
+            file.write("{not valid json")
+        with self.assertRaises(SystemExit):
+            load_roast_profiles()
+
+
 class TestValidators(unittest.TestCase):
     def test_validate_date(self):
         self.assertEqual(validate_date("04/15/2023"), "04/15/2023")
@@ -146,6 +205,29 @@ class TestValidators(unittest.TestCase):
     def test_validate_first_crack_rejects_out_of_range(self):
         with self.assertRaises(ValueError):
             validate_first_crack("09:00", 510)
+
+    def test_validate_profile_name(self):
+        self.assertEqual(validate_profile_name("City Roast"), "City Roast")
+
+    def test_validate_profile_name_rejects_empty(self):
+        with self.assertRaises(ValueError):
+            validate_profile_name("")
+
+    def test_validate_temperature(self):
+        self.assertEqual(validate_temperature("350"), 350)
+
+    def test_validate_temperature_allows_blank(self):
+        self.assertIsNone(validate_temperature(""))
+
+    def test_validate_temperature_rejects_out_of_range(self):
+        with self.assertRaises(ValueError):
+            validate_temperature("59")
+        with self.assertRaises(ValueError):
+            validate_temperature("501")
+
+    def test_validate_temperature_rejects_non_numeric(self):
+        with self.assertRaises(ValueError):
+            validate_temperature("hot")
 
 
 class TestCalculations(unittest.TestCase):
@@ -203,6 +285,26 @@ class TestCalculations(unittest.TestCase):
         for weight_loss, expected in cases:
             with self.subTest(weight_loss=weight_loss):
                 self.assertEqual(classify_roast(weight_loss), expected)
+
+    def test_fill_forward_no_gaps(self):
+        values = [200, 210, 220]
+        self.assertEqual(fill_forward(values), values)
+
+    def test_fill_forward_fills_trailing_gaps(self):
+        values = [200, 210, None, None]
+        self.assertEqual(fill_forward(values), [200, 210, 210, 210])
+
+    def test_fill_forward_fills_interior_gaps(self):
+        values = [200, None, 220, None]
+        self.assertEqual(fill_forward(values), [200, 200, 220, 220])
+
+    def test_fill_forward_leading_gaps_stay_none(self):
+        values = [None, None, 220]
+        self.assertEqual(fill_forward(values), [None, None, 220])
+
+    def test_fill_forward_all_none(self):
+        values = [None, None, None]
+        self.assertEqual(fill_forward(values), [None, None, None])
 
 
 if __name__ == "__main__":

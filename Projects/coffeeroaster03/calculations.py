@@ -12,6 +12,16 @@ def calculate_development_time(total_roast_time, time_of_first_crack):
     return total_roast_time - time_of_first_crack
 
 
+def fill_forward(values):
+    filled = []
+    last_value = None
+    for value in values:
+        if value is not None:
+            last_value = value
+        filled.append(last_value)
+    return filled
+
+
 def classify_roast(weight_loss):
     ROAST_CLASSIFICATION = {
         13.01: "City Roast",

@@ -62,6 +62,26 @@ def validate_roast_time(value_str):
     return total_seconds
 
 
+def validate_profile_name(name):
+    if not name:
+        raise ValueError("Profile name is required.")
+    return name
+
+
+def validate_temperature(value_str):
+    if not value_str:
+        return None
+    try:
+        temperature = float(value_str)
+    except ValueError:
+        temperature = None
+    if temperature is None or temperature < 60 or temperature > 500:
+        raise ValueError(
+            "Invalid input. Please enter a numeric value between 60 and 500, or leave blank."
+        )
+    return temperature
+
+
 def validate_first_crack(value_str, total_roast_time):
     total_seconds = _parse_mm_ss(value_str)
     if (
