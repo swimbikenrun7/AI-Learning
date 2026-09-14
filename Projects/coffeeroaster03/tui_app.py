@@ -59,12 +59,12 @@ class AddRoastScreen(Screen):
             Input(placeholder="Bean name", id="bean_name"),
             Label("Green weight (g)"),
             Input(placeholder="Green weight", id="green_weight"),
-            Label("Finished weight (g)"),
-            Input(placeholder="Finished weight", id="finished_weight"),
-            Label("Total roast time (MM:SS)"),
-            Input(placeholder="MM:SS", id="roast_time"),
             Label("Time of first crack (MM:SS)"),
             Input(placeholder="MM:SS", id="first_crack"),
+            Label("Total roast time (MM:SS)"),
+            Input(placeholder="MM:SS", id="roast_time"),
+            Label("Finished weight (g)"),
+            Input(placeholder="Finished weight", id="finished_weight"),
             Static("", id="error"),
             Button("Submit", id="submit", variant="primary"),
             Button("Cancel", id="cancel"),
@@ -86,14 +86,14 @@ class AddRoastScreen(Screen):
             green_weight = validate_green_weight(
                 self.query_one("#green_weight", Input).value
             )
-            finished_weight = validate_finished_weight(
-                self.query_one("#finished_weight", Input).value, green_weight
-            )
             total_roast_time = validate_roast_time(
                 self.query_one("#roast_time", Input).value
             )
             time_of_first_crack = validate_first_crack(
                 self.query_one("#first_crack", Input).value, total_roast_time
+            )
+            finished_weight = validate_finished_weight(
+                self.query_one("#finished_weight", Input).value, green_weight
             )
         except ValueError as error:
             error_widget.update(str(error))
