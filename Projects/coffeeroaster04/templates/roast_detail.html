@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Roast detail{% endblock %}
+{% block content %}
+  <a class="back-link" href="/">&larr; Back to roasts</a>
+  <h1>{{ record.bean_name }} &mdash; {{ record.date }}</h1>
+  <p>Roast profile: {{ profile_name }}</p>
+
+  <canvas id="temp-chart" width="700" height="350"></canvas>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Actual (&deg;F)</th>
+        <th>Target (&deg;F)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for minute in minutes %}
+        <tr>
+          <td>{{ minute }}:00</td>
+          <td>{{ actual_temps[minute - 1] if actual_temps[minute - 1] is not none else "-" }}</td>
+          <td>{{ target_temps[minute - 1] if target_temps[minute - 1] is not none else "-" }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js"></script>
+  <script>
+    const minutes = {{ minutes|tojson }};
+    const actualTemps = {{ actual_temps|tojson }};
+    const targetTemps = {{ target_temps|tojson }};
+
+    new Chart(document.getElementById("temp-chart"), {
+      type: "line",
+      data: {
+        labels: minutes.map((m) => m + ":00"),
+        datasets: [
+          {
+            label: "Actual (°F)",
+            data: actualTemps,
+            borderColor: "#d95f02",
+            backgroundColor: "#d95f02",
+            spanGaps: false,
+            tension: 0.2,
+          },
+          {
+            label: "Target (°F)",
+            data: targetTemps,
+            borderColor: "#7570b3",
+            backgroundColor: "#7570b3",
+            borderDash: [6, 4],
+            spanGaps: false,
+            tension: 0.2,
+          },
+        ],
+      },
+      options: {
+        scales: {
+          x: { title: { display: true, text: "Time (minutes)" } },
+          y: { title: { display: true, text: "Temperature (°F)" } },
+        },
+      },
+    });
+  </script>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}View roasts{% endblock %}
+{% block content %}
+  <h1>Roast records</h1>
+  <table>
+    <thead>
+      <tr>
+        {% for column in columns %}
+          <th>{{ column }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr onclick="window.location='/roasts/{{ row.id }}'" style="cursor: pointer;">
+          <td>{{ row.date }}</td>
+          <td>{{ row.bean_name }}</td>
+          <td>{{ row.profile_name }}</td>
+          <td>{{ "%.1f"|format(row.green_weight) }}</td>
+          <td>{{ "%.1f"|format(row.finished_weight) }}</td>
+          <td>{{ row.total_roast_time }}</td>
+          <td>{{ row.time_of_first_crack }}</td>
+          <td>{{ "%.2f"|format(row.weight_loss) }}</td>
+          <td>{{ row.development_time }}</td>
+          <td>{{ row.classification }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
