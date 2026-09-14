@@ -1156,6 +1156,7 @@ Mission 1.2
 # 2026-09-11
 
 ## Accomplished
+Completed Mission 1.2, completing the hand calculations required for solar string sizing.
 
 ## Mission 1.2 Notes
 
@@ -1207,3 +1208,60 @@ Syntax on the equipment.py file. Claude was able to explain the '(frozen=True)' 
 
 ## Next step
 Mission 1.3
+
+# 2026-09-14
+
+## Accomplished
+Completed Mission 1.3, writing a calculations module and a handful of tests for it based on the hand calcs.
+
+## Mission 1.3 Notes
+
+### Challenge Questions
+1. Circular verification
+Suppose you had written the functions first, run them, and pasted the output into the tests. The tests would pass. What exactly would they prove, and what would they fail to prove? Connect this to your Q6 answer from 1.1.
+This wouldn't really prove much of anything, because it's a circular reference if the test is just validating its produced result. The point of doing the hand calculations is to have an externally verified result. The program should then reproduce that result independently.
+	- Grade: B
+	Refinement: You skipped the connection to your Q6 answer from 1.1, which the question asked for. That's twice now — same omission in 1.1 Q6. The connection is worth making explicitly: in 1.1 you wrote that passing tests don't tell you whether the calculation achieves its intended purpose. Here you built the thing that does. Naming that closure is what makes it stick.
+
+2. Purity
+Why does `voc_corrected` take `t_min` as a parameter rather than reading it from a location database? Give a reason grounded in testing and a second reason grounded in your three-bucket taxonomy.
+For now it takes it as a parameter because I haven't built a location module and associated database to pull the temperature data from. This approach allows me to name the parameter and modify its source later when those subsequent module(s) are developed. Doing it this way now, I can enter the data relevant to my location per Phase 1 directly, and it's easier to test the calculations module in isolation not having developed numerous other modules concurrently which feed data to the functions. Even though for Phase 1 I could technically include t_min in limits.py as it won't change until later modules are developed, I am setting up the architecture to support the value being variable by location down the road.
+	- Grade: A-
+
+3. The result type
+You chose what a limit check returns. Name one thing you can do with your chosen type that a bare `bool` would have made impossible, and be specific about where in the eventual application it matters.
+I wrote the limit checks as booleans, asserting result is True for the case of 13 panels and result is False for the case of 14 panels. I also wrote a separate check directly verifying the calculated output for maximum string voltage. Really all I care about for now is the boolean, but I want to verify the actual voltage is calculated correctly because I can always add something such as a helpful error later which displays the calculated voltage against the checked voltage for the user's information. The specific string voltage will be required for the permit package as well, so need to verify it's being calculated correctly at this stage.
+	- Grade: C+
+	Refinement: I need a results.py eventually to store the required values that I allude to.
+
+4. Tolerance
+State the tolerance you used and why. Then answer: if a test passes at `abs=0.01` but fails at `abs=0.001`, has the code found a bug, or has the test?
+I used 0.01 as the tolerance, for no real reason other than convenience - there are no calculations which will require more precision or more significant figs than what hundredths yields. But I also decided that no rounding will occur except when formulating output, and wrote this into the domain decisions. Intermediate rounding has the potential to lead to compounded rounding errors and calculated values aren't stored in the program anyway (another domain decision), so no need to store a bunch of rounded values. If the tests pass at abs = 0.01 but not at 0.001 that doesn't really prove anything, because I have rounded the calculated end result to the nearest hundredth, not thousandth, per the documented decision.
+	- Grade: B-
+	Refinement: The test is at fault not the code. Tolerance is set by the precision of the reference, not by how many digits we want to carry.
+
+5. The unreachable branch
+You wrote a test for the 600 V dwelling limit using an inverter you don't own. Argue against having written it. Then say why you'd keep it anyway — and note that this is the same question you asked me about the MPPT check, arriving at a different answer.
+I can't make a strong argument against writing that check. The argument would depend on the assumption that residential inverters are built to NEC 690 and so do not exceed the 600 V limit. But why assume a boundary condition? It seems an unnecessary risk, when the check to use the lesser of the limit or the inverter published upper limit is very easy to implement. The key difference between this and the MPPT check is that the 600 V limit is a hard permit check, whereas exceeding the MPPT voltage limit risks no such issue, only minor production loss in an edge case. I know you argued that it's not such an "edge"-y case, but the minimum 50 year temperature is about as extreme an edge as you can get, and the case where midday production on a cold day would maximize panel output is another extreme case where solar gain for temperature (t_add) is also in your favor, though not considered in the calculation. The likelihood of this scenario is vanishingly small, certainly not enough to design around.
+	- Grade: A-
+
+6. Reading code
+Pick the function you're least confident about. Explain, line by line, what it does and why each line is there. If you reach a line you can't justify, that's the finding — say so rather than papering over it.
+There were no confusing functions, only confusing syntax. By that measure, they were all a bit confusing, but after our back-and-forth, then crashing through some errors in the unit testing, I was able to get all the issues ironed out. These calculations are dead simple, and the functions to calculate them are just as simple - if I were in familiar territory such as a spreadsheet this would have been complete in 5 minutes or less. But learning syntax is important, so worth the time to parse through the issues. I think the most confusing part was defining the shape of the function and not assigning it values. I continuously wanted the function to be fully defined, but by the end I understood much better how the whole system worked together.
+Reworked because in my haste I did skip the essence of the question. p_max only has functionally 2 lines, so I'm choosing vmp_corrected instead (I have a lot of extra lines for formatting purposes, but this function is really itself only 5 lines).
+Line 1 - definition: names the variables to be called by the function, starting with module data to be pulled from equipment.py, then the unfixed variables t_add and t_max, and finally the two fixed variables fraction and t_ambient. all variables are defined as floating numbers, with the output defined as a floating number.
+Line 2 - calc cell temperature: a simple calculation for getting the cell temperature by adding t_max and t_add.
+Line 3 - calc delta T hot: more simple arithmetic subtracting t_ambient from t_cell.
+Line 4 - calc hot temperature correction fraction: calls the gamma value from PVModule in equipment.py and multiplies by dth and the fixed value for fraction (called in line 1).
+Line 5 - returns the corrected panel Vmp value by calling vmp from PVModule in equipment.py and multiplying by (1 + hot temperature correction fraction)
+	- Grade: B-
+	Refinement: The data flows the opposite direction from my intuition. The caller hands the function an object, "module.gamma" reads an attribute off the object it already has. That attribute does **not** come from equipment.py. equipment.py defines the class, this is why the instance had to be defined in the test file as "ht54". Nomenclature on "fraction and t_ambient" is wrong - they're not fixed they are parameters with defaults. The caller can override those defaults. Also, the annotations written by all the parameters are exactly that - they are not enforcement of a format. I still skipped the "why" each line is there, and specifically for line 2 there is a good example within reach. Line 2 exists to calculate an intermediate value because the approach is in alignment with my "3 bucket" taxonomy from the project scope document. Since the value is derived, it gets calculated any time it's needed rather than recalled as a stored value.
+
+## Learned
+Still learning a lot of structure and syntax. Some of the organization is in reverse of my intuition. I need to be willing to stop and ask questions until I have understanding.
+
+## Confusing
+Syntax, always syntax.
+
+## Next step
+Mission 1.4
