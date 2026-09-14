@@ -1,7 +1,22 @@
-from flask import Flask, abort, render_template
+import uuid
+
+from flask import Flask, abort, redirect, render_template, request, url_for
 
 import calculations as calc
-from data_persistence import load_roast_profiles, load_roast_records
+from data_persistence import (
+    load_roast_profiles,
+    load_roast_records,
+    save_roast_records,
+)
+from validators import (
+    validate_bean_name,
+    validate_date,
+    validate_finished_weight,
+    validate_first_crack,
+    validate_green_weight,
+    validate_roast_time,
+    validate_temperature,
+)
 
 ROAST_TABLE_COLUMNS = [
     "Date",
@@ -69,6 +84,87 @@ def roast_detail(record_id):
         minutes=minutes,
         target_temps=target_temps,
         actual_temps=actual_temps,
+    )
+
+
+@app.route("/roasts/new")
+def select_profile():
+    return render_template("select_profile.html", profiles=roast_profiles)
+
+
+@app.route("/roasts/new/<profile_id>", methods=["GET", "POST"])
+def add_roast(profile_id):
+    profile = roast_profiles.get(profile_id)
+    if profile is None:
+        abort(404)
+
+    minutes = list(range(1, 13))
+    target_temps = calc.fill_forward(profile.get("temps", [None] * 12))
+    values = {
+        "date": "",
+        "bean_name": "",
+        "green_weight": "",
+        "actual_temps": [""] * 12,
+        "first_crack": "",
+        "roast_time": "",
+        "finished_weight": "",
+    }
+    error = None
+
+    if request.method == "POST":
+        values["date"] = request.form.get("date", "")
+        values["bean_name"] = request.form.get("bean_name", "")
+        values["green_weight"] = request.form.get("green_weight", "")
+        values["actual_temps"] = [
+            request.form.get(f"actual_temp_{minute}", "") for minute in minutes
+        ]
+        values["first_crack"] = request.form.get("first_crack", "")
+        values["roast_time"] = request.form.get("roast_time", "")
+        values["finished_weight"] = request.form.get("finished_weight", "")
+
+        try:
+            date = validate_date(values["date"])
+            bean_name = validate_bean_name(values["bean_name"])
+            green_weight = validate_green_weight(values["green_weight"])
+            entered_actual_temps = [
+                validate_temperature(value) for value in values["actual_temps"]
+            ]
+            total_roast_time = validate_roast_time(values["roast_time"])
+            time_of_first_crack = validate_first_crack(
+                values["first_crack"], total_roast_time
+            )
+            finished_weight = validate_finished_weight(
+                values["finished_weight"], green_weight
+            )
+        except ValueError as exc:
+            error = str(exc)
+        else:
+            actual_temps = calc.resolve_actual_temps(
+                entered_actual_temps, total_roast_time
+            )
+            record_id = str(uuid.uuid4())
+            roast_records[record_id] = {
+                "date": date,
+                "bean_name": bean_name,
+                "green_weight": green_weight,
+                "finished_weight": finished_weight,
+                "total_roast_time": total_roast_time,
+                "time_of_first_crack": time_of_first_crack,
+                "roast_profile_id": profile_id,
+                "target_temps": target_temps,
+                "actual_temps": actual_temps,
+            }
+            save_roast_records(roast_records)
+            return redirect(url_for("roast_detail", record_id=record_id))
+
+    return render_template(
+        "add_roast.html",
+        profile=profile,
+        profile_id=profile_id,
+        minutes=minutes,
+        target_temps=target_temps,
+        values=values,
+        error=error,
     )
 
 

@@ -18,6 +18,15 @@ from data_persistence import (
     save_roast_profiles,
     save_roast_records,
 )
+from validators import (
+    validate_bean_name,
+    validate_date,
+    validate_finished_weight,
+    validate_first_crack,
+    validate_green_weight,
+    validate_roast_time,
+    validate_temperature,
+)
 
 
 class TestDataPersistence(unittest.TestCase):
@@ -146,6 +155,70 @@ class TestRoastProfilesPersistence(unittest.TestCase):
             file.write("{not valid json")
         with self.assertRaises(SystemExit):
             load_roast_profiles()
+
+
+class TestValidators(unittest.TestCase):
+    def test_validate_date(self):
+        self.assertEqual(validate_date("04/15/2023"), "04/15/2023")
+
+    def test_validate_date_rejects_invalid_format(self):
+        with self.assertRaises(ValueError):
+            validate_date("not-a-date")
+
+    def test_validate_date_rejects_future_date(self):
+        with self.assertRaises(ValueError):
+            validate_date("12/31/2099")
+
+    def test_validate_bean_name(self):
+        self.assertEqual(validate_bean_name("Arabica"), "Arabica")
+
+    def test_validate_bean_name_rejects_empty(self):
+        with self.assertRaises(ValueError):
+            validate_bean_name("")
+
+    def test_validate_green_weight(self):
+        self.assertEqual(validate_green_weight("250"), 250)
+
+    def test_validate_green_weight_rejects_out_of_range(self):
+        with self.assertRaises(ValueError):
+            validate_green_weight("50")
+
+    def test_validate_finished_weight(self):
+        self.assertEqual(validate_finished_weight("180", 250), 180)
+
+    def test_validate_finished_weight_rejects_out_of_range(self):
+        with self.assertRaises(ValueError):
+            validate_finished_weight("50", 250)
+
+    def test_validate_roast_time(self):
+        self.assertEqual(validate_roast_time("08:30"), 510)
+
+    def test_validate_roast_time_rejects_out_of_range(self):
+        with self.assertRaises(ValueError):
+            validate_roast_time("03:00")
+
+    def test_validate_first_crack(self):
+        self.assertEqual(validate_first_crack("06:45", 510), 405)
+
+    def test_validate_first_crack_rejects_out_of_range(self):
+        with self.assertRaises(ValueError):
+            validate_first_crack("09:00", 510)
+
+    def test_validate_temperature(self):
+        self.assertEqual(validate_temperature("350"), 350)
+
+    def test_validate_temperature_allows_blank(self):
+        self.assertIsNone(validate_temperature(""))
+
+    def test_validate_temperature_rejects_out_of_range(self):
+        with self.assertRaises(ValueError):
+            validate_temperature("59")
+        with self.assertRaises(ValueError):
+            validate_temperature("501")
+
+    def test_validate_temperature_rejects_non_numeric(self):
+        with self.assertRaises(ValueError):
+            validate_temperature("hot")
 
 
 class TestCalculations(unittest.TestCase):
