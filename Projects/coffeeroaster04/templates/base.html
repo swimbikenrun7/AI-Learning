@@ -14,6 +14,18 @@
     a { color: #0a5; text-decoration: none; }
     a:hover { text-decoration: underline; }
     .back-link { display: inline-block; margin-bottom: 1rem; }
+    .menu { display: flex; flex-direction: column; gap: 0.6rem; width: 280px; margin-top: 1.5rem; }
+    .menu button {
+      padding: 0.7rem 1rem;
+      font-size: 1rem;
+      border: 1px solid #0a5;
+      background: #fff;
+      color: #0a5;
+      border-radius: 4px;
+      cursor: pointer;
+      text-align: left;
+    }
+    .menu button:hover { background: #0a5; color: #fff; }
   </style>
 </head>
 <body>
@@ -78,7 +90,7 @@
     (function () {
       // TODO(future): once a user-settings screen exists, let this whole
       // splash+transition be disabled from there instead of always running.
-      var SHOW_MS = 250;
+      var SHOW_MS = 375;
       var splash = document.getElementById("splash");
       var svg = document.getElementById("splash-svg");
 
@@ -102,13 +114,13 @@
 
       function runRows() {
         var rowCount = 10;
-        var duration = 450;
+        var duration = 675;
         var rows = [];
         for (var i = 0; i < rowCount; i++) {
           var row = addPiece();
           row.style.top = (i * 100 / rowCount) + "%";
           row.style.height = (100 / rowCount) + "%";
-          row.style.transition = "transform " + duration + "ms ease-in-out " + (i * 30) + "ms";
+          row.style.transition = "transform " + duration + "ms ease-in-out " + (i * 45) + "ms";
           rows.push(row);
         }
         requestAnimationFrame(function () {
@@ -116,11 +128,11 @@
             row.style.transform = "translateX(" + (i % 2 === 0 ? "-100%" : "100%") + ")";
           });
         });
-        setTimeout(finish, duration + rowCount * 30 + 50);
+        setTimeout(finish, duration + rowCount * 45 + 50);
       }
 
       function runSawtooth() {
-        var duration = 450;
+        var duration = 675;
         var left = addPiece();
         left.style.clipPath = "polygon(0% 0%, " + SEAM_VERTICAL + ", 0% 100%)";
         left.style.transition = "transform " + duration + "ms ease-in";
@@ -137,7 +149,7 @@
       }
 
       function runZipper() {
-        var duration = 450;
+        var duration = 675;
         var top = addPiece();
         top.style.clipPath = "polygon(0% 0%, " + SEAM_HORIZONTAL + ", 100% 0%)";
         top.style.transition = "transform " + duration + "ms ease-in";

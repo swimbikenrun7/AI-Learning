@@ -40,6 +40,11 @@ roast_profiles = load_roast_profiles()
 
 
 @app.route("/")
+def home():
+    return render_template("home.html")
+
+
+@app.route("/roasts")
 def view_roasts():
     rows = []
     for record_id, record in roast_records.items():

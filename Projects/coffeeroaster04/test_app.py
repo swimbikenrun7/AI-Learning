@@ -32,8 +32,16 @@ class TestRoutes(unittest.TestCase):
         self.records_patcher.stop()
         self.profiles_patcher.stop()
 
-    def test_view_roasts_lists_records(self):
+    def test_home_offers_main_menu_buttons(self):
         response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        body = response.get_data(as_text=True)
+        self.assertIn("Add roast", body)
+        self.assertIn("View roasts", body)
+        self.assertIn("View and edit roast profiles", body)
+
+    def test_view_roasts_lists_records(self):
+        response = self.client.get("/roasts")
         self.assertEqual(response.status_code, 200)
         body = response.get_data(as_text=True)
         self.assertIn("Mysore Nuggets", body)
@@ -296,7 +304,7 @@ class TestDeleteRoast(unittest.TestCase):
     def test_post_deletes_record_and_redirects(self):
         response = self.client.post("/roasts/record-1/delete")
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.headers["Location"], "/")
+        self.assertEqual(response.headers["Location"], "/roasts")
         self.assertNotIn("record-1", self.records)
         app.save_roast_records.assert_called_once_with(self.records)
 

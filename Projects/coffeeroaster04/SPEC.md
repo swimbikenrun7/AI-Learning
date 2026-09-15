@@ -9,7 +9,8 @@ This SPEC describes the full target feature set, carried forward from coffeeroas
 - **Phase 1**: View roasts (read-only table) and a roast detail page with a temperature chart. Uses data seeded from coffeeroaster03's existing JSON files.
 - **Phase 2**: Add roast form.
 - **Phase 3**: Roast profile management (add/view/edit).
-- **Phase 4 (current)**: Delete roast records and delete roast profiles. This did not exist in coffeeroaster03 (which had no delete for either) — it is new scope for this mission, not something carried forward.
+- **Phase 4**: Delete roast records and delete roast profiles. This did not exist in coffeeroaster03 (which had no delete for either) — it is new scope for this mission, not something carried forward.
+- **Phase 5 (current)**: Home page becomes a main menu (Add roast / View roasts / View and edit roast profiles as buttons), mirroring coffeeroaster03's `MainScreen`. The roast records table moves to its own `/roasts` route.
 
 ## Requirements
 The code shall have a separate module for calculations (`calculations.py`, carried forward from coffeeroaster03 unchanged).
@@ -138,12 +139,13 @@ Before serving any page, the application shall check the JSON files and if corru
 ## User Interface
 On startup, after checking the JSON files for corruption, the application shall serve the following pages:
 
-1. `/` — View roasts: displays existing roast records in an HTML table, including a Roast Profile column, using the same fields/order as `ROAST_TABLE_COLUMNS` in coffeeroaster03. **(Phase 1)**
-2. `/roasts/<id>` — Roast detail: displays that roast's full time/actual/target temperature table (1:00-12:00) and a line chart (x-axis: time in minutes, y-axis: temperature °F) plotting actual vs. target temperature, rendered client-side with Chart.js. **(Phase 1)**
-3. Add roast — select a roast profile, then a form to collect roast fields (including the profile's temperature table), validate inline, and save. **(Phase 2)**
-4. View and edit roast profiles — add a new profile, or view/edit existing ones. **(Phase 3)**
-5. Delete a roast record, from its detail page, behind a confirmation step. **(Phase 4)**
-6. Delete a roast profile, from its edit page, behind a confirmation step that notes how many roast records reference it. **(Phase 4)**
+1. `/` — Home: a main menu offering Add roast, View roasts, and View and edit roast profiles as buttons, mirroring coffeeroaster03's `MainScreen` (minus Exit, which doesn't apply to a web application). **(Phase 5)**
+2. `/roasts` — View roasts: displays existing roast records in an HTML table, including a Roast Profile column, using the same fields/order as `ROAST_TABLE_COLUMNS` in coffeeroaster03. **(Phase 1, moved off `/` in Phase 5)**
+3. `/roasts/<id>` — Roast detail: displays that roast's full time/actual/target temperature table (1:00-12:00) and a line chart (x-axis: time in minutes, y-axis: temperature °F) plotting actual vs. target temperature, rendered client-side with Chart.js. **(Phase 1)**
+4. Add roast — select a roast profile, then a form to collect roast fields (including the profile's temperature table), validate inline, and save. **(Phase 2)**
+5. View and edit roast profiles — add a new profile, or view/edit existing ones. **(Phase 3)**
+6. Delete a roast record, from its detail page, behind a confirmation step. **(Phase 4)**
+7. Delete a roast profile, from its edit page, behind a confirmation step that notes how many roast records reference it. **(Phase 4)**
 
 There is no "Exit" action for a web application; the process runs until the server is stopped.
 
