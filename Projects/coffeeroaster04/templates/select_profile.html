@@ -4,11 +4,8 @@
   <button class="btn back-link" onclick="window.location='/'">&larr; Back to menu</button>
   <h1>Select a roast profile</h1>
   {% if profiles %}
-    <ul>
-      {% for profile_id, profile in profiles.items() %}
-        <li><a href="/roasts/new/{{ profile_id }}">{{ profile.name }}</a></li>
-      {% endfor %}
-    </ul>
+    {% set profile_link_prefix = "/roasts/new/" %}
+    {% include "_profile_table.html" %}
   {% else %}
     <p>No roast profiles exist yet.</p>
     <button class="btn" onclick="window.location='/profiles/new'">Create a roast profile</button>

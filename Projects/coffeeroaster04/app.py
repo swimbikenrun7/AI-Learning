@@ -39,6 +39,13 @@ roast_records = load_roast_records()
 roast_profiles = load_roast_profiles()
 
 
+def sorted_profiles():
+    return sorted(
+        roast_profiles.items(),
+        key=lambda item: (not item[1].get("favorite", False), item[1]["name"].lower()),
+    )
+
+
 @app.route("/")
 def home():
     return render_template("home.html")
@@ -97,7 +104,7 @@ def roast_detail(record_id):
 
 @app.route("/roasts/new")
 def select_profile():
-    return render_template("select_profile.html", profiles=roast_profiles)
+    return render_template("select_profile.html", profiles=sorted_profiles())
 
 
 @app.route("/roasts/new/<profile_id>", methods=["GET", "POST"])
@@ -178,7 +185,23 @@ def add_roast(profile_id):
 
 @app.route("/profiles")
 def list_profiles():
-    return render_template("profiles.html", profiles=roast_profiles)
+    return render_template("profiles.html", profiles=sorted_profiles())
+
+
+@app.route("/profiles/<profile_id>/favorite", methods=["POST"])
+def toggle_profile_favorite(profile_id):
+    profile = roast_profiles.get(profile_id)
+    if profile is None:
+        abort(404)
+
+    profile["favorite"] = not profile.get("favorite", False)
+    save_roast_profiles(roast_profiles)
+
+    next_url = request.form.get("next")
+    safe_targets = {url_for("list_profiles"), url_for("select_profile")}
+    if next_url in safe_targets:
+        return redirect(next_url)
+    return redirect(url_for("list_profiles"))
 
 
 @app.route("/profiles/new", methods=["GET", "POST"])
@@ -211,7 +234,12 @@ def add_edit_profile(profile_id=None):
             error = str(exc)
         else:
             saved_profile_id = profile_id or str(uuid.uuid4())
-            roast_profiles[saved_profile_id] = {"name": name, "temps": temps}
+            favorite = existing_profile.get("favorite", False) if existing_profile else False
+            roast_profiles[saved_profile_id] = {
+                "name": name,
+                "temps": temps,
+                "favorite": favorite,
+            }
             save_roast_profiles(roast_profiles)
             return redirect(url_for("list_profiles"))
 

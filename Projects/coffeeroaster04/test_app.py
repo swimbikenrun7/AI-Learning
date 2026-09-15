@@ -79,6 +79,30 @@ class TestSelectProfile(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("No roast profiles exist yet", response.get_data(as_text=True))
 
+    def test_lists_profiles_alphabetically(self):
+        profiles = {
+            "profile-1": {"name": "Zephyr Blend", "temps": [None] * 12},
+            "profile-2": {"name": "Amber Roast", "temps": [None] * 12},
+        }
+        with mock.patch.object(app, "roast_profiles", profiles):
+            response = self.client.get("/roasts/new")
+        body = response.get_data(as_text=True)
+        self.assertLess(body.index("Amber Roast"), body.index("Zephyr Blend"))
+
+    def test_favorited_profiles_are_listed_before_the_rest(self):
+        profiles = {
+            "profile-1": {"name": "Amber Roast", "temps": [None] * 12},
+            "profile-2": {
+                "name": "Zephyr Blend",
+                "temps": [None] * 12,
+                "favorite": True,
+            },
+        }
+        with mock.patch.object(app, "roast_profiles", profiles):
+            response = self.client.get("/roasts/new")
+        body = response.get_data(as_text=True)
+        self.assertLess(body.index("Zephyr Blend"), body.index("Amber Roast"))
+
 
 class TestAddRoast(unittest.TestCase):
     def setUp(self):
@@ -179,6 +203,70 @@ class TestListProfiles(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("No roast profiles exist yet", response.get_data(as_text=True))
 
+    def test_lists_profiles_alphabetically(self):
+        profiles = {
+            "profile-1": {"name": "Zephyr Blend", "temps": [None] * 12},
+            "profile-2": {"name": "Amber Roast", "temps": [None] * 12},
+        }
+        with mock.patch.object(app, "roast_profiles", profiles):
+            response = self.client.get("/profiles")
+        body = response.get_data(as_text=True)
+        self.assertLess(body.index("Amber Roast"), body.index("Zephyr Blend"))
+
+    def test_favorited_profiles_are_listed_before_the_rest(self):
+        profiles = {
+            "profile-1": {"name": "Amber Roast", "temps": [None] * 12},
+            "profile-2": {
+                "name": "Zephyr Blend",
+                "temps": [None] * 12,
+                "favorite": True,
+            },
+        }
+        with mock.patch.object(app, "roast_profiles", profiles):
+            response = self.client.get("/profiles")
+        body = response.get_data(as_text=True)
+        self.assertLess(body.index("Zephyr Blend"), body.index("Amber Roast"))
+
+
+class TestToggleProfileFavorite(unittest.TestCase):
+    def setUp(self):
+        self.profiles = {"profile-1": {"name": "Test Profile", "temps": [None] * 12}}
+        self.profiles_patcher = mock.patch.object(app, "roast_profiles", self.profiles)
+        self.save_patcher = mock.patch.object(app, "save_roast_profiles")
+        self.profiles_patcher.start()
+        self.save_patcher.start()
+        self.client = app.app.test_client()
+
+    def tearDown(self):
+        self.profiles_patcher.stop()
+        self.save_patcher.stop()
+
+    def test_missing_profile_returns_404(self):
+        response = self.client.post("/profiles/does-not-exist/favorite")
+        self.assertEqual(response.status_code, 404)
+
+    def test_toggles_favorite_on_then_off_and_redirects(self):
+        response = self.client.post("/profiles/profile-1/favorite")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], "/profiles")
+        self.assertTrue(self.profiles["profile-1"]["favorite"])
+
+        self.client.post("/profiles/profile-1/favorite")
+        self.assertFalse(self.profiles["profile-1"]["favorite"])
+        app.save_roast_profiles.assert_called_with(self.profiles)
+
+    def test_redirects_back_to_select_profile_when_toggled_from_there(self):
+        response = self.client.post(
+            "/profiles/profile-1/favorite", data={"next": "/roasts/new"}
+        )
+        self.assertEqual(response.headers["Location"], "/roasts/new")
+
+    def test_ignores_untrusted_next_and_falls_back_to_profiles(self):
+        response = self.client.post(
+            "/profiles/profile-1/favorite", data={"next": "https://evil.example/"}
+        )
+        self.assertEqual(response.headers["Location"], "/profiles")
+
 
 class TestAddEditProfile(unittest.TestCase):
     def setUp(self):
@@ -249,6 +337,22 @@ class TestAddEditProfile(unittest.TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(set(self.profiles), {"profile-1"})
         self.assertEqual(self.profiles["profile-1"]["name"], "Updated Name")
+
+    def test_post_new_profile_defaults_to_not_favorite(self):
+        data = self.blank_temp_form(name="Brand New Profile")
+        self.client.post("/profiles/new", data=data)
+        new_profile = next(
+            profile
+            for profile in self.profiles.values()
+            if profile["name"] == "Brand New Profile"
+        )
+        self.assertFalse(new_profile["favorite"])
+
+    def test_editing_profile_preserves_favorite_flag(self):
+        self.profiles["profile-1"]["favorite"] = True
+        data = self.blank_temp_form(name="Updated Name")
+        self.client.post("/profiles/profile-1", data=data)
+        self.assertTrue(self.profiles["profile-1"]["favorite"])
 
     def test_editing_profile_does_not_alter_saved_roast_snapshot(self):
         saved_target_temps = [320, 365, 400] + [None] * 9

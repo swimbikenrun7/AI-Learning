@@ -1,0 +1,37 @@
+<style>
+  .star-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    color: #ccc;
+  }
+  .star-btn--favorite { color: #e0a800; }
+</style>
+<table>
+  <thead>
+    <tr>
+      <th>Favorite</th>
+      <th>Name</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for profile_id, profile in profiles %}
+      <tr>
+        <td>
+          <form method="post" action="/profiles/{{ profile_id }}/favorite">
+            <input type="hidden" name="next" value="{{ request.path }}">
+            <button
+              type="submit"
+              class="star-btn{{ ' star-btn--favorite' if profile.favorite else '' }}"
+              aria-label="{{ 'Remove favorite' if profile.favorite else 'Mark as favorite' }}"
+            >{{ "★" if profile.favorite else "☆" }}</button>
+          </form>
+        </td>
+        <td><a href="{{ profile_link_prefix }}{{ profile_id }}">{{ profile.name }}</a></td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
