@@ -1,73 +1,392 @@
 {% extends "base.html" %}
 {% block title %}Add roast{% endblock %}
 {% block content %}
-  <a class="back-link" href="/roasts/new">&larr; Back to profile selection</a>
+  <button class="btn back-link" onclick="window.location='/roasts/new'">&larr; Back to profile selection</button>
   <h1>Add roast &mdash; {{ profile.name }}</h1>
 
   {% if error %}
     <p style="color: #c00;">{{ error }}</p>
   {% endif %}
 
-  <form method="post">
-    <p>
-      <label>Date (MM/DD/YYYY)<br>
-        <input type="text" name="date" value="{{ values.date }}">
-      </label>
-    </p>
-    <p>
-      <label>Bean name<br>
-        <input type="text" name="bean_name" value="{{ values.bean_name }}">
-      </label>
-    </p>
-    <p>
-      <label>Green weight (g)<br>
-        <input type="text" name="green_weight" value="{{ values.green_weight }}">
-      </label>
-    </p>
+  <style>
+    .roast-layout { display: flex; gap: 2rem; align-items: flex-start; flex-wrap: wrap; }
+    .roast-form { flex: 1 1 420px; min-width: 320px; }
+    .roast-live {
+      flex: 1 1 420px;
+      min-width: 320px;
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 12rem);
+      min-height: 420px;
+    }
+    .roast-controls { display: flex; gap: 0.6rem; }
+    .timer-btn { border-color: transparent; color: #fff; min-width: 100px; text-align: center; }
+    .timer-btn--start { background: #0a5; }
+    .timer-btn--stop { background: #c00; }
+    .timer-btn--reset { background: #d9a400; }
+    .roast-readout {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-top: 1rem;
+      font-size: 3.6rem;
+    }
+    #target-temp-readout { color: #d95f02; }
+    #clock-readout { font-variant-numeric: tabular-nums; }
+    .roast-graph { flex: 1 1 auto; margin-top: 1rem; min-height: 0; position: relative; }
+    .roast-graph canvas { width: 100%; height: 100%; }
+    body.inverted { filter: invert(1); }
+  </style>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Time</th>
-          <th>Actual (&deg;F)</th>
-          <th>Target (&deg;F)</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for minute in minutes %}
-          <tr>
-            <td>{{ minute }}:00</td>
-            <td>
-              <input
-                type="text"
-                name="actual_temp_{{ minute }}"
-                value="{{ values.actual_temps[minute - 1] }}"
-                size="6"
-                placeholder="optional"
-              >
-            </td>
-            <td>{{ target_temps[minute - 1] if target_temps[minute - 1] is not none else "-" }}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <div class="roast-layout">
+    <div class="roast-form">
+      <form method="post">
+        <p>
+          <label>Date (MM/DD/YYYY)<br>
+            <input type="text" name="date" value="{{ values.date }}">
+          </label>
+        </p>
+        <p>
+          <label>Bean name<br>
+            <input type="text" name="bean_name" value="{{ values.bean_name }}">
+          </label>
+        </p>
+        <p>
+          <label>Green weight (g)<br>
+            <input type="text" name="green_weight" value="{{ values.green_weight }}">
+          </label>
+        </p>
 
-    <p>
-      <label>Time of first crack (MM:SS)<br>
-        <input type="text" name="first_crack" value="{{ values.first_crack }}">
-      </label>
-    </p>
-    <p>
-      <label>Total roast time (MM:SS)<br>
-        <input type="text" name="roast_time" value="{{ values.roast_time }}">
-      </label>
-    </p>
-    <p>
-      <label>Finished weight (g)<br>
-        <input type="text" name="finished_weight" value="{{ values.finished_weight }}">
-      </label>
-    </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Actual (&deg;F)</th>
+              <th>Target (&deg;F)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for minute in minutes %}
+              <tr>
+                <td>{{ minute }}:00</td>
+                <td>
+                  <input
+                    type="text"
+                    name="actual_temp_{{ minute }}"
+                    value="{{ values.actual_temps[minute - 1] }}"
+                    size="6"
+                    placeholder="optional"
+                  >
+                </td>
+                <td>{{ target_temps[minute - 1] if target_temps[minute - 1] is not none else "-" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
 
-    <button type="submit">Submit</button>
-  </form>
+        <p>
+          <label>Time of first crack (MM:SS)<br>
+            <input type="text" name="first_crack" value="{{ values.first_crack }}">
+          </label>
+        </p>
+        <p>
+          <label>Total roast time (MM:SS)<br>
+            <input type="text" name="roast_time" value="{{ values.roast_time }}">
+          </label>
+        </p>
+        <p>
+          <label>Finished weight (g)<br>
+            <input type="text" name="finished_weight" value="{{ values.finished_weight }}">
+          </label>
+        </p>
+
+        <button class="btn" type="submit">Submit</button>
+      </form>
+    </div>
+
+    <div class="roast-live">
+      <div class="roast-controls">
+        <button id="start-stop-btn" class="btn timer-btn timer-btn--start" type="button">Start</button>
+        <button id="reset-btn" class="btn timer-btn timer-btn--reset" type="button">Reset</button>
+      </div>
+      <div class="roast-graph">
+        <canvas id="live-chart"></canvas>
+        <p id="no-profile-data" hidden>No profile data to graph.</p>
+      </div>
+      <div class="roast-readout">
+        <span id="target-temp-readout">&ndash;</span>
+        <span id="clock-readout">0:00</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js"></script>
+  <script>
+    const ROOM_TEMP = 70;
+    const profileTemps = {{ profile.temps|tojson }};
+
+    // Monotone cubic Hermite interpolation (Fritsch-Butland/PCHIP): unlike a
+    // natural spline this never overshoots between knots, so the curve stays
+    // increasing throughout instead of wobbling. Interior tangents use a
+    // weighted harmonic mean of the two neighboring slopes (not a plain
+    // average) so a steep segment next to a shallow one doesn't drag the
+    // curve into a hump - the harmonic mean is pulled toward the shallower
+    // side instead of splitting the difference. The tangent at the last
+    // knot is pinned to 0 so the rise eases into the flat hold-line below
+    // instead of arriving at it with a visible kink.
+    function buildMonotoneSpline(knots) {
+      const n = knots.length;
+      const xs = knots.map((k) => k.x);
+      const ys = knots.map((k) => k.y);
+
+      const h = [];
+      const delta = [];
+      for (let i = 0; i < n - 1; i++) {
+        h.push(xs[i + 1] - xs[i]);
+        delta.push((ys[i + 1] - ys[i]) / h[i]);
+      }
+
+      const m = new Array(n);
+      // The first knot's tangent can't just be the first secant (delta[0]):
+      // a segment's *average* slope always equals its secant regardless of
+      // the tangents chosen, so if delta[0] is much steeper than delta[1]
+      // (like the initial jump to roasting heat vs. the gentler rise after),
+      // pinning m[0] to delta[0] forces the segment to bulge upward in the
+      // middle to keep that average - which is exactly the hump. The
+      // standard non-centered PCHIP boundary estimate below front-loads m[0]
+      // instead, so the segment decelerates the whole way through with no
+      // compensating bulge.
+      if (n < 3) {
+        m[0] = delta[0];
+      } else {
+        let d0 = ((2 * h[0] + h[1]) * delta[0] - h[0] * delta[1]) / (h[0] + h[1]);
+        if (Math.sign(d0) !== Math.sign(delta[0])) {
+          d0 = 0;
+        } else if (Math.sign(delta[0]) !== Math.sign(delta[1]) && Math.abs(d0) > 3 * Math.abs(delta[0])) {
+          d0 = 3 * delta[0];
+        }
+        m[0] = d0;
+      }
+      m[n - 1] = 0;
+      for (let i = 1; i < n - 1; i++) {
+        if (delta[i - 1] === 0 || delta[i] === 0 || delta[i - 1] * delta[i] < 0) {
+          m[i] = 0;
+        } else {
+          const w1 = 2 * h[i] + h[i - 1];
+          const w2 = h[i] + 2 * h[i - 1];
+          m[i] = (w1 + w2) / (w1 / delta[i - 1] + w2 / delta[i]);
+        }
+      }
+
+      for (let i = 0; i < n - 1; i++) {
+        if (delta[i] === 0) {
+          m[i] = 0;
+          m[i + 1] = 0;
+          continue;
+        }
+        const alpha = m[i] / delta[i];
+        const beta = m[i + 1] / delta[i];
+        if (alpha < 0) m[i] = 0;
+        if (beta < 0) m[i + 1] = 0;
+        const s = alpha * alpha + beta * beta;
+        if (s > 9) {
+          const tau = 3 / Math.sqrt(s);
+          m[i] = tau * alpha * delta[i];
+          m[i + 1] = tau * beta * delta[i];
+        }
+      }
+
+      return function evaluate(x) {
+        let i = n - 2;
+        for (let k = 0; k < n - 1; k++) {
+          if (x >= xs[k] && x <= xs[k + 1]) {
+            i = k;
+            break;
+          }
+        }
+        const segLength = xs[i + 1] - xs[i];
+        const t = (x - xs[i]) / segLength;
+        const t2 = t * t;
+        const t3 = t2 * t;
+        const h00 = 2 * t3 - 3 * t2 + 1;
+        const h10 = t3 - 2 * t2 + t;
+        const h01 = -2 * t3 + 3 * t2;
+        const h11 = t3 - t2;
+        return (
+          h00 * ys[i] + h10 * segLength * m[i] + h01 * ys[i + 1] + h11 * segLength * m[i + 1]
+        );
+      };
+    }
+
+    const enteredPoints = profileTemps
+      .map((temp, index) => ({ x: index + 1, y: temp }))
+      .filter((point) => point.y !== null);
+
+    let targetTempAt = null;
+    let chart = null;
+
+    if (enteredPoints.length > 0) {
+      const lastEntered = enteredPoints[enteredPoints.length - 1];
+      const spline = buildMonotoneSpline([{ x: 0, y: ROOM_TEMP }, ...enteredPoints]);
+
+      targetTempAt = function (minutesElapsed) {
+        const x = Math.max(0, minutesElapsed);
+        // Hold flat once the roast runs past the last minute with an entered
+        // target, per the profile's carry-forward domain rule (SPEC.md).
+        if (x >= lastEntered.x) return lastEntered.y;
+        return spline(x);
+      };
+
+      const curve = [];
+      for (let x = 0; x <= 12; x += 0.1) {
+        curve.push({ x, y: targetTempAt(x) });
+      }
+
+      chart = new Chart(document.getElementById("live-chart"), {
+        type: "line",
+        data: {
+          datasets: [
+            {
+              label: "Target",
+              data: curve,
+              borderColor: "#7570b3",
+              backgroundColor: "#7570b3",
+              pointRadius: 0,
+              tension: 0,
+            },
+            {
+              label: "Now",
+              data: [{ x: 0, y: targetTempAt(0) }],
+              showLine: false,
+              pointRadius: 7,
+              pointBackgroundColor: "#d95f02",
+              pointBorderColor: "#d95f02",
+            },
+          ],
+        },
+        options: {
+          animation: false,
+          scales: {
+            x: {
+              type: "linear",
+              min: 0,
+              max: 12,
+              title: { display: true, text: "Time (minutes)" },
+              ticks: {
+                stepSize: 1,
+                callback: (value) => formatMinutesClock(value),
+              },
+            },
+            y: { title: { display: true, text: "Temperature (°F)" } },
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                title: (items) => (items.length ? formatMinutesClock(items[0].parsed.x) : ""),
+                label: (item) => `${item.dataset.label}: ${Math.round(item.parsed.y)}°F`,
+              },
+            },
+          },
+        },
+      });
+
+      document.getElementById("target-temp-readout").textContent =
+        Math.round(targetTempAt(0)) + "°F";
+    } else {
+      document.getElementById("live-chart").hidden = true;
+      document.getElementById("no-profile-data").hidden = false;
+    }
+
+    const startStopBtn = document.getElementById("start-stop-btn");
+    const resetBtn = document.getElementById("reset-btn");
+    const clockReadout = document.getElementById("clock-readout");
+    const targetReadout = document.getElementById("target-temp-readout");
+
+    // The clock advances in whole seconds, but the target-temp readout and
+    // the graph's "Now" marker track real elapsed time continuously (via
+    // performance.now()) so they glide instead of jumping once a second.
+    let running = false;
+    let elapsedMsAtPause = 0;
+    let resumeTimestamp = 0;
+    let lastFlashedMinute = 0;
+    let animationFrameId = null;
+
+    function formatClock(totalSeconds) {
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = totalSeconds % 60;
+      return mins + ":" + String(secs).padStart(2, "0");
+    }
+
+    function formatMinutesClock(minutesValue) {
+      return formatClock(Math.round(minutesValue * 60));
+    }
+
+    function currentElapsedMs() {
+      return running ? elapsedMsAtPause + (performance.now() - resumeTimestamp) : elapsedMsAtPause;
+    }
+
+    function flashInvert() {
+      const body = document.body;
+      const delays = [0, 150, 300, 450];
+      delays.forEach((delay, i) => {
+        setTimeout(() => {
+          body.classList.toggle("inverted", i % 2 === 0);
+        }, delay);
+      });
+    }
+
+    function updateLiveDisplay() {
+      const elapsedMs = currentElapsedMs();
+      const elapsedSeconds = Math.floor(elapsedMs / 1000);
+      clockReadout.textContent = formatClock(elapsedSeconds);
+
+      const minuteMark = Math.floor(elapsedSeconds / 60);
+      if (minuteMark > lastFlashedMinute) {
+        flashInvert();
+        lastFlashedMinute = minuteMark;
+      }
+
+      if (targetTempAt) {
+        const elapsedMinutes = elapsedMs / 60000;
+        const temp = targetTempAt(elapsedMinutes);
+        targetReadout.textContent = Math.round(temp) + "°F";
+        chart.data.datasets[1].data = [{ x: Math.min(elapsedMinutes, 12), y: temp }];
+        chart.update("none");
+      }
+    }
+
+    function renderFrame() {
+      updateLiveDisplay();
+      if (running) animationFrameId = requestAnimationFrame(renderFrame);
+    }
+
+    startStopBtn.addEventListener("click", () => {
+      if (!running) {
+        running = true;
+        resumeTimestamp = performance.now();
+        animationFrameId = requestAnimationFrame(renderFrame);
+        startStopBtn.textContent = "Stop";
+        startStopBtn.classList.remove("timer-btn--start");
+        startStopBtn.classList.add("timer-btn--stop");
+      } else {
+        elapsedMsAtPause = currentElapsedMs();
+        running = false;
+        cancelAnimationFrame(animationFrameId);
+        startStopBtn.textContent = "Start";
+        startStopBtn.classList.remove("timer-btn--stop");
+        startStopBtn.classList.add("timer-btn--start");
+      }
+    });
+
+    resetBtn.addEventListener("click", () => {
+      cancelAnimationFrame(animationFrameId);
+      running = false;
+      elapsedMsAtPause = 0;
+      lastFlashedMinute = 0;
+      startStopBtn.textContent = "Start";
+      startStopBtn.classList.remove("timer-btn--stop");
+      startStopBtn.classList.add("timer-btn--start");
+      updateLiveDisplay();
+    });
+  </script>
 {% endblock %}
