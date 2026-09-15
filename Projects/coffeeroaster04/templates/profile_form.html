@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ "Edit" if profile_id else "Add" }} roast profile{% endblock %}
 {% block content %}
-  <a class="back-link" href="/profiles">&larr; Back to profiles</a>
+  <button class="btn back-link" onclick="window.location='/profiles'">&larr; Back to profiles</button>
   <h1>{{ "Edit" if profile_id else "Add" }} roast profile</h1>
 
   {% if error %}
@@ -40,10 +40,12 @@
       </tbody>
     </table>
 
-    <button type="submit">Submit</button>
+    <button class="btn" type="submit">Submit</button>
   </form>
 
   {% if profile_id %}
-    <p><a href="/profiles/{{ profile_id }}/delete">Delete this profile</a></p>
+    <div class="actions">
+      <button class="btn" onclick="window.location='/profiles/{{ profile_id }}/delete'">Delete this profile</button>
+    </div>
   {% endif %}
 {% endblock %}

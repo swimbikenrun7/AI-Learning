@@ -13,11 +13,11 @@
     tr:hover { background: #f5f5f5; }
     a { color: #0a5; text-decoration: none; }
     a:hover { text-decoration: underline; }
-    .back-link { display: inline-block; margin-bottom: 1rem; }
-    .menu { display: flex; flex-direction: column; gap: 0.6rem; width: 280px; margin-top: 1.5rem; }
-    .menu button {
-      padding: 0.7rem 1rem;
-      font-size: 1rem;
+    .btn {
+      display: inline-block;
+      padding: 0.6rem 1rem;
+      font-size: 0.95rem;
+      font-family: inherit;
       border: 1px solid #0a5;
       background: #fff;
       color: #0a5;
@@ -25,7 +25,11 @@
       cursor: pointer;
       text-align: left;
     }
-    .menu button:hover { background: #0a5; color: #fff; }
+    .btn:hover { background: #0a5; color: #fff; }
+    .back-link { margin-bottom: 1rem; }
+    .actions { display: flex; gap: 0.6rem; margin-bottom: 1rem; }
+    .menu { display: flex; flex-direction: column; gap: 0.6rem; width: 280px; margin-top: 1.5rem; }
+    .menu button { padding: 0.7rem 1rem; font-size: 1rem; }
   </style>
 </head>
 <body>

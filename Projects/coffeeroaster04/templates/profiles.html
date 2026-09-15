@@ -1,9 +1,11 @@
 {% extends "base.html" %}
 {% block title %}Roast profiles{% endblock %}
 {% block content %}
-  <a class="back-link" href="/">&larr; Back to menu</a>
+  <button class="btn back-link" onclick="window.location='/'">&larr; Back to menu</button>
   <h1>Roast profiles</h1>
-  <p><a href="/profiles/new">+ Add new profile</a></p>
+  <div class="actions">
+    <button class="btn" onclick="window.location='/profiles/new'">+ Add new profile</button>
+  </div>
   {% if profiles %}
     <ul>
       {% for profile_id, profile in profiles.items() %}

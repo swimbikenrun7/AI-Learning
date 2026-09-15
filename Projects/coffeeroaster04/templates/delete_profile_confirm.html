@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Delete roast profile{% endblock %}
 {% block content %}
-  <a class="back-link" href="/profiles">&larr; Back to profiles</a>
+  <button class="btn back-link" onclick="window.location='/profiles'">&larr; Back to profiles</button>
   <h1>Delete this roast profile?</h1>
   <p>{{ profile.name }}</p>
   {% if referencing_roast_count %}
@@ -13,6 +13,6 @@
   {% endif %}
   <p>This cannot be undone.</p>
   <form method="post">
-    <button type="submit">Delete profile</button>
+    <button class="btn" type="submit">Delete profile</button>
   </form>
 {% endblock %}

@@ -1,13 +1,12 @@
 {% extends "base.html" %}
 {% block title %}View roasts{% endblock %}
 {% block content %}
-  <a class="back-link" href="/">&larr; Back to menu</a>
+  <button class="btn back-link" onclick="window.location='/'">&larr; Back to menu</button>
   <h1>Roast records</h1>
-  <p>
-    <a href="/roasts/new">+ Add roast</a>
-    &middot;
-    <a href="/profiles">View &amp; edit roast profiles</a>
-  </p>
+  <div class="actions">
+    <button class="btn" onclick="window.location='/roasts/new'">+ Add roast</button>
+    <button class="btn" onclick="window.location='/profiles'">View &amp; edit roast profiles</button>
+  </div>
   <table>
     <thead>
       <tr>

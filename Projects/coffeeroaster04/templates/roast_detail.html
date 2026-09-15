@@ -1,10 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Roast detail{% endblock %}
 {% block content %}
-  <a class="back-link" href="/roasts">&larr; Back to roasts</a>
+  <button class="btn back-link" onclick="window.location='/roasts'">&larr; Back to roasts</button>
   <h1>{{ record.bean_name }} &mdash; {{ record.date }}</h1>
   <p>Roast profile: {{ profile_name }}</p>
-  <p><a href="/roasts/{{ record_id }}/delete">Delete this roast</a></p>
+  <div class="actions">
+    <button class="btn" onclick="window.location='/roasts/{{ record_id }}/delete'">Delete this roast</button>
+  </div>
 
   <canvas id="temp-chart" width="700" height="350"></canvas>
 

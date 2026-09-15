@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Add roast &mdash; select profile{% endblock %}
 {% block content %}
-  <a class="back-link" href="/">&larr; Back to menu</a>
+  <button class="btn back-link" onclick="window.location='/'">&larr; Back to menu</button>
   <h1>Select a roast profile</h1>
   {% if profiles %}
     <ul>
@@ -10,6 +10,7 @@
       {% endfor %}
     </ul>
   {% else %}
-    <p>No roast profiles exist yet. <a href="/profiles/new">Create one</a> to add a roast.</p>
+    <p>No roast profiles exist yet.</p>
+    <button class="btn" onclick="window.location='/profiles/new'">Create a roast profile</button>
   {% endif %}
 {% endblock %}
