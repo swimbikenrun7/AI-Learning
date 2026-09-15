@@ -26,14 +26,19 @@ ROAST_TABLE_COLUMNS = [
     "Roast Profile",
     "Green (g)",
     "Finished (g)",
-    "Roast Time (s)",
-    "1st Crack (s)",
+    "Roast Time",
+    "1st Crack",
     "Weight Loss (%)",
-    "Dev Time (s)",
+    "Dev Time",
     "Classification",
 ]
 
 app = Flask(__name__)
+
+
+def format_mm_ss(total_seconds):
+    minutes, seconds = divmod(total_seconds, 60)
+    return f"{minutes}:{seconds:02d}"
 
 roast_records = load_roast_records()
 roast_profiles = load_roast_profiles()
@@ -70,10 +75,10 @@ def view_roasts():
                 "profile_name": profile["name"] if profile else "-",
                 "green_weight": record["green_weight"],
                 "finished_weight": record["finished_weight"],
-                "total_roast_time": record["total_roast_time"],
-                "time_of_first_crack": record["time_of_first_crack"],
+                "total_roast_time": format_mm_ss(record["total_roast_time"]),
+                "time_of_first_crack": format_mm_ss(record["time_of_first_crack"]),
                 "weight_loss": weight_loss,
-                "development_time": development_time,
+                "development_time": format_mm_ss(development_time),
                 "classification": calc.classify_roast(weight_loss),
             }
         )

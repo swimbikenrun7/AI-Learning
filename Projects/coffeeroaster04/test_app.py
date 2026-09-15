@@ -48,6 +48,13 @@ class TestRoutes(unittest.TestCase):
         self.assertIn("Test Profile", body)
         self.assertIn("City Plus", body)
 
+    def test_view_roasts_formats_times_as_mm_ss(self):
+        response = self.client.get("/roasts")
+        body = response.get_data(as_text=True)
+        self.assertIn("<td>7:30</td>", body)  # total_roast_time: 450s
+        self.assertIn("<td>6:15</td>", body)  # time_of_first_crack: 375s
+        self.assertIn("<td>1:15</td>", body)  # development_time: 450 - 375 = 75s
+
     def test_roast_detail_shows_temps_and_chart(self):
         response = self.client.get("/roasts/record-1")
         self.assertEqual(response.status_code, 200)
