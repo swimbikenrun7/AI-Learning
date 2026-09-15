@@ -4,34 +4,70 @@
   <meta charset="utf-8">
   <title>{% block title %}Coffee Roast Logger{% endblock %}</title>
   <style>
-    body { font-family: sans-serif; margin: 2rem; color: #222; background: #fff; }
-    table { border-collapse: collapse; margin-top: 1rem; }
-    th, td { border: 1px solid #ccc; padding: 0.4rem 0.8rem; text-align: right; }
+    :root {
+      --color-bg: #faf6f0;
+      --color-surface: #fffdfb;
+      --color-text: #2b2118;
+      --color-text-muted: #7a6a5c;
+      --color-border: #e2d8cb;
+      --color-accent: #a15c2e;
+      --color-accent-hover: #8a4b23;
+      --color-danger: #b3402c;
+      --color-danger-hover: #96311f;
+
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 1rem;
+      --space-4: 1.5rem;
+      --space-5: 2.5rem;
+
+      --font-size-sm: 0.85rem;
+      --font-size-base: 1rem;
+      --font-size-lg: 1.25rem;
+      --font-size-xl: 2rem;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: var(--font-size-base);
+      margin: 0;
+      color: var(--color-text);
+      background: var(--color-bg);
+    }
+    .page { max-width: 1100px; margin: 0 auto; padding: var(--space-5) var(--space-4); }
+    h1 {
+      font-size: var(--font-size-xl);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--color-text);
+      margin: 0 0 var(--space-4);
+    }
+    table { border-collapse: collapse; margin-top: var(--space-3); background: var(--color-surface); }
+    th, td { border: 1px solid var(--color-border); padding: 0.4rem 0.8rem; text-align: right; }
     th:first-child, td:first-child,
     th:nth-child(2), td:nth-child(2),
     th:nth-child(3), td:nth-child(3) { text-align: left; }
-    tr:hover { background: #f5f5f5; }
-    a { color: #0a5; text-decoration: none; }
+    tr:hover { background: #f3ece3; }
+    a { color: var(--color-accent); text-decoration: none; }
     a:hover { text-decoration: underline; }
     .btn {
       display: inline-block;
       padding: 0.6rem 1rem;
-      font-size: 0.95rem;
+      font-size: var(--font-size-sm);
       font-family: inherit;
-      border: 1px solid #0a5;
-      background: #fff;
-      color: #0a5;
+      border: 1px solid var(--color-accent);
+      background: var(--color-surface);
+      color: var(--color-accent);
       border-radius: 4px;
       cursor: pointer;
       text-align: left;
     }
-    .btn:hover { background: #0a5; color: #fff; }
-    .btn--danger { border-color: #c00; color: #c00; }
-    .btn--danger:hover { background: #c00; color: #fff; }
-    .back-link { margin-bottom: 1rem; }
-    .actions { display: flex; gap: 0.6rem; margin-bottom: 1rem; }
-    .menu { display: flex; flex-direction: column; gap: 0.6rem; width: 280px; margin-top: 1.5rem; }
-    .menu button { padding: 0.7rem 1rem; font-size: 1rem; }
+    .btn:hover { background: var(--color-accent-hover); border-color: var(--color-accent-hover); color: #fff; }
+    .btn--danger { border-color: var(--color-danger); color: var(--color-danger); }
+    .btn--danger:hover { background: var(--color-danger-hover); border-color: var(--color-danger-hover); color: #fff; }
+    .back-link { margin-bottom: var(--space-3); }
+    .actions { display: flex; gap: var(--space-2); margin-bottom: var(--space-3); }
+    .menu { display: flex; flex-direction: column; gap: var(--space-2); width: 280px; margin-top: var(--space-4); }
+    .menu button { padding: 0.7rem 1rem; font-size: var(--font-size-base); }
   </style>
 </head>
 <body>
@@ -180,6 +216,8 @@
       }, SHOW_MS);
     })();
   </script>
-  {% block content %}{% endblock %}
+  <div class="page">
+    {% block content %}{% endblock %}
+  </div>
 </body>
 </html>
