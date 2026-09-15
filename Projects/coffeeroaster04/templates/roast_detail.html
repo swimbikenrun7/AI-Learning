@@ -41,19 +41,26 @@
         labels: minutes.map((m) => m + ":00"),
         datasets: [
           {
-            label: "Actual (°F)",
-            data: actualTemps,
-            borderColor: "#d95f02",
-            backgroundColor: "#d95f02",
-            spanGaps: false,
-            tension: 0.2,
-          },
-          {
+            // Drawn first (underneath) and thicker, so when actual and target
+            // match exactly at every point - as they do for these seed
+            // records - the dashed target track still peeks out on both
+            // sides of the thinner actual line instead of being fully hidden.
             label: "Target (°F)",
             data: targetTemps,
             borderColor: "#7570b3",
             backgroundColor: "#7570b3",
-            borderDash: [6, 4],
+            borderDash: [8, 5],
+            borderWidth: 6,
+            pointRadius: 0,
+            spanGaps: false,
+            tension: 0.2,
+          },
+          {
+            label: "Actual (°F)",
+            data: actualTemps,
+            borderColor: "#d95f02",
+            backgroundColor: "#d95f02",
+            borderWidth: 2,
             spanGaps: false,
             tension: 0.2,
           },
