@@ -46,9 +46,31 @@
     th:first-child, td:first-child,
     th:nth-child(2), td:nth-child(2),
     th:nth-child(3), td:nth-child(3) { text-align: left; }
-    tr:hover { background: #f3ece3; }
+    tbody tr:nth-child(even) { background: #f7f1e9; }
+    tbody tr:hover { background: #f3ece3; }
     a { color: var(--color-accent); text-decoration: none; }
     a:hover { text-decoration: underline; }
+    label {
+      display: block;
+      font-weight: 600;
+      font-size: var(--font-size-sm);
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-1);
+    }
+    input[type="text"] {
+      font-family: inherit;
+      font-size: var(--font-size-base);
+      padding: 0.5rem 0.7rem;
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      background: var(--color-surface);
+      color: var(--color-text);
+    }
+    input[type="text"]:focus {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 1px;
+      border-color: var(--color-accent);
+    }
     .btn {
       display: inline-block;
       padding: 0.6rem 1rem;
@@ -62,6 +84,10 @@
       text-align: left;
     }
     .btn:hover { background: var(--color-accent-hover); border-color: var(--color-accent-hover); color: #fff; }
+    .btn--primary { background: var(--color-accent); border-color: var(--color-accent); color: #fff; }
+    .btn--primary:hover { background: var(--color-accent-hover); border-color: var(--color-accent-hover); }
+    .btn--ghost { border-color: transparent; background: transparent; color: var(--color-text-muted); }
+    .btn--ghost:hover { background: #efe6da; border-color: transparent; color: var(--color-text); }
     .btn--danger { border-color: var(--color-danger); color: var(--color-danger); }
     .btn--danger:hover { background: var(--color-danger-hover); border-color: var(--color-danger-hover); color: #fff; }
     .back-link { margin-bottom: var(--space-3); }

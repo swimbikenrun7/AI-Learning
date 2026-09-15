@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Roast detail{% endblock %}
 {% block content %}
-  <button class="btn back-link" onclick="window.location='/roasts'">&larr; Back to roasts</button>
+  <button class="btn btn--ghost back-link" onclick="window.location='/roasts'">&larr; Back to roasts</button>
   <h1>{{ record.bean_name }} &mdash; {{ record.date }}</h1>
   <p>Roast profile: {{ profile_name }}</p>
   <div class="actions">

@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% block title %}Add roast{% endblock %}
 {% block content %}
-  <button class="btn back-link" onclick="window.location='/roasts/new'">&larr; Back to profile selection</button>
+  <button class="btn btn--ghost back-link" onclick="window.location='/roasts/new'">&larr; Back to profile selection</button>
   <h1>Add roast &mdash; {{ profile.name }}</h1>
 
   {% if error %}
-    <p style="color: #c00;">{{ error }}</p>
+    <p style="color: var(--color-danger);">{{ error }}</p>
   {% endif %}
 
   <style>
@@ -100,7 +100,7 @@
           </label>
         </p>
 
-        <button class="btn" type="submit">Submit</button>
+        <button class="btn btn--primary" type="submit">Submit</button>
       </form>
     </div>
 

@@ -67,6 +67,7 @@ def view_roasts():
             record["total_roast_time"], record["time_of_first_crack"]
         )
         profile = roast_profiles.get(record.get("roast_profile_id"))
+        classification = calc.classify_roast(weight_loss)
         rows.append(
             {
                 "id": record_id,
@@ -79,7 +80,8 @@ def view_roasts():
                 "time_of_first_crack": format_mm_ss(record["time_of_first_crack"]),
                 "weight_loss": weight_loss,
                 "development_time": format_mm_ss(development_time),
-                "classification": calc.classify_roast(weight_loss),
+                "classification": classification,
+                "classification_class": classification.lower().replace(" ", "-"),
             }
         )
     return render_template("roasts.html", columns=ROAST_TABLE_COLUMNS, rows=rows)

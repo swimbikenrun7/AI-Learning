@@ -1,12 +1,27 @@
 {% extends "base.html" %}
 {% block title %}View roasts{% endblock %}
 {% block content %}
-  <button class="btn back-link" onclick="window.location='/'">&larr; Back to menu</button>
+  <button class="btn btn--ghost back-link" onclick="window.location='/'">&larr; Back to menu</button>
   <h1>Roast records</h1>
   <div class="actions">
-    <button class="btn" onclick="window.location='/roasts/new'">+ Add roast</button>
+    <button class="btn btn--primary" onclick="window.location='/roasts/new'">+ Add roast</button>
     <button class="btn" onclick="window.location='/profiles'">View &amp; edit roast profiles</button>
   </div>
+  <style>
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+    }
+    .badge--city-roast { background: #e8c9a0; color: #5c3d1e; }
+    .badge--city-plus { background: #d9ad76; color: #4a3015; }
+    .badge--full-city { background: #c08a4e; color: #2f1d0c; }
+    .badge--full-city-plus { background: #9c6a35; color: #fff; }
+    .badge--vienna-roast { background: #7a4d24; color: #fff; }
+    .badge--italian-roast { background: #4a2e18; color: #fff; }
+  </style>
   <table>
     <thead>
       <tr>
@@ -27,7 +42,7 @@
           <td>{{ row.time_of_first_crack }}</td>
           <td>{{ "%.2f"|format(row.weight_loss) }}</td>
           <td>{{ row.development_time }}</td>
-          <td>{{ row.classification }}</td>
+          <td><span class="badge badge--{{ row.classification_class }}">{{ row.classification }}</span></td>
         </tr>
       {% endfor %}
     </tbody>
