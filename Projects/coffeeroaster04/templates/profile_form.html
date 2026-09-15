@@ -42,4 +42,8 @@
 
     <button type="submit">Submit</button>
   </form>
+
+  {% if profile_id %}
+    <p><a href="/profiles/{{ profile_id }}/delete">Delete this profile</a></p>
+  {% endif %}
 {% endblock %}

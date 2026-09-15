@@ -82,6 +82,7 @@ def roast_detail(record_id):
     return render_template(
         "roast_detail.html",
         record=record,
+        record_id=record_id,
         profile_name=profile["name"] if profile else "-",
         minutes=minutes,
         target_temps=target_temps,
@@ -215,6 +216,45 @@ def add_edit_profile(profile_id=None):
         minutes=minutes,
         values=values,
         error=error,
+    )
+
+
+@app.route("/roasts/<record_id>/delete", methods=["GET", "POST"])
+def delete_roast(record_id):
+    record = roast_records.get(record_id)
+    if record is None:
+        abort(404)
+
+    if request.method == "POST":
+        del roast_records[record_id]
+        save_roast_records(roast_records)
+        return redirect(url_for("view_roasts"))
+
+    return render_template(
+        "delete_roast_confirm.html", record=record, record_id=record_id
+    )
+
+
+@app.route("/profiles/<profile_id>/delete", methods=["GET", "POST"])
+def delete_profile(profile_id):
+    profile = roast_profiles.get(profile_id)
+    if profile is None:
+        abort(404)
+
+    if request.method == "POST":
+        del roast_profiles[profile_id]
+        save_roast_profiles(roast_profiles)
+        return redirect(url_for("list_profiles"))
+
+    referencing_roast_count = sum(
+        1
+        for record in roast_records.values()
+        if record.get("roast_profile_id") == profile_id
+    )
+    return render_template(
+        "delete_profile_confirm.html",
+        profile=profile,
+        referencing_roast_count=referencing_roast_count,
     )
 
 

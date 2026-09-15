@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Delete roast profile{% endblock %}
+{% block content %}
+  <a class="back-link" href="/profiles">&larr; Back to profiles</a>
+  <h1>Delete this roast profile?</h1>
+  <p>{{ profile.name }}</p>
+  {% if referencing_roast_count %}
+    <p>
+      {{ referencing_roast_count }} saved roast{{ "s" if referencing_roast_count != 1 else "" }}
+      {{ "reference" if referencing_roast_count != 1 else "references" }} this profile. Deleting it won't affect their saved data &mdash;
+      each roast keeps its own snapshot of the target temperatures it used.
+    </p>
+  {% endif %}
+  <p>This cannot be undone.</p>
+  <form method="post">
+    <button type="submit">Delete profile</button>
+  </form>
+{% endblock %}

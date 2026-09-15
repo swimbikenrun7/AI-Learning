@@ -260,5 +260,96 @@ class TestAddEditProfile(unittest.TestCase):
             )
 
 
+class TestDeleteRoast(unittest.TestCase):
+    def setUp(self):
+        self.records = {
+            "record-1": {
+                "date": "09/07/2026",
+                "bean_name": "Mysore Nuggets",
+                "roast_profile_id": "profile-1",
+                "target_temps": [320] + [None] * 11,
+                "actual_temps": [320] + [None] * 11,
+            }
+        }
+        self.records_patcher = mock.patch.object(app, "roast_records", self.records)
+        self.save_patcher = mock.patch.object(app, "save_roast_records")
+        self.records_patcher.start()
+        self.save_patcher.start()
+        self.client = app.app.test_client()
+
+    def tearDown(self):
+        self.records_patcher.stop()
+        self.save_patcher.stop()
+
+    def test_missing_record_returns_404(self):
+        response = self.client.get("/roasts/does-not-exist/delete")
+        self.assertEqual(response.status_code, 404)
+
+    def test_get_shows_confirmation(self):
+        response = self.client.get("/roasts/record-1/delete")
+        self.assertEqual(response.status_code, 200)
+        body = response.get_data(as_text=True)
+        self.assertIn("Mysore Nuggets", body)
+        self.assertIn("cannot be undone", body)
+        self.assertIn("record-1", self.records)  # not deleted yet
+
+    def test_post_deletes_record_and_redirects(self):
+        response = self.client.post("/roasts/record-1/delete")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], "/")
+        self.assertNotIn("record-1", self.records)
+        app.save_roast_records.assert_called_once_with(self.records)
+
+
+class TestDeleteProfile(unittest.TestCase):
+    def setUp(self):
+        self.profiles = {"profile-1": {"name": "Test Profile", "temps": [None] * 12}}
+        self.records = {
+            "record-1": {
+                "roast_profile_id": "profile-1",
+                "target_temps": [320, 365, 400] + [None] * 9,
+            }
+        }
+        self.profiles_patcher = mock.patch.object(app, "roast_profiles", self.profiles)
+        self.records_patcher = mock.patch.object(app, "roast_records", self.records)
+        self.save_patcher = mock.patch.object(app, "save_roast_profiles")
+        self.profiles_patcher.start()
+        self.records_patcher.start()
+        self.save_patcher.start()
+        self.client = app.app.test_client()
+
+    def tearDown(self):
+        self.profiles_patcher.stop()
+        self.records_patcher.stop()
+        self.save_patcher.stop()
+
+    def test_missing_profile_returns_404(self):
+        response = self.client.get("/profiles/does-not-exist/delete")
+        self.assertEqual(response.status_code, 404)
+
+    def test_get_shows_confirmation_with_referencing_roast_count(self):
+        response = self.client.get("/profiles/profile-1/delete")
+        self.assertEqual(response.status_code, 200)
+        body = response.get_data(as_text=True)
+        self.assertIn("Test Profile", body)
+        self.assertIn("1 saved roast", body)
+        self.assertIn("profile-1", self.profiles)  # not deleted yet
+
+    def test_post_deletes_profile_and_redirects(self):
+        response = self.client.post("/profiles/profile-1/delete")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], "/profiles")
+        self.assertNotIn("profile-1", self.profiles)
+        app.save_roast_profiles.assert_called_once_with(self.profiles)
+
+    def test_deleting_profile_leaves_referencing_roast_snapshot_untouched(self):
+        original_target_temps = list(self.records["record-1"]["target_temps"])
+        self.client.post("/profiles/profile-1/delete")
+        self.assertEqual(
+            self.records["record-1"]["target_temps"], original_target_temps
+        )
+        self.assertIn("record-1", self.records)
+
+
 if __name__ == "__main__":
     unittest.main()

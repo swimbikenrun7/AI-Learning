@@ -6,9 +6,10 @@ Record coffee roasting sessions and calculate basic roast metrics in Python, pre
 ## Implementation Phases
 This SPEC describes the full target feature set, carried forward from coffeeroaster03. It is built in phases; only Phase 1 is in scope until a later phase is explicitly requested.
 
-- **Phase 1 (current)**: View roasts (read-only table) and a roast detail page with a temperature chart. Uses data seeded from coffeeroaster03's existing JSON files.
-- **Phase 2 (not yet in scope)**: Add roast form.
-- **Phase 3 (not yet in scope)**: Roast profile management (add/view/edit).
+- **Phase 1**: View roasts (read-only table) and a roast detail page with a temperature chart. Uses data seeded from coffeeroaster03's existing JSON files.
+- **Phase 2**: Add roast form.
+- **Phase 3**: Roast profile management (add/view/edit).
+- **Phase 4 (current)**: Delete roast records and delete roast profiles. This did not exist in coffeeroaster03 (which had no delete for either) — it is new scope for this mission, not something carried forward.
 
 ## Requirements
 The code shall have a separate module for calculations (`calculations.py`, carried forward from coffeeroaster03 unchanged).
@@ -112,6 +113,10 @@ Roast profile persistence shall use its own JSON file in the `data/` folder, fol
 Roast profile intervals are defined in whole minutes only; there is no sub-minute granularity.
 A profile's (or a roast's actual) temperature at any interval beyond the last explicitly entered value equals that last entered value, since a roast in progress, or a profile author, may only have data through a given point in time.
 
+### Delete **(Phase 4)**
+A roast profile may be deleted, with a confirmation step first.
+Deleting a profile that past roast records reference shall not alter those records' stored `target_temps` snapshot or any other field (they hold their own copy at save time, not a live reference — see Constraints above). Such records shall continue to display normally, showing no profile name for the now-missing reference (same behavior as a record whose profile was never set).
+
 ## Calculations
 
 ### Weight Loss
@@ -137,6 +142,8 @@ On startup, after checking the JSON files for corruption, the application shall 
 2. `/roasts/<id>` — Roast detail: displays that roast's full time/actual/target temperature table (1:00-12:00) and a line chart (x-axis: time in minutes, y-axis: temperature °F) plotting actual vs. target temperature, rendered client-side with Chart.js. **(Phase 1)**
 3. Add roast — select a roast profile, then a form to collect roast fields (including the profile's temperature table), validate inline, and save. **(Phase 2)**
 4. View and edit roast profiles — add a new profile, or view/edit existing ones. **(Phase 3)**
+5. Delete a roast record, from its detail page, behind a confirmation step. **(Phase 4)**
+6. Delete a roast profile, from its edit page, behind a confirmation step that notes how many roast records reference it. **(Phase 4)**
 
 There is no "Exit" action for a web application; the process runs until the server is stopped.
 

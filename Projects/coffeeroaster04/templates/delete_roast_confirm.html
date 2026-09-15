@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Delete roast{% endblock %}
+{% block content %}
+  <a class="back-link" href="/roasts/{{ record_id }}">&larr; Back to roast</a>
+  <h1>Delete this roast?</h1>
+  <p>{{ record.bean_name }} &mdash; {{ record.date }}</p>
+  <p>This cannot be undone.</p>
+  <form method="post">
+    <button type="submit">Delete roast</button>
+  </form>
+{% endblock %}
