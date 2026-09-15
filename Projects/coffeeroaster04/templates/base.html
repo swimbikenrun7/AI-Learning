@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <title>{% block title %}Coffee Roast Logger{% endblock %}</title>
   <style>
-    body { font-family: sans-serif; margin: 2rem; color: #222; }
+    body { font-family: sans-serif; margin: 2rem; color: #222; background: #fff; }
     table { border-collapse: collapse; margin-top: 1rem; }
     th, td { border: 1px solid #ccc; padding: 0.4rem 0.8rem; text-align: right; }
     th:first-child, td:first-child,
@@ -17,6 +17,151 @@
   </style>
 </head>
 <body>
+  <div id="splash">
+    <div id="backdrop" class="curtain-piece"></div>
+    <svg id="splash-svg" width="240" height="240" viewBox="0 0 28 28" shape-rendering="crispEdges">
+      <g id="steam-1" class="steam">
+        <rect x="9" y="10" width="2" height="2" fill="#8a8f94" />
+        <rect x="11" y="8" width="2" height="2" fill="#8a8f94" />
+        <rect x="9" y="6" width="2" height="2" fill="#8a8f94" />
+        <rect x="11" y="4" width="2" height="2" fill="#8a8f94" />
+      </g>
+      <g id="steam-2" class="steam">
+        <rect x="15" y="10" width="2" height="2" fill="#8a8f94" />
+        <rect x="17" y="8" width="2" height="2" fill="#8a8f94" />
+        <rect x="15" y="6" width="2" height="2" fill="#8a8f94" />
+        <rect x="17" y="4" width="2" height="2" fill="#8a8f94" />
+      </g>
+      <rect x="7" y="13" width="11" height="8" fill="#ede6d9" />
+      <rect x="8" y="14" width="9" height="2" fill="#3b2412" />
+      <rect x="18" y="14" width="3" height="1" fill="#ede6d9" />
+      <rect x="18" y="18" width="3" height="1" fill="#ede6d9" />
+      <rect x="20" y="14" width="1" height="5" fill="#ede6d9" />
+    </svg>
+  </div>
+  <style>
+    #splash {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      overflow: hidden;
+    }
+    .curtain-piece {
+      position: absolute;
+      inset: 0;
+      background: #000;
+    }
+    #splash-svg {
+      position: relative;
+      z-index: 1;
+    }
+    .steam rect {
+      animation: steam-rise 0.6s ease-in-out infinite;
+    }
+    .steam rect:nth-child(2) { animation-delay: 0.08s; }
+    .steam rect:nth-child(3) { animation-delay: 0.16s; }
+    .steam rect:nth-child(4) { animation-delay: 0.24s; }
+    #steam-2 rect { animation-delay: 0.15s; }
+    #steam-2 rect:nth-child(2) { animation-delay: 0.23s; }
+    #steam-2 rect:nth-child(3) { animation-delay: 0.31s; }
+    #steam-2 rect:nth-child(4) { animation-delay: 0.39s; }
+    @keyframes steam-rise {
+      0% { transform: translateY(0); opacity: 0; }
+      30% { opacity: 1; }
+      100% { transform: translateY(-4px); opacity: 0; }
+    }
+  </style>
+  <script>
+    (function () {
+      // TODO(future): once a user-settings screen exists, let this whole
+      // splash+transition be disabled from there instead of always running.
+      var SHOW_MS = 250;
+      var splash = document.getElementById("splash");
+      var svg = document.getElementById("splash-svg");
+
+      var SEAM_VERTICAL =
+        "50% 0%, 40% 8.33%, 60% 16.67%, 40% 25%, 60% 33.33%, 40% 41.67%, " +
+        "60% 50%, 40% 58.33%, 60% 66.67%, 40% 75%, 60% 83.33%, 40% 91.67%, 50% 100%";
+      var SEAM_HORIZONTAL =
+        "0% 50%, 8.33% 40%, 16.67% 60%, 25% 40%, 33.33% 60%, 41.67% 40%, " +
+        "50% 60%, 58.33% 40%, 66.67% 60%, 75% 40%, 83.33% 60%, 91.67% 40%, 100% 50%";
+
+      function finish() {
+        splash.remove();
+      }
+
+      function addPiece() {
+        var piece = document.createElement("div");
+        piece.className = "curtain-piece";
+        splash.appendChild(piece);
+        return piece;
+      }
+
+      function runRows() {
+        var rowCount = 10;
+        var duration = 450;
+        var rows = [];
+        for (var i = 0; i < rowCount; i++) {
+          var row = addPiece();
+          row.style.top = (i * 100 / rowCount) + "%";
+          row.style.height = (100 / rowCount) + "%";
+          row.style.transition = "transform " + duration + "ms ease-in-out " + (i * 30) + "ms";
+          rows.push(row);
+        }
+        requestAnimationFrame(function () {
+          rows.forEach(function (row, i) {
+            row.style.transform = "translateX(" + (i % 2 === 0 ? "-100%" : "100%") + ")";
+          });
+        });
+        setTimeout(finish, duration + rowCount * 30 + 50);
+      }
+
+      function runSawtooth() {
+        var duration = 450;
+        var left = addPiece();
+        left.style.clipPath = "polygon(0% 0%, " + SEAM_VERTICAL + ", 0% 100%)";
+        left.style.transition = "transform " + duration + "ms ease-in";
+
+        var right = addPiece();
+        right.style.clipPath = "polygon(100% 0%, " + SEAM_VERTICAL + ", 100% 100%)";
+        right.style.transition = "transform " + duration + "ms ease-in";
+
+        requestAnimationFrame(function () {
+          left.style.transform = "translateX(-100%)";
+          right.style.transform = "translateX(100%)";
+        });
+        setTimeout(finish, duration + 50);
+      }
+
+      function runZipper() {
+        var duration = 450;
+        var top = addPiece();
+        top.style.clipPath = "polygon(0% 0%, " + SEAM_HORIZONTAL + ", 100% 0%)";
+        top.style.transition = "transform " + duration + "ms ease-in";
+
+        var bottom = addPiece();
+        bottom.style.clipPath = "polygon(0% 100%, " + SEAM_HORIZONTAL + ", 100% 100%)";
+        bottom.style.transition = "transform " + duration + "ms ease-in";
+
+        requestAnimationFrame(function () {
+          top.style.transform = "translateY(-100%)";
+          bottom.style.transform = "translateY(100%)";
+        });
+        setTimeout(finish, duration + 50);
+      }
+
+      var EFFECTS = [runRows, runSawtooth, runZipper];
+
+      setTimeout(function () {
+        svg.style.display = "none";
+        document.getElementById("backdrop").remove();
+        EFFECTS[Math.floor(Math.random() * EFFECTS.length)]();
+      }, SHOW_MS);
+    })();
+  </script>
   {% block content %}{% endblock %}
 </body>
 </html>
