@@ -10,7 +10,8 @@ This SPEC describes the full target feature set, carried forward from coffeeroas
 - **Phase 2**: Add roast form.
 - **Phase 3**: Roast profile management (add/view/edit).
 - **Phase 4**: Delete roast records and delete roast profiles. This did not exist in coffeeroaster03 (which had no delete for either) — it is new scope for this mission, not something carried forward.
-- **Phase 5 (current)**: Home page becomes a main menu (Add roast / View roasts / View and edit roast profiles as buttons), mirroring coffeeroaster03's `MainScreen`. The roast records table moves to its own `/roasts` route.
+- **Phase 5**: Home page becomes a main menu (Add roast / View roasts / View and edit roast profiles as buttons), mirroring coffeeroaster03's `MainScreen`. The roast records table moves to its own `/roasts` route.
+- **Phase 6 (current)**: Deploy to PythonAnywhere. No authentication is added — a deliberate choice for this personal, low-stakes tool, not an oversight.
 
 ## Requirements
 The code shall have a separate module for calculations (`calculations.py`, carried forward from coffeeroaster03 unchanged).
@@ -135,6 +136,13 @@ The stored representation of dates must be clearly defined and consistently conv
 Existing roast records must not be silently discarded when a new roast is added.
 Do not store calculated values in JSON.
 Before serving any page, the application shall check the JSON files and if corrupted, notify the user and stop rather than serving stale or partial data.
+
+## Deployment **(Phase 6)**
+Deployed to PythonAnywhere's free tier. See `DEPLOY.md` for the step-by-step guide.
+`requirements.txt` is provided alongside `pyproject.toml` for PythonAnywhere's pip/virtualenv-based workflow, which does not consume `uv.lock` directly.
+`data/` persists on PythonAnywhere's filesystem by default across web app reloads — no volume or database configuration is needed, which is the main reason this platform was chosen over one requiring an explicit persistent-volume mount.
+The app's `debug=True` local dev-server flag (in `main()`) never runs in production: PythonAnywhere's WSGI config imports the `app` object directly and serves it through its own WSGI stack, bypassing `app.run()` entirely.
+No authentication gate is added; this is a deliberate scope decision for a personal, low-stakes tool, not an oversight.
 
 ## User Interface
 On startup, after checking the JSON files for corruption, the application shall serve the following pages:
