@@ -34,7 +34,31 @@
       color: var(--color-text);
       background: var(--color-bg);
     }
-    .page { max-width: 1100px; margin: 0 auto; padding: var(--space-5) var(--space-4); }
+    .site-header { background: var(--color-text); }
+    .site-header__inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: var(--space-3) var(--space-4);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      color: var(--color-bg);
+    }
+    .site-header__name { font-size: var(--font-size-lg); font-weight: 700; letter-spacing: -0.01em; }
+    .page {
+      max-width: 1100px;
+      margin: var(--space-4) auto;
+      padding: var(--space-5) var(--space-4);
+      background: var(--color-surface);
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(43, 33, 24, 0.08), 0 8px 24px rgba(43, 33, 24, 0.06);
+    }
+    .table-scroll { overflow-x: auto; }
+    @media (max-width: 640px) {
+      .site-header__inner { padding: var(--space-2) var(--space-3); }
+      .page { margin: var(--space-3) var(--space-2); padding: var(--space-4) var(--space-3); }
+      h1 { font-size: 1.5rem; }
+    }
     h1 {
       font-size: var(--font-size-xl);
       font-weight: 700;
@@ -243,6 +267,18 @@
       }, SHOW_MS);
     })();
   </script>
+  <header class="site-header">
+    <div class="site-header__inner">
+      <svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="6" y="14" width="16" height="12" rx="2" fill="var(--color-bg)"/>
+        <path d="M22 16h3a3 3 0 0 1 0 6h-3" fill="none" stroke="var(--color-bg)" stroke-width="2.5"/>
+        <rect x="8" y="17" width="12" height="3" fill="var(--color-accent)"/>
+        <path d="M11 6c0 2-2 2-2 4s2 2 2 4" fill="none" stroke="#a89a8c" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M16 6c0 2-2 2-2 4s2 2 2 4" fill="none" stroke="#a89a8c" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <span class="site-header__name">Coffee Roast Logger</span>
+    </div>
+  </header>
   <div class="page">
     {% block content %}{% endblock %}
   </div>

@@ -16,14 +16,14 @@
       min-width: 320px;
       display: flex;
       flex-direction: column;
-      height: calc(100vh - 12rem);
-      min-height: 420px;
     }
     .roast-controls { display: flex; gap: 0.6rem; }
     .timer-btn { border-color: transparent; color: #fff; min-width: 100px; text-align: center; }
     .timer-btn--start { background: #0a5; }
     .timer-btn--stop { background: #c00; }
     .timer-btn--reset { background: #d9a400; }
+    .roast-graph { width: 100%; aspect-ratio: 16 / 10; margin-top: 1rem; position: relative; }
+    .roast-graph canvas { width: 100%; height: 100%; }
     .roast-readout {
       display: flex;
       justify-content: space-between;
@@ -33,9 +33,10 @@
     }
     #target-temp-readout { color: #d95f02; }
     #clock-readout { font-variant-numeric: tabular-nums; }
-    .roast-graph { flex: 1 1 auto; margin-top: 1rem; min-height: 0; position: relative; }
-    .roast-graph canvas { width: 100%; height: 100%; }
     html.inverted { filter: invert(1); }
+    @media (max-width: 640px) {
+      .roast-readout { font-size: 2rem; flex-wrap: wrap; gap: 0.5rem; }
+    }
   </style>
 
   <div class="roast-layout">
