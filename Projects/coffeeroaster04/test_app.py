@@ -1,7 +1,8 @@
 import unittest
+from datetime import datetime, timedelta
 from unittest import mock
 
-from werkzeug.security import generate_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 import app
 
@@ -527,12 +528,14 @@ class TestSignup(unittest.TestCase):
         self.save_users_patcher = mock.patch.object(app, "save_users")
         self.save_records_patcher = mock.patch.object(app, "save_roast_records")
         self.save_profiles_patcher = mock.patch.object(app, "save_roast_profiles")
+        self.send_email_patcher = mock.patch.object(app, "send_email")
         self.users_patcher.start()
         self.records_patcher.start()
         self.profiles_patcher.start()
         self.save_users_patcher.start()
         self.save_records_patcher.start()
         self.save_profiles_patcher.start()
+        self.send_email_patcher.start()
         self.client = app.app.test_client()
 
     def tearDown(self):
@@ -542,6 +545,7 @@ class TestSignup(unittest.TestCase):
         self.save_users_patcher.stop()
         self.save_records_patcher.stop()
         self.save_profiles_patcher.stop()
+        self.send_email_patcher.stop()
 
     def signup_data(self, **overrides):
         data = {
@@ -560,6 +564,17 @@ class TestSignup(unittest.TestCase):
         with self.client.session_transaction() as sess:
             self.assertEqual(sess["user_email"], "new@example.com")
         app.save_users.assert_called_once_with(self.users)
+
+    def test_signup_creates_unverified_account_and_sends_verification_email(self):
+        self.client.post("/signup", data=self.signup_data())
+        user = self.users["new@example.com"]
+        self.assertFalse(user["email_verified"])
+        self.assertTrue(user["verify_token"])
+        app.send_email.assert_called_once()
+        to_address, subject, body = app.send_email.call_args[0]
+        self.assertEqual(to_address, "new@example.com")
+        self.assertIn("verify-email", body)
+        self.assertIn(user["verify_token"], body)
 
     def test_signup_redirects_to_safe_next(self):
         response = self.client.post("/signup", data=self.signup_data(next="/roasts"))
@@ -804,6 +819,241 @@ class TestPerUserIsolation(unittest.TestCase):
         with mock.patch.object(app, "save_roast_profiles"):
             response = self.client.post("/profiles/profile-b/favorite")
         self.assertEqual(response.status_code, 404)
+
+
+class TestVerifyEmail(unittest.TestCase):
+    def setUp(self):
+        self.users = {
+            "user@example.com": {
+                "password_hash": generate_password_hash("correct-password"),
+                "created_at": "now",
+                "email_verified": False,
+                "verify_token": "good-token",
+                "verify_token_expires": (
+                    datetime.now() + timedelta(hours=1)
+                ).isoformat(),
+            }
+        }
+        self.users_patcher = mock.patch.object(app, "users", self.users)
+        self.save_users_patcher = mock.patch.object(app, "save_users")
+        self.users_patcher.start()
+        self.save_users_patcher.start()
+        self.client = app.app.test_client()
+
+    def tearDown(self):
+        self.users_patcher.stop()
+        self.save_users_patcher.stop()
+
+    def test_valid_token_verifies_account_and_clears_token(self):
+        response = self.client.get("/verify-email/good-token")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("verified", response.get_data(as_text=True))
+        user = self.users["user@example.com"]
+        self.assertTrue(user["email_verified"])
+        self.assertIsNone(user["verify_token"])
+        self.assertIsNone(user["verify_token_expires"])
+        app.save_users.assert_called_once_with(self.users)
+
+    def test_expired_token_does_not_verify(self):
+        self.users["user@example.com"]["verify_token_expires"] = (
+            datetime.now() - timedelta(hours=1)
+        ).isoformat()
+        response = self.client.get("/verify-email/good-token")
+        self.assertIn("invalid or has expired", response.get_data(as_text=True))
+        self.assertFalse(self.users["user@example.com"]["email_verified"])
+
+    def test_unknown_token_does_not_verify(self):
+        response = self.client.get("/verify-email/no-such-token")
+        self.assertIn("invalid or has expired", response.get_data(as_text=True))
+        self.assertFalse(self.users["user@example.com"]["email_verified"])
+
+
+class TestResendVerification(unittest.TestCase):
+    def setUp(self):
+        self.users = {
+            "user@example.com": {
+                "password_hash": generate_password_hash("correct-password"),
+                "created_at": "now",
+                "email_verified": False,
+                "verify_token": "old-token",
+                "verify_token_expires": (
+                    datetime.now() + timedelta(hours=1)
+                ).isoformat(),
+            }
+        }
+        self.users_patcher = mock.patch.object(app, "users", self.users)
+        self.save_users_patcher = mock.patch.object(app, "save_users")
+        self.send_email_patcher = mock.patch.object(app, "send_email")
+        self.users_patcher.start()
+        self.save_users_patcher.start()
+        self.send_email_patcher.start()
+        self.client = app.app.test_client()
+
+    def tearDown(self):
+        self.users_patcher.stop()
+        self.save_users_patcher.stop()
+        self.send_email_patcher.stop()
+
+    def test_requires_login(self):
+        response = self.client.post("/resend-verification")
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/login", response.headers["Location"])
+        app.send_email.assert_not_called()
+
+    def test_regenerates_token_and_sends_email(self):
+        login(self.client, "user@example.com")
+        response = self.client.post("/resend-verification")
+        self.assertEqual(response.status_code, 302)
+        user = self.users["user@example.com"]
+        self.assertNotEqual(user["verify_token"], "old-token")
+        app.send_email.assert_called_once()
+        to_address, subject, body = app.send_email.call_args[0]
+        self.assertEqual(to_address, "user@example.com")
+        self.assertIn(user["verify_token"], body)
+
+
+class TestForgotPassword(unittest.TestCase):
+    def setUp(self):
+        self.users = {
+            "user@example.com": {
+                "password_hash": generate_password_hash("correct-password"),
+                "created_at": "now",
+                "reset_token": None,
+                "reset_token_expires": None,
+            }
+        }
+        self.users_patcher = mock.patch.object(app, "users", self.users)
+        self.save_users_patcher = mock.patch.object(app, "save_users")
+        self.send_email_patcher = mock.patch.object(app, "send_email")
+        self.users_patcher.start()
+        self.save_users_patcher.start()
+        self.send_email_patcher.start()
+        self.client = app.app.test_client()
+
+    def tearDown(self):
+        self.users_patcher.stop()
+        self.save_users_patcher.stop()
+        self.send_email_patcher.stop()
+
+    def test_known_email_sets_token_and_sends_email(self):
+        response = self.client.post(
+            "/forgot-password", data={"email": "user@example.com"}
+        )
+        body = response.get_data(as_text=True)
+        self.assertIn("we've sent a link", body)
+        user = self.users["user@example.com"]
+        self.assertTrue(user["reset_token"])
+        app.send_email.assert_called_once()
+        to_address, subject, sent_body = app.send_email.call_args[0]
+        self.assertEqual(to_address, "user@example.com")
+        self.assertIn(user["reset_token"], sent_body)
+
+    def test_unknown_email_gives_identical_response_but_sends_nothing(self):
+        response = self.client.post(
+            "/forgot-password", data={"email": "nobody@example.com"}
+        )
+        body = response.get_data(as_text=True)
+        self.assertIn("we've sent a link", body)
+        app.send_email.assert_not_called()
+        self.assertNotIn("nobody@example.com", self.users)
+
+    def test_known_and_unknown_email_responses_are_identical(self):
+        known_response = self.client.post(
+            "/forgot-password", data={"email": "user@example.com"}
+        ).get_data(as_text=True)
+        app.send_email.reset_mock()
+        unknown_response = self.client.post(
+            "/forgot-password", data={"email": "nobody@example.com"}
+        ).get_data(as_text=True)
+        self.assertEqual(known_response, unknown_response)
+
+
+class TestResetPassword(unittest.TestCase):
+    def setUp(self):
+        self.users = {
+            "user@example.com": {
+                "password_hash": generate_password_hash("old-password"),
+                "created_at": "now",
+                "reset_token": "good-token",
+                "reset_token_expires": (
+                    datetime.now() + timedelta(hours=1)
+                ).isoformat(),
+            }
+        }
+        self.users_patcher = mock.patch.object(app, "users", self.users)
+        self.save_users_patcher = mock.patch.object(app, "save_users")
+        self.users_patcher.start()
+        self.save_users_patcher.start()
+        self.client = app.app.test_client()
+
+    def tearDown(self):
+        self.users_patcher.stop()
+        self.save_users_patcher.stop()
+
+    def test_get_with_valid_token_shows_form(self):
+        response = self.client.get("/reset-password/good-token")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Set new password", response.get_data(as_text=True))
+
+    def test_get_with_expired_token_shows_error(self):
+        self.users["user@example.com"]["reset_token_expires"] = (
+            datetime.now() - timedelta(hours=1)
+        ).isoformat()
+        response = self.client.get("/reset-password/good-token")
+        self.assertIn("invalid or has expired", response.get_data(as_text=True))
+
+    def test_get_with_unknown_token_shows_error(self):
+        response = self.client.get("/reset-password/no-such-token")
+        self.assertIn("invalid or has expired", response.get_data(as_text=True))
+
+    def test_post_rejects_mismatched_confirmation(self):
+        response = self.client.post(
+            "/reset-password/good-token",
+            data={"password": "longenough1", "confirm": "longenough2"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("do not match", response.get_data(as_text=True))
+
+    def test_post_rejects_short_password(self):
+        response = self.client.post(
+            "/reset-password/good-token",
+            data={"password": "short1", "confirm": "short1"},
+        )
+        self.assertIn("at least 8 characters", response.get_data(as_text=True))
+
+    def test_post_with_valid_token_sets_password_clears_token_and_logs_in(self):
+        response = self.client.post(
+            "/reset-password/good-token",
+            data={"password": "longenough1", "confirm": "longenough1"},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], "/")
+        user = self.users["user@example.com"]
+        self.assertIsNone(user["reset_token"])
+        self.assertIsNone(user["reset_token_expires"])
+        with self.client.session_transaction() as sess:
+            self.assertEqual(sess["user_email"], "user@example.com")
+
+    def test_new_password_authenticates_and_old_password_no_longer_does(self):
+        self.client.post(
+            "/reset-password/good-token",
+            data={"password": "longenough1", "confirm": "longenough1"},
+        )
+        user = self.users["user@example.com"]
+        self.assertTrue(check_password_hash(user["password_hash"], "longenough1"))
+        self.assertFalse(check_password_hash(user["password_hash"], "old-password"))
+
+    def test_post_with_expired_token_shows_error_and_does_not_change_password(self):
+        self.users["user@example.com"]["reset_token_expires"] = (
+            datetime.now() - timedelta(hours=1)
+        ).isoformat()
+        response = self.client.post(
+            "/reset-password/good-token",
+            data={"password": "longenough1", "confirm": "longenough1"},
+        )
+        self.assertIn("invalid or has expired", response.get_data(as_text=True))
+        user = self.users["user@example.com"]
+        self.assertTrue(check_password_hash(user["password_hash"], "old-password"))
 
 
 if __name__ == "__main__":

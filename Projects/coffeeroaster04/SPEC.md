@@ -152,17 +152,24 @@ Every account is identified by its email address (used as both username and the 
 Each roast record and roast profile has an `owner` (the creating account's email). Every route that reads or writes roast records/profiles requires being logged in, and filters/checks by the current account's ownership — not just in list views, but on every direct-by-ID route too (view, edit, delete), returning 404 rather than the data for another account's record.
 Attempting any roast/profile action while logged out redirects to `/login?next=<original path>`, and successfully logging in or signing up redirects back to that original path.
 The very first account ever created inherits ownership of any roast record/profile that predates accounts (the seed data) — a one-time migration, not a manual script.
+On signup, the account is created and logged in immediately; email verification is *soft* — an unverified account can use every feature with no restriction. Verification only clears a "Verify your email" banner in the header; no route is gated on it, to avoid lockout risk if outbound email is temporarily unavailable.
+A logged-in user can trigger a fresh verification email at any time (`POST /resend-verification`), which regenerates their verification token.
+A user who forgets their password can request a reset link by email (`/forgot-password`) and set a new password through it (`/reset-password/<token>`), without needing to already be logged in.
+Verification and password-reset tokens are single-use, random, and time-limited: a verification token is valid for 24 hours from signup/resend, a reset token for 1 hour from request — reset is the more sensitive action, so it gets the shorter window. Both are cleared (single-use) once acted on.
+`/forgot-password` gives the exact same response whether or not the submitted email has an account, and only sends an email / issues a token for an email that does — this prevents the endpoint from being used to discover which emails are registered.
 
 ### Constraints
 JSON only, same as everything else: accounts live in `data/users.json`, following the same load/corruption-check/save pattern as `roast_records.json`/`roast_profiles.json`.
-No email verification, no password-complexity rules beyond a minimum length, no "forgot password" flow — deliberately sparse for now, matching the rest of this app's scope.
+No password-complexity rules beyond a minimum length — deliberately sparse for now, matching the rest of this app's scope.
 Session state is Flask's built-in signed-cookie session — no server-side session store, no new dependency.
+Verification/reset emails are sent via Gmail SMTP through the standard-library `smtplib` (`email_sender.py`) — no new Python dependency, and the one outbound SMTP host PythonAnywhere's free tier allowlists. If `GMAIL_ADDRESS`/`GMAIL_APP_PASSWORD` aren't configured in the environment, the email is printed to the server log instead of sent, so the flow stays usable in local development without real credentials.
 
 ## User Interface
 On startup, after checking the JSON files for corruption, the application shall serve the following pages:
 
 1. `/` — Home: a main menu offering Add roast, View roasts, and View and edit roast profiles as buttons, mirroring coffeeroaster03's `MainScreen` (minus Exit, which doesn't apply to a web application). **(Phase 5)** Stays reachable while logged out; the buttons redirect through login if needed.
 2. `/signup`, `/login` — create an account / authenticate; `/logout` (POST) ends the session. **(Phase 7)**
+   `/verify-email/<token>` — confirms an account's email from the link sent at signup; `/resend-verification` (POST, requires login) re-sends it. `/forgot-password` — request a password-reset link by email; `/reset-password/<token>` — set a new password from that link. **(Phase 7)**
 3. `/roasts` — View roasts: displays existing roast records in an HTML table, including a Roast Profile column, using the same fields/order as `ROAST_TABLE_COLUMNS` in coffeeroaster03. **(Phase 1, moved off `/` in Phase 5, requires login and scoped to the current account as of Phase 7)**
 4. `/roasts/<id>` — Roast detail: displays that roast's full time/actual/target temperature table (1:00-12:00) and a line chart (x-axis: time in minutes, y-axis: temperature °F) plotting actual vs. target temperature, rendered client-side with Chart.js. **(Phase 1, requires login and ownership as of Phase 7)**
 5. Add roast — select a roast profile, then a form to collect roast fields (including the profile's temperature table), validate inline, and save. **(Phase 2, requires login as of Phase 7; saved records are owned by the current account)**

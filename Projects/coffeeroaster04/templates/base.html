@@ -44,6 +44,14 @@
       gap: var(--space-2);
       color: var(--color-bg);
     }
+    .site-header__brand {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      color: inherit;
+      text-decoration: none;
+    }
+    .site-header__brand:hover { opacity: 0.85; text-decoration: none; }
     .site-header__name { font-size: var(--font-size-lg); font-weight: 700; letter-spacing: -0.01em; }
     .site-header__account {
       margin-left: auto;
@@ -287,16 +295,23 @@
   </script>
   <header class="site-header">
     <div class="site-header__inner">
-      <svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true">
-        <rect x="6" y="14" width="16" height="12" rx="2" fill="var(--color-bg)"/>
-        <path d="M22 16h3a3 3 0 0 1 0 6h-3" fill="none" stroke="var(--color-bg)" stroke-width="2.5"/>
-        <rect x="8" y="17" width="12" height="3" fill="var(--color-accent)"/>
-        <path d="M11 6c0 2-2 2-2 4s2 2 2 4" fill="none" stroke="#a89a8c" stroke-width="1.5" stroke-linecap="round"/>
-        <path d="M16 6c0 2-2 2-2 4s2 2 2 4" fill="none" stroke="#a89a8c" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-      <span class="site-header__name">Coffee Roast Logger</span>
+      <a class="site-header__brand" href="/" aria-label="Go to home">
+        <svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true">
+          <rect x="6" y="14" width="16" height="12" rx="2" fill="var(--color-bg)"/>
+          <path d="M22 16h3a3 3 0 0 1 0 6h-3" fill="none" stroke="var(--color-bg)" stroke-width="2.5"/>
+          <rect x="8" y="17" width="12" height="3" fill="var(--color-accent)"/>
+          <path d="M11 6c0 2-2 2-2 4s2 2 2 4" fill="none" stroke="#a89a8c" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M16 6c0 2-2 2-2 4s2 2 2 4" fill="none" stroke="#a89a8c" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="site-header__name">Coffee Roast Logger</span>
+      </a>
       <div class="site-header__account">
         {% if session.user_email %}
+          {% if current_user and not current_user.email_verified %}
+            <form method="post" action="/resend-verification">
+              <button type="submit">Verify your email</button>
+            </form>
+          {% endif %}
           <span>{{ session.user_email }}</span>
           <form method="post" action="/logout">
             <button type="submit">Log out</button>

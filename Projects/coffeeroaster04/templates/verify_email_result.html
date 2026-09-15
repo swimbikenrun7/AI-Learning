@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Verify email{% endblock %}
+{% block content %}
+  <button class="btn btn--ghost back-link" onclick="window.location='/'">&larr; Back to menu</button>
+  <h1>Verify email</h1>
+
+  {% if success %}
+    <p>Your email is verified. Thanks!</p>
+  {% else %}
+    <p style="color: var(--color-danger);">This verification link is invalid or has expired.</p>
+  {% endif %}
+{% endblock %}

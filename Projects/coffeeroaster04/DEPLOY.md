@@ -55,6 +55,8 @@ if path not in sys.path:
     sys.path.insert(0, path)
 
 os.environ['FLASK_SECRET_KEY'] = 'paste-a-real-generated-secret-here'
+os.environ['GMAIL_ADDRESS'] = 'your-gmail-address@gmail.com'
+os.environ['GMAIL_APP_PASSWORD'] = 'paste-a-real-gmail-app-password-here'
 
 from app import app as application
 ```
@@ -68,6 +70,8 @@ python3 -c "import secrets; print(secrets.token_hex(32))"
 ```
 
 This has to be a real, stable value set directly in the WSGI file — if it's left unset, the app falls back to a random key generated at process start (`app.py`'s own default), which means every reload would silently log everyone out.
+
+**Gmail App Password** (for password-reset and verification emails): `GMAIL_ADDRESS`/`GMAIL_APP_PASSWORD` power `email_sender.py`, which sends over Gmail's SMTP server — the one outbound SMTP host PythonAnywhere's free tier allowlists. Use a dedicated Gmail account if you'd rather not send from a personal one. To generate the app password: on that Google account, turn on 2-Step Verification (Google Account → **Security**), then go to **Security → 2-Step Verification → App passwords**, create one (any name), and paste the 16-character result in place of `paste-a-real-gmail-app-password-here` — not your regular Gmail password, which won't work here. If these two env vars are left unset, `email_sender.py` falls back to printing the email to the server log instead of sending it, which is fine for local development but means real users on a live deployment would never receive their reset/verification links.
 
 ## 7. Set the virtualenv path
 

@@ -1,7 +1,7 @@
 import os
 import secrets
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 
 from flask import Flask, abort, redirect, render_template, request, session, url_for
@@ -16,6 +16,7 @@ from data_persistence import (
     save_roast_records,
     save_users,
 )
+from email_sender import send_email
 from validators import (
     validate_bean_name,
     validate_date,
@@ -81,6 +82,24 @@ def login_required(view):
     return wrapped
 
 
+def _find_user_by_valid_token(token_field, expires_field, token):
+    if not token:
+        return None, None
+    for email, user in users.items():
+        if user.get(token_field) == token:
+            expires = user.get(expires_field)
+            if expires and datetime.fromisoformat(expires) > datetime.now():
+                return email, user
+            return None, None
+    return None, None
+
+
+@app.context_processor
+def inject_current_user():
+    email = session.get("user_email")
+    return {"current_user": users.get(email) if email else None}
+
+
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     values = {"email": ""}
@@ -104,11 +123,23 @@ def signup():
             error = str(exc)
         else:
             is_first_account = not users
+            verify_token = secrets.token_urlsafe(32)
             users[email] = {
                 "password_hash": generate_password_hash(password),
                 "created_at": datetime.now().isoformat(),
+                "email_verified": False,
+                "verify_token": verify_token,
+                "verify_token_expires": (datetime.now() + timedelta(hours=24)).isoformat(),
+                "reset_token": None,
+                "reset_token_expires": None,
             }
             save_users(users)
+            send_email(
+                email,
+                "Verify your email - Coffee Roast Logger",
+                "Click to verify your email: "
+                + url_for("verify_email", token=verify_token, _external=True),
+            )
 
             if is_first_account:
                 migrated = False
@@ -156,6 +187,91 @@ def login():
 def logout():
     session.pop("user_email", None)
     return redirect(url_for("home"))
+
+
+@app.route("/verify-email/<token>")
+def verify_email(token):
+    email, user = _find_user_by_valid_token("verify_token", "verify_token_expires", token)
+    if user is None:
+        return render_template("verify_email_result.html", success=False)
+
+    user["email_verified"] = True
+    user["verify_token"] = None
+    user["verify_token_expires"] = None
+    save_users(users)
+    return render_template("verify_email_result.html", success=True)
+
+
+@app.route("/resend-verification", methods=["POST"])
+@login_required
+def resend_verification():
+    email = session["user_email"]
+    user = users[email]
+    verify_token = secrets.token_urlsafe(32)
+    user["verify_token"] = verify_token
+    user["verify_token_expires"] = (datetime.now() + timedelta(hours=24)).isoformat()
+    save_users(users)
+    send_email(
+        email,
+        "Verify your email - Coffee Roast Logger",
+        "Click to verify your email: "
+        + url_for("verify_email", token=verify_token, _external=True),
+    )
+    return redirect(url_for("home"))
+
+
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    values = {"email": ""}
+    submitted = False
+
+    if request.method == "POST":
+        values["email"] = request.form.get("email", "")
+        email = values["email"].strip().lower()
+        user = users.get(email)
+        if user is not None:
+            reset_token = secrets.token_urlsafe(32)
+            user["reset_token"] = reset_token
+            user["reset_token_expires"] = (datetime.now() + timedelta(hours=1)).isoformat()
+            save_users(users)
+            send_email(
+                email,
+                "Reset your password - Coffee Roast Logger",
+                "Click to reset your password: "
+                + url_for("reset_password", token=reset_token, _external=True),
+            )
+        # Always the same response, whether or not the email is registered,
+        # so this route can't be used to find out which emails have accounts.
+        submitted = True
+
+    return render_template("forgot_password.html", values=values, submitted=submitted)
+
+
+@app.route("/reset-password/<token>", methods=["GET", "POST"])
+def reset_password(token):
+    email, user = _find_user_by_valid_token("reset_token", "reset_token_expires", token)
+    if user is None:
+        return render_template("reset_password.html", valid=False, error=None)
+
+    error = None
+    if request.method == "POST":
+        password = request.form.get("password", "")
+        confirm = request.form.get("confirm", "")
+        try:
+            validate_password(password)
+            if password != confirm:
+                raise ValueError("Passwords do not match.")
+        except ValueError as exc:
+            error = str(exc)
+        else:
+            user["password_hash"] = generate_password_hash(password)
+            user["reset_token"] = None
+            user["reset_token_expires"] = None
+            save_users(users)
+            session["user_email"] = email
+            return redirect(url_for("home"))
+
+    return render_template("reset_password.html", valid=True, error=error)
 
 
 @app.route("/")
