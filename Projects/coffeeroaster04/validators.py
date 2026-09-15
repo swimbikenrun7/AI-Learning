@@ -1,4 +1,7 @@
+import re
 from datetime import datetime
+
+_EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 def validate_date(date_str):
@@ -80,6 +83,19 @@ def validate_temperature(value_str):
             "Invalid input. Please enter a numeric value between 60 and 500, or leave blank."
         )
     return temperature
+
+
+def validate_email(value_str):
+    email = (value_str or "").strip().lower()
+    if not _EMAIL_PATTERN.match(email):
+        raise ValueError("Enter a valid email address.")
+    return email
+
+
+def validate_password(value_str):
+    if not value_str or len(value_str) < 8:
+        raise ValueError("Password must be at least 8 characters.")
+    return value_str
 
 
 def validate_first_crack(value_str, total_roast_time):

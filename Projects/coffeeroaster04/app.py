@@ -1,20 +1,29 @@
+import os
+import secrets
 import uuid
+from datetime import datetime
+from functools import wraps
 
-from flask import Flask, abort, redirect, render_template, request, url_for
+from flask import Flask, abort, redirect, render_template, request, session, url_for
+from werkzeug.security import check_password_hash, generate_password_hash
 
 import calculations as calc
 from data_persistence import (
     load_roast_profiles,
     load_roast_records,
+    load_users,
     save_roast_profiles,
     save_roast_records,
+    save_users,
 )
 from validators import (
     validate_bean_name,
     validate_date,
+    validate_email,
     validate_finished_weight,
     validate_first_crack,
     validate_green_weight,
+    validate_password,
     validate_profile_name,
     validate_roast_time,
     validate_temperature,
@@ -34,6 +43,7 @@ ROAST_TABLE_COLUMNS = [
 ]
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("FLASK_SECRET_KEY") or secrets.token_hex(32)
 
 
 def format_mm_ss(total_seconds):
@@ -42,13 +52,110 @@ def format_mm_ss(total_seconds):
 
 roast_records = load_roast_records()
 roast_profiles = load_roast_profiles()
+users = load_users()
 
 
 def sorted_profiles():
+    owned = {
+        profile_id: profile
+        for profile_id, profile in roast_profiles.items()
+        if profile.get("owner") == session.get("user_email")
+    }
     return sorted(
-        roast_profiles.items(),
+        owned.items(),
         key=lambda item: (not item[1].get("favorite", False), item[1]["name"].lower()),
     )
+
+
+def _is_safe_next(next_url):
+    return bool(next_url) and next_url.startswith("/") and not next_url.startswith("//")
+
+
+def login_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if "user_email" not in session:
+            return redirect(url_for("login", next=request.path))
+        return view(*args, **kwargs)
+
+    return wrapped
+
+
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    values = {"email": ""}
+    error = None
+    next_url = request.values.get("next", "")
+
+    if request.method == "POST":
+        values["email"] = request.form.get("email", "")
+        password = request.form.get("password", "")
+        confirm = request.form.get("confirm", "")
+        next_url = request.form.get("next", "")
+
+        try:
+            email = validate_email(values["email"])
+            validate_password(password)
+            if password != confirm:
+                raise ValueError("Passwords do not match.")
+            if email in users:
+                raise ValueError("An account with this email already exists.")
+        except ValueError as exc:
+            error = str(exc)
+        else:
+            is_first_account = not users
+            users[email] = {
+                "password_hash": generate_password_hash(password),
+                "created_at": datetime.now().isoformat(),
+            }
+            save_users(users)
+
+            if is_first_account:
+                migrated = False
+                for record in roast_records.values():
+                    if "owner" not in record:
+                        record["owner"] = email
+                        migrated = True
+                for profile in roast_profiles.values():
+                    if "owner" not in profile:
+                        profile["owner"] = email
+                        migrated = True
+                if migrated:
+                    save_roast_records(roast_records)
+                    save_roast_profiles(roast_profiles)
+
+            session["user_email"] = email
+            return redirect(next_url if _is_safe_next(next_url) else url_for("home"))
+
+    return render_template("signup.html", values=values, error=error, next=next_url)
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    values = {"email": ""}
+    error = None
+    next_url = request.values.get("next", "")
+
+    if request.method == "POST":
+        values["email"] = request.form.get("email", "")
+        password = request.form.get("password", "")
+        next_url = request.form.get("next", "")
+
+        email = values["email"].strip().lower()
+        user = users.get(email)
+        if user is None or not check_password_hash(user["password_hash"], password):
+            error = "Invalid email or password."
+        else:
+            session["user_email"] = email
+            return redirect(next_url if _is_safe_next(next_url) else url_for("home"))
+
+    return render_template("login.html", values=values, error=error, next=next_url)
+
+
+@app.route("/logout", methods=["POST"])
+def logout():
+    session.pop("user_email", None)
+    return redirect(url_for("home"))
 
 
 @app.route("/")
@@ -57,9 +164,12 @@ def home():
 
 
 @app.route("/roasts")
+@login_required
 def view_roasts():
     rows = []
     for record_id, record in roast_records.items():
+        if record.get("owner") != session["user_email"]:
+            continue
         weight_loss = calc.calculate_weight_loss(
             record["green_weight"], record["finished_weight"]
         )
@@ -88,9 +198,10 @@ def view_roasts():
 
 
 @app.route("/roasts/<record_id>")
+@login_required
 def roast_detail(record_id):
     record = roast_records.get(record_id)
-    if record is None:
+    if record is None or record.get("owner") != session["user_email"]:
         abort(404)
 
     minutes = list(range(1, 13))
@@ -110,14 +221,16 @@ def roast_detail(record_id):
 
 
 @app.route("/roasts/new")
+@login_required
 def select_profile():
     return render_template("select_profile.html", profiles=sorted_profiles())
 
 
 @app.route("/roasts/new/<profile_id>", methods=["GET", "POST"])
+@login_required
 def add_roast(profile_id):
     profile = roast_profiles.get(profile_id)
-    if profile is None:
+    if profile is None or profile.get("owner") != session["user_email"]:
         abort(404)
 
     minutes = list(range(1, 13))
@@ -175,6 +288,7 @@ def add_roast(profile_id):
                 "roast_profile_id": profile_id,
                 "target_temps": target_temps,
                 "actual_temps": actual_temps,
+                "owner": session["user_email"],
             }
             save_roast_records(roast_records)
             return redirect(url_for("roast_detail", record_id=record_id))
@@ -191,14 +305,16 @@ def add_roast(profile_id):
 
 
 @app.route("/profiles")
+@login_required
 def list_profiles():
     return render_template("profiles.html", profiles=sorted_profiles())
 
 
 @app.route("/profiles/<profile_id>/favorite", methods=["POST"])
+@login_required
 def toggle_profile_favorite(profile_id):
     profile = roast_profiles.get(profile_id)
-    if profile is None:
+    if profile is None or profile.get("owner") != session["user_email"]:
         abort(404)
 
     profile["favorite"] = not profile.get("favorite", False)
@@ -213,11 +329,12 @@ def toggle_profile_favorite(profile_id):
 
 @app.route("/profiles/new", methods=["GET", "POST"])
 @app.route("/profiles/<profile_id>", methods=["GET", "POST"])
+@login_required
 def add_edit_profile(profile_id=None):
     existing_profile = None
     if profile_id is not None:
         existing_profile = roast_profiles.get(profile_id)
-        if existing_profile is None:
+        if existing_profile is None or existing_profile.get("owner") != session["user_email"]:
             abort(404)
 
     minutes = list(range(1, 13))
@@ -242,10 +359,12 @@ def add_edit_profile(profile_id=None):
         else:
             saved_profile_id = profile_id or str(uuid.uuid4())
             favorite = existing_profile.get("favorite", False) if existing_profile else False
+            owner = existing_profile["owner"] if existing_profile else session["user_email"]
             roast_profiles[saved_profile_id] = {
                 "name": name,
                 "temps": temps,
                 "favorite": favorite,
+                "owner": owner,
             }
             save_roast_profiles(roast_profiles)
             return redirect(url_for("list_profiles"))
@@ -260,9 +379,10 @@ def add_edit_profile(profile_id=None):
 
 
 @app.route("/roasts/<record_id>/delete", methods=["GET", "POST"])
+@login_required
 def delete_roast(record_id):
     record = roast_records.get(record_id)
-    if record is None:
+    if record is None or record.get("owner") != session["user_email"]:
         abort(404)
 
     if request.method == "POST":
@@ -276,9 +396,10 @@ def delete_roast(record_id):
 
 
 @app.route("/profiles/<profile_id>/delete", methods=["GET", "POST"])
+@login_required
 def delete_profile(profile_id):
     profile = roast_profiles.get(profile_id)
-    if profile is None:
+    if profile is None or profile.get("owner") != session["user_email"]:
         abort(404)
 
     if request.method == "POST":

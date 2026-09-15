@@ -47,16 +47,27 @@ workon coffeeroaster04-env
 The **Web** tab links to a WSGI configuration file (something like `/var/www/yourusername_pythonanywhere_com_wsgi.py`). Open it in their editor, delete the placeholder content, and replace it with:
 
 ```python
+import os
 import sys
 
 path = '/home/yourusername/AI-Learning/Projects/coffeeroaster04'
 if path not in sys.path:
     sys.path.insert(0, path)
 
+os.environ['FLASK_SECRET_KEY'] = 'paste-a-real-generated-secret-here'
+
 from app import app as application
 ```
 
 Replace `yourusername` with your actual PythonAnywhere username (visible in the file's own default path, and in your dashboard URL).
+
+Generate the secret in a PythonAnywhere Bash console (don't reuse this one, and don't commit it anywhere) and paste the output in place of `paste-a-real-generated-secret-here`:
+
+```bash
+python3 -c "import secrets; print(secrets.token_hex(32))"
+```
+
+This has to be a real, stable value set directly in the WSGI file — if it's left unset, the app falls back to a random key generated at process start (`app.py`'s own default), which means every reload would silently log everyone out.
 
 ## 7. Set the virtualenv path
 
@@ -85,6 +96,6 @@ Then hit **Reload** on the Web tab again. That's the whole update cycle — no C
 
 `data/roast_records.json` and `data/roast_profiles.json` live inside the cloned repo on PythonAnywhere's own persistent filesystem — they'll survive reloads and won't reset to the git-committed seed data on their own. A `git pull` only touches files that changed upstream; if you haven't modified those two files in the git history since cloning, your live data is untouched by future pulls. (If you ever *do* want to reset to the committed seed data, that's a manual `git checkout` of those two files — not something that happens by accident.)
 
-## No login
+## Accounts
 
-This deployment has no authentication — anyone with the URL can view, add, or delete roasts and profiles. That's a deliberate choice for a personal, low-stakes tool (see `SPEC.md`), not an oversight. If that stops being true for you, a simple HTTP Basic Auth gate is a small, no-new-dependency addition — ask for it as a future phase if you want it.
+Every roast record and profile belongs to the account that created it — nobody can view, add, or delete another account's data (see `SPEC.md`'s Phase 7). `data/users.json` lives alongside the other two data files and persists the same way across reloads. The first account ever created on a given deployment automatically inherits ownership of any pre-existing (pre-account) seed data in `roast_records.json`/`roast_profiles.json`.

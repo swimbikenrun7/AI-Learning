@@ -1,7 +1,16 @@
 import unittest
 from unittest import mock
 
+from werkzeug.security import generate_password_hash
+
 import app
+
+OWNER_EMAIL = "owner@example.com"
+
+
+def login(client, email=OWNER_EMAIL):
+    with client.session_transaction() as sess:
+        sess["user_email"] = email
 
 
 class TestRoutes(unittest.TestCase):
@@ -19,14 +28,22 @@ class TestRoutes(unittest.TestCase):
                 + [None] * 5,
                 "actual_temps": [320, 365, 400, 430, 445, 455, 460]
                 + [None] * 5,
+                "owner": OWNER_EMAIL,
             }
         }
-        self.profiles = {"profile-1": {"name": "Test Profile", "temps": [None] * 12}}
+        self.profiles = {
+            "profile-1": {
+                "name": "Test Profile",
+                "temps": [None] * 12,
+                "owner": OWNER_EMAIL,
+            }
+        }
         self.records_patcher = mock.patch.object(app, "roast_records", self.records)
         self.profiles_patcher = mock.patch.object(app, "roast_profiles", self.profiles)
         self.records_patcher.start()
         self.profiles_patcher.start()
         self.client = app.app.test_client()
+        login(self.client)
 
     def tearDown(self):
         self.records_patcher.stop()
@@ -72,9 +89,12 @@ class TestRoutes(unittest.TestCase):
 class TestSelectProfile(unittest.TestCase):
     def setUp(self):
         self.client = app.app.test_client()
+        login(self.client)
 
     def test_lists_existing_profiles(self):
-        profiles = {"profile-1": {"name": "Test Profile", "temps": [None] * 12}}
+        profiles = {
+            "profile-1": {"name": "Test Profile", "temps": [None] * 12, "owner": OWNER_EMAIL}
+        }
         with mock.patch.object(app, "roast_profiles", profiles):
             response = self.client.get("/roasts/new")
         self.assertEqual(response.status_code, 200)
@@ -88,8 +108,8 @@ class TestSelectProfile(unittest.TestCase):
 
     def test_lists_profiles_alphabetically(self):
         profiles = {
-            "profile-1": {"name": "Zephyr Blend", "temps": [None] * 12},
-            "profile-2": {"name": "Amber Roast", "temps": [None] * 12},
+            "profile-1": {"name": "Zephyr Blend", "temps": [None] * 12, "owner": OWNER_EMAIL},
+            "profile-2": {"name": "Amber Roast", "temps": [None] * 12, "owner": OWNER_EMAIL},
         }
         with mock.patch.object(app, "roast_profiles", profiles):
             response = self.client.get("/roasts/new")
@@ -98,11 +118,12 @@ class TestSelectProfile(unittest.TestCase):
 
     def test_favorited_profiles_are_listed_before_the_rest(self):
         profiles = {
-            "profile-1": {"name": "Amber Roast", "temps": [None] * 12},
+            "profile-1": {"name": "Amber Roast", "temps": [None] * 12, "owner": OWNER_EMAIL},
             "profile-2": {
                 "name": "Zephyr Blend",
                 "temps": [None] * 12,
                 "favorite": True,
+                "owner": OWNER_EMAIL,
             },
         }
         with mock.patch.object(app, "roast_profiles", profiles):
@@ -118,6 +139,7 @@ class TestAddRoast(unittest.TestCase):
             "profile-1": {
                 "name": "Test Profile",
                 "temps": [320, 365, 400, 430, 445, 455, 460] + [None] * 5,
+                "owner": OWNER_EMAIL,
             }
         }
         self.records_patcher = mock.patch.object(app, "roast_records", self.records)
@@ -127,6 +149,7 @@ class TestAddRoast(unittest.TestCase):
         self.profiles_patcher.start()
         self.save_patcher.start()
         self.client = app.app.test_client()
+        login(self.client)
 
     def tearDown(self):
         self.records_patcher.stop()
@@ -168,6 +191,7 @@ class TestAddRoast(unittest.TestCase):
         self.assertIn(f"/roasts/{record_id}", response.headers["Location"])
         self.assertEqual(record["bean_name"], "Ethiopia Yirgacheffe")
         self.assertEqual(record["roast_profile_id"], "profile-1")
+        self.assertEqual(record["owner"], OWNER_EMAIL)
         self.assertEqual(
             record["target_temps"], [320, 365, 400, 430, 445, 455, 460] + [460] * 5
         )
@@ -196,9 +220,12 @@ class TestAddRoast(unittest.TestCase):
 class TestListProfiles(unittest.TestCase):
     def setUp(self):
         self.client = app.app.test_client()
+        login(self.client)
 
     def test_lists_existing_profiles(self):
-        profiles = {"profile-1": {"name": "Test Profile", "temps": [None] * 12}}
+        profiles = {
+            "profile-1": {"name": "Test Profile", "temps": [None] * 12, "owner": OWNER_EMAIL}
+        }
         with mock.patch.object(app, "roast_profiles", profiles):
             response = self.client.get("/profiles")
         self.assertEqual(response.status_code, 200)
@@ -212,8 +239,8 @@ class TestListProfiles(unittest.TestCase):
 
     def test_lists_profiles_alphabetically(self):
         profiles = {
-            "profile-1": {"name": "Zephyr Blend", "temps": [None] * 12},
-            "profile-2": {"name": "Amber Roast", "temps": [None] * 12},
+            "profile-1": {"name": "Zephyr Blend", "temps": [None] * 12, "owner": OWNER_EMAIL},
+            "profile-2": {"name": "Amber Roast", "temps": [None] * 12, "owner": OWNER_EMAIL},
         }
         with mock.patch.object(app, "roast_profiles", profiles):
             response = self.client.get("/profiles")
@@ -222,11 +249,12 @@ class TestListProfiles(unittest.TestCase):
 
     def test_favorited_profiles_are_listed_before_the_rest(self):
         profiles = {
-            "profile-1": {"name": "Amber Roast", "temps": [None] * 12},
+            "profile-1": {"name": "Amber Roast", "temps": [None] * 12, "owner": OWNER_EMAIL},
             "profile-2": {
                 "name": "Zephyr Blend",
                 "temps": [None] * 12,
                 "favorite": True,
+                "owner": OWNER_EMAIL,
             },
         }
         with mock.patch.object(app, "roast_profiles", profiles):
@@ -237,12 +265,15 @@ class TestListProfiles(unittest.TestCase):
 
 class TestToggleProfileFavorite(unittest.TestCase):
     def setUp(self):
-        self.profiles = {"profile-1": {"name": "Test Profile", "temps": [None] * 12}}
+        self.profiles = {
+            "profile-1": {"name": "Test Profile", "temps": [None] * 12, "owner": OWNER_EMAIL}
+        }
         self.profiles_patcher = mock.patch.object(app, "roast_profiles", self.profiles)
         self.save_patcher = mock.patch.object(app, "save_roast_profiles")
         self.profiles_patcher.start()
         self.save_patcher.start()
         self.client = app.app.test_client()
+        login(self.client)
 
     def tearDown(self):
         self.profiles_patcher.stop()
@@ -281,6 +312,7 @@ class TestAddEditProfile(unittest.TestCase):
             "profile-1": {
                 "name": "Existing Profile",
                 "temps": [320, 365, 400] + [None] * 9,
+                "owner": OWNER_EMAIL,
             }
         }
         self.profiles_patcher = mock.patch.object(app, "roast_profiles", self.profiles)
@@ -288,6 +320,7 @@ class TestAddEditProfile(unittest.TestCase):
         self.profiles_patcher.start()
         self.save_patcher.start()
         self.client = app.app.test_client()
+        login(self.client)
 
     def tearDown(self):
         self.profiles_patcher.stop()
@@ -328,6 +361,7 @@ class TestAddEditProfile(unittest.TestCase):
         ]
         self.assertEqual(len(new_profiles), 1)
         self.assertEqual(new_profiles[0]["temps"][:3], [300, 340, 380])
+        self.assertEqual(new_profiles[0]["owner"], OWNER_EMAIL)
         app.save_roast_profiles.assert_called_once_with(self.profiles)
 
     def test_post_new_profile_invalid_shows_error_and_preserves_input(self):
@@ -367,6 +401,7 @@ class TestAddEditProfile(unittest.TestCase):
             "record-1": {
                 "roast_profile_id": "profile-1",
                 "target_temps": list(saved_target_temps),
+                "owner": OWNER_EMAIL,
             }
         }
         with mock.patch.object(app, "roast_records", roast_records):
@@ -388,6 +423,7 @@ class TestDeleteRoast(unittest.TestCase):
                 "roast_profile_id": "profile-1",
                 "target_temps": [320] + [None] * 11,
                 "actual_temps": [320] + [None] * 11,
+                "owner": OWNER_EMAIL,
             }
         }
         self.records_patcher = mock.patch.object(app, "roast_records", self.records)
@@ -395,6 +431,7 @@ class TestDeleteRoast(unittest.TestCase):
         self.records_patcher.start()
         self.save_patcher.start()
         self.client = app.app.test_client()
+        login(self.client)
 
     def tearDown(self):
         self.records_patcher.stop()
@@ -422,11 +459,14 @@ class TestDeleteRoast(unittest.TestCase):
 
 class TestDeleteProfile(unittest.TestCase):
     def setUp(self):
-        self.profiles = {"profile-1": {"name": "Test Profile", "temps": [None] * 12}}
+        self.profiles = {
+            "profile-1": {"name": "Test Profile", "temps": [None] * 12, "owner": OWNER_EMAIL}
+        }
         self.records = {
             "record-1": {
                 "roast_profile_id": "profile-1",
                 "target_temps": [320, 365, 400] + [None] * 9,
+                "owner": OWNER_EMAIL,
             }
         }
         self.profiles_patcher = mock.patch.object(app, "roast_profiles", self.profiles)
@@ -436,6 +476,7 @@ class TestDeleteProfile(unittest.TestCase):
         self.records_patcher.start()
         self.save_patcher.start()
         self.client = app.app.test_client()
+        login(self.client)
 
     def tearDown(self):
         self.profiles_patcher.stop()
@@ -468,6 +509,301 @@ class TestDeleteProfile(unittest.TestCase):
             self.records["record-1"]["target_temps"], original_target_temps
         )
         self.assertIn("record-1", self.records)
+
+
+class TestSignup(unittest.TestCase):
+    # Signing up while `users` is empty triggers the first-account seed-data
+    # migration (see app.signup), which touches roast_records/roast_profiles
+    # and calls their save functions - every test here must patch those too,
+    # not just users/save_users, or a signup test will silently write to the
+    # real data/*.json files on disk.
+    def setUp(self):
+        self.users = {}
+        self.records = {}
+        self.profiles = {}
+        self.users_patcher = mock.patch.object(app, "users", self.users)
+        self.records_patcher = mock.patch.object(app, "roast_records", self.records)
+        self.profiles_patcher = mock.patch.object(app, "roast_profiles", self.profiles)
+        self.save_users_patcher = mock.patch.object(app, "save_users")
+        self.save_records_patcher = mock.patch.object(app, "save_roast_records")
+        self.save_profiles_patcher = mock.patch.object(app, "save_roast_profiles")
+        self.users_patcher.start()
+        self.records_patcher.start()
+        self.profiles_patcher.start()
+        self.save_users_patcher.start()
+        self.save_records_patcher.start()
+        self.save_profiles_patcher.start()
+        self.client = app.app.test_client()
+
+    def tearDown(self):
+        self.users_patcher.stop()
+        self.records_patcher.stop()
+        self.profiles_patcher.stop()
+        self.save_users_patcher.stop()
+        self.save_records_patcher.stop()
+        self.save_profiles_patcher.stop()
+
+    def signup_data(self, **overrides):
+        data = {
+            "email": "new@example.com",
+            "password": "longenough1",
+            "confirm": "longenough1",
+        }
+        data.update(overrides)
+        return data
+
+    def test_signup_creates_account_logs_in_and_redirects_home(self):
+        response = self.client.post("/signup", data=self.signup_data(email="New@Example.com"))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], "/")
+        self.assertIn("new@example.com", self.users)  # normalized to lowercase
+        with self.client.session_transaction() as sess:
+            self.assertEqual(sess["user_email"], "new@example.com")
+        app.save_users.assert_called_once_with(self.users)
+
+    def test_signup_redirects_to_safe_next(self):
+        response = self.client.post("/signup", data=self.signup_data(next="/roasts"))
+        self.assertEqual(response.headers["Location"], "/roasts")
+
+    def test_signup_ignores_unsafe_next(self):
+        response = self.client.post(
+            "/signup", data=self.signup_data(next="https://evil.example/")
+        )
+        self.assertEqual(response.headers["Location"], "/")
+
+    def test_signup_rejects_short_password(self):
+        response = self.client.post(
+            "/signup", data=self.signup_data(password="short1", confirm="short1")
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("at least 8 characters", response.get_data(as_text=True))
+        self.assertEqual(self.users, {})
+
+    def test_signup_rejects_invalid_email(self):
+        response = self.client.post("/signup", data=self.signup_data(email="not-an-email"))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("valid email", response.get_data(as_text=True))
+
+    def test_signup_rejects_mismatched_passwords(self):
+        response = self.client.post("/signup", data=self.signup_data(confirm="different1"))
+        self.assertIn("do not match", response.get_data(as_text=True))
+
+    def test_signup_rejects_duplicate_email_case_insensitively(self):
+        self.users["dup@example.com"] = {"password_hash": "x", "created_at": "now"}
+        response = self.client.post("/signup", data=self.signup_data(email="Dup@Example.com"))
+        self.assertIn("already exists", response.get_data(as_text=True))
+
+    def test_first_signup_migrates_ownerless_seed_data(self):
+        self.records["r1"] = {"bean_name": "Seed"}
+        self.profiles["p1"] = {"name": "Seed Profile"}
+        self.client.post("/signup", data=self.signup_data(email="first@example.com"))
+        self.assertEqual(self.records["r1"]["owner"], "first@example.com")
+        self.assertEqual(self.profiles["p1"]["owner"], "first@example.com")
+
+    def test_second_signup_does_not_touch_already_owned_data(self):
+        self.users["existing@example.com"] = {"password_hash": "x", "created_at": "now"}
+        self.records["r1"] = {"bean_name": "Seed", "owner": "existing@example.com"}
+        self.client.post("/signup", data=self.signup_data(email="second@example.com"))
+        self.assertEqual(self.records["r1"]["owner"], "existing@example.com")
+        app.save_roast_records.assert_not_called()
+
+
+class TestLogin(unittest.TestCase):
+    def setUp(self):
+        self.users = {
+            "user@example.com": {
+                "password_hash": generate_password_hash("correct-password"),
+                "created_at": "now",
+            }
+        }
+        self.users_patcher = mock.patch.object(app, "users", self.users)
+        self.users_patcher.start()
+        self.client = app.app.test_client()
+
+    def tearDown(self):
+        self.users_patcher.stop()
+
+    def test_login_success_sets_session_and_redirects_home(self):
+        response = self.client.post(
+            "/login", data={"email": "user@example.com", "password": "correct-password"}
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], "/")
+        with self.client.session_transaction() as sess:
+            self.assertEqual(sess["user_email"], "user@example.com")
+
+    def test_login_wrong_password_shows_error(self):
+        response = self.client.post(
+            "/login", data={"email": "user@example.com", "password": "wrong-password"}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Invalid email or password", response.get_data(as_text=True))
+
+    def test_login_unknown_email_shows_error(self):
+        response = self.client.post(
+            "/login", data={"email": "nobody@example.com", "password": "whatever1"}
+        )
+        self.assertIn("Invalid email or password", response.get_data(as_text=True))
+
+    def test_login_redirects_to_safe_next(self):
+        response = self.client.post(
+            "/login",
+            data={
+                "email": "user@example.com",
+                "password": "correct-password",
+                "next": "/roasts",
+            },
+        )
+        self.assertEqual(response.headers["Location"], "/roasts")
+
+    def test_login_ignores_unsafe_next(self):
+        response = self.client.post(
+            "/login",
+            data={
+                "email": "user@example.com",
+                "password": "correct-password",
+                "next": "https://evil.example/",
+            },
+        )
+        self.assertEqual(response.headers["Location"], "/")
+
+
+class TestLogout(unittest.TestCase):
+    def setUp(self):
+        self.client = app.app.test_client()
+
+    def test_logout_clears_session_and_redirects_home(self):
+        login(self.client)
+        response = self.client.post("/logout")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], "/")
+        with self.client.session_transaction() as sess:
+            self.assertNotIn("user_email", sess)
+
+
+class TestLoginRequired(unittest.TestCase):
+    def setUp(self):
+        self.client = app.app.test_client()
+
+    def test_gated_get_routes_redirect_to_login_when_logged_out(self):
+        gated_get_routes = [
+            "/roasts",
+            "/roasts/some-id",
+            "/roasts/new",
+            "/roasts/new/some-profile",
+            "/profiles",
+            "/profiles/new",
+            "/profiles/some-id",
+            "/roasts/some-id/delete",
+            "/profiles/some-id/delete",
+        ]
+        for path in gated_get_routes:
+            with self.subTest(path=path):
+                response = self.client.get(path)
+                self.assertEqual(response.status_code, 302)
+                self.assertTrue(response.headers["Location"].startswith("/login"))
+                self.assertIn(path, response.headers["Location"])
+
+    def test_gated_post_route_redirects_to_login_when_logged_out(self):
+        response = self.client.post("/profiles/some-id/favorite")
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.headers["Location"].startswith("/login"))
+
+    def test_home_stays_open_when_logged_out(self):
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+
+
+class TestPerUserIsolation(unittest.TestCase):
+    def setUp(self):
+        self.records = {
+            "record-a": {
+                "date": "09/07/2026",
+                "bean_name": "Owner A Roast",
+                "green_weight": 200.0,
+                "finished_weight": 170.0,
+                "total_roast_time": 450,
+                "time_of_first_crack": 375,
+                "roast_profile_id": None,
+                "target_temps": [None] * 12,
+                "actual_temps": [None] * 12,
+                "owner": "a@example.com",
+            },
+            "record-b": {
+                "date": "09/07/2026",
+                "bean_name": "Owner B Roast",
+                "green_weight": 200.0,
+                "finished_weight": 170.0,
+                "total_roast_time": 450,
+                "time_of_first_crack": 375,
+                "roast_profile_id": None,
+                "target_temps": [None] * 12,
+                "actual_temps": [None] * 12,
+                "owner": "b@example.com",
+            },
+        }
+        self.profiles = {
+            "profile-a": {"name": "Owner A Profile", "temps": [None] * 12, "owner": "a@example.com"},
+            "profile-b": {"name": "Owner B Profile", "temps": [None] * 12, "owner": "b@example.com"},
+        }
+        self.records_patcher = mock.patch.object(app, "roast_records", self.records)
+        self.profiles_patcher = mock.patch.object(app, "roast_profiles", self.profiles)
+        self.records_patcher.start()
+        self.profiles_patcher.start()
+        self.client = app.app.test_client()
+
+    def tearDown(self):
+        self.records_patcher.stop()
+        self.profiles_patcher.stop()
+
+    def test_roasts_list_only_shows_current_users_records(self):
+        login(self.client, "a@example.com")
+        body = self.client.get("/roasts").get_data(as_text=True)
+        self.assertIn("Owner A Roast", body)
+        self.assertNotIn("Owner B Roast", body)
+
+    def test_profiles_list_only_shows_current_users_profiles(self):
+        login(self.client, "a@example.com")
+        body = self.client.get("/profiles").get_data(as_text=True)
+        self.assertIn("Owner A Profile", body)
+        self.assertNotIn("Owner B Profile", body)
+
+    def test_select_profile_only_shows_current_users_profiles(self):
+        login(self.client, "a@example.com")
+        body = self.client.get("/roasts/new").get_data(as_text=True)
+        self.assertIn("Owner A Profile", body)
+        self.assertNotIn("Owner B Profile", body)
+
+    def test_cannot_view_another_users_roast_by_id(self):
+        login(self.client, "a@example.com")
+        response = self.client.get("/roasts/record-b")
+        self.assertEqual(response.status_code, 404)
+
+    def test_cannot_delete_another_users_roast_by_id(self):
+        login(self.client, "a@example.com")
+        response = self.client.get("/roasts/record-b/delete")
+        self.assertEqual(response.status_code, 404)
+
+    def test_cannot_view_another_users_profile_by_id(self):
+        login(self.client, "a@example.com")
+        response = self.client.get("/profiles/profile-b")
+        self.assertEqual(response.status_code, 404)
+
+    def test_cannot_delete_another_users_profile_by_id(self):
+        login(self.client, "a@example.com")
+        response = self.client.get("/profiles/profile-b/delete")
+        self.assertEqual(response.status_code, 404)
+
+    def test_cannot_select_another_users_profile_to_add_roast(self):
+        login(self.client, "a@example.com")
+        response = self.client.get("/roasts/new/profile-b")
+        self.assertEqual(response.status_code, 404)
+
+    def test_cannot_toggle_another_users_profile_favorite(self):
+        login(self.client, "a@example.com")
+        with mock.patch.object(app, "save_roast_profiles"):
+            response = self.client.post("/profiles/profile-b/favorite")
+        self.assertEqual(response.status_code, 404)
 
 
 if __name__ == "__main__":

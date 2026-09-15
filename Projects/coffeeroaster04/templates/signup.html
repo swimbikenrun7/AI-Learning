@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Sign up{% endblock %}
+{% block content %}
+  <button class="btn btn--ghost back-link" onclick="window.location='/'">&larr; Back to menu</button>
+  <h1>Sign up</h1>
+
+  {% if error %}
+    <p style="color: var(--color-danger);">{{ error }}</p>
+  {% endif %}
+
+  <form method="post">
+    <input type="hidden" name="next" value="{{ next }}">
+    <p>
+      <label>Email<br>
+        <input type="email" name="email" value="{{ values.email }}">
+      </label>
+    </p>
+    <p>
+      <label>Password (at least 8 characters)<br>
+        <input type="password" name="password">
+      </label>
+    </p>
+    <p>
+      <label>Confirm password<br>
+        <input type="password" name="confirm">
+      </label>
+    </p>
+    <button class="btn btn--primary" type="submit">Sign up</button>
+  </form>
+
+  <p>Already have an account? <a href="/login{{ '?next=' + next if next else '' }}">Log in</a></p>
+{% endblock %}

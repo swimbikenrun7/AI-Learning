@@ -7,6 +7,7 @@ from pathlib import Path
 DATA_DIR = Path(__file__).resolve().parent / "data"
 ROAST_RECORDS_PATH = DATA_DIR / "roast_records.json"
 ROAST_PROFILES_PATH = DATA_DIR / "roast_profiles.json"
+USERS_PATH = DATA_DIR / "users.json"
 
 
 def load_roast_records():
@@ -50,6 +51,23 @@ def save_roast_profiles(profiles):
     os.makedirs(DATA_DIR, exist_ok=True)
     with open(ROAST_PROFILES_PATH, "w") as file:
         json.dump(profiles, file, indent=4)
+
+
+def load_users():
+    if USERS_PATH.exists():
+        with open(USERS_PATH, "r") as file:
+            try:
+                return json.load(file)
+            except json.JSONDecodeError:
+                print("Error: The users file is corrupted. Exiting the program.")
+                sys.exit(1)
+    return {}
+
+
+def save_users(users):
+    os.makedirs(DATA_DIR, exist_ok=True)
+    with open(USERS_PATH, "w") as file:
+        json.dump(users, file, indent=4)
 
 
 def count_roasts():

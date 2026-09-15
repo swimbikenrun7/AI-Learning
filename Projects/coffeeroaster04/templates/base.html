@@ -45,6 +45,24 @@
       color: var(--color-bg);
     }
     .site-header__name { font-size: var(--font-size-lg); font-weight: 700; letter-spacing: -0.01em; }
+    .site-header__account {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: var(--font-size-sm);
+    }
+    .site-header__account a { color: var(--color-bg); }
+    .site-header__account form { margin: 0; }
+    .site-header__account button {
+      background: none;
+      border: none;
+      color: var(--color-bg);
+      text-decoration: underline;
+      cursor: pointer;
+      font: inherit;
+      padding: 0;
+    }
     .page {
       max-width: 1100px;
       margin: var(--space-4) auto;
@@ -82,7 +100,7 @@
       color: var(--color-text-muted);
       margin-bottom: var(--space-1);
     }
-    input[type="text"] {
+    input[type="text"], input[type="password"], input[type="email"] {
       font-family: inherit;
       font-size: var(--font-size-base);
       padding: 0.5rem 0.7rem;
@@ -91,7 +109,7 @@
       background: var(--color-surface);
       color: var(--color-text);
     }
-    input[type="text"]:focus {
+    input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus {
       outline: 2px solid var(--color-accent);
       outline-offset: 1px;
       border-color: var(--color-accent);
@@ -277,6 +295,16 @@
         <path d="M16 6c0 2-2 2-2 4s2 2 2 4" fill="none" stroke="#a89a8c" stroke-width="1.5" stroke-linecap="round"/>
       </svg>
       <span class="site-header__name">Coffee Roast Logger</span>
+      <div class="site-header__account">
+        {% if session.user_email %}
+          <span>{{ session.user_email }}</span>
+          <form method="post" action="/logout">
+            <button type="submit">Log out</button>
+          </form>
+        {% else %}
+          <a href="/login">Log in</a>
+        {% endif %}
+      </div>
     </div>
   </header>
   <div class="page">

@@ -11,7 +11,8 @@ This SPEC describes the full target feature set, carried forward from coffeeroas
 - **Phase 3**: Roast profile management (add/view/edit).
 - **Phase 4**: Delete roast records and delete roast profiles. This did not exist in coffeeroaster03 (which had no delete for either) — it is new scope for this mission, not something carried forward.
 - **Phase 5**: Home page becomes a main menu (Add roast / View roasts / View and edit roast profiles as buttons), mirroring coffeeroaster03's `MainScreen`. The roast records table moves to its own `/roasts` route.
-- **Phase 6 (current)**: Deploy to PythonAnywhere. No authentication is added — a deliberate choice for this personal, low-stakes tool, not an oversight.
+- **Phase 6**: Deploy to PythonAnywhere.
+- **Phase 7 (current)**: User accounts. Each account has its own private roast records and profiles — the earlier "no authentication" decision applied while this was a purely local, single-user tool; it no longer holds once the app is reachable on the open internet.
 
 ## Requirements
 The code shall have a separate module for calculations (`calculations.py`, carried forward from coffeeroaster03 unchanged).
@@ -142,18 +143,32 @@ Deployed to PythonAnywhere's free tier. See `DEPLOY.md` for the step-by-step gui
 `requirements.txt` is provided alongside `pyproject.toml` for PythonAnywhere's pip/virtualenv-based workflow, which does not consume `uv.lock` directly.
 `data/` persists on PythonAnywhere's filesystem by default across web app reloads — no volume or database configuration is needed, which is the main reason this platform was chosen over one requiring an explicit persistent-volume mount.
 The app's `debug=True` local dev-server flag (in `main()`) never runs in production: PythonAnywhere's WSGI config imports the `app` object directly and serves it through its own WSGI stack, bypassing `app.run()` entirely.
-No authentication gate is added; this is a deliberate scope decision for a personal, low-stakes tool, not an oversight.
+`FLASK_SECRET_KEY` must be set as a real, stable secret in the WSGI config on PythonAnywhere (see `DEPLOY.md`) so signed session cookies survive a reload; locally it falls back to a random key generated at process start, which is fine since that just means local dev-server restarts log everyone out.
+
+## Authentication **(Phase 7)**
+
+### Requirements
+Every account is identified by its email address (used as both username and the storage key) and a password, hashed with `werkzeug.security` (already a Flask dependency — no new package).
+Each roast record and roast profile has an `owner` (the creating account's email). Every route that reads or writes roast records/profiles requires being logged in, and filters/checks by the current account's ownership — not just in list views, but on every direct-by-ID route too (view, edit, delete), returning 404 rather than the data for another account's record.
+Attempting any roast/profile action while logged out redirects to `/login?next=<original path>`, and successfully logging in or signing up redirects back to that original path.
+The very first account ever created inherits ownership of any roast record/profile that predates accounts (the seed data) — a one-time migration, not a manual script.
+
+### Constraints
+JSON only, same as everything else: accounts live in `data/users.json`, following the same load/corruption-check/save pattern as `roast_records.json`/`roast_profiles.json`.
+No email verification, no password-complexity rules beyond a minimum length, no "forgot password" flow — deliberately sparse for now, matching the rest of this app's scope.
+Session state is Flask's built-in signed-cookie session — no server-side session store, no new dependency.
 
 ## User Interface
 On startup, after checking the JSON files for corruption, the application shall serve the following pages:
 
-1. `/` — Home: a main menu offering Add roast, View roasts, and View and edit roast profiles as buttons, mirroring coffeeroaster03's `MainScreen` (minus Exit, which doesn't apply to a web application). **(Phase 5)**
-2. `/roasts` — View roasts: displays existing roast records in an HTML table, including a Roast Profile column, using the same fields/order as `ROAST_TABLE_COLUMNS` in coffeeroaster03. **(Phase 1, moved off `/` in Phase 5)**
-3. `/roasts/<id>` — Roast detail: displays that roast's full time/actual/target temperature table (1:00-12:00) and a line chart (x-axis: time in minutes, y-axis: temperature °F) plotting actual vs. target temperature, rendered client-side with Chart.js. **(Phase 1)**
-4. Add roast — select a roast profile, then a form to collect roast fields (including the profile's temperature table), validate inline, and save. **(Phase 2)**
-5. View and edit roast profiles — add a new profile, or view/edit existing ones. **(Phase 3)**
-6. Delete a roast record, from its detail page, behind a confirmation step. **(Phase 4)**
-7. Delete a roast profile, from its edit page, behind a confirmation step that notes how many roast records reference it. **(Phase 4)**
+1. `/` — Home: a main menu offering Add roast, View roasts, and View and edit roast profiles as buttons, mirroring coffeeroaster03's `MainScreen` (minus Exit, which doesn't apply to a web application). **(Phase 5)** Stays reachable while logged out; the buttons redirect through login if needed.
+2. `/signup`, `/login` — create an account / authenticate; `/logout` (POST) ends the session. **(Phase 7)**
+3. `/roasts` — View roasts: displays existing roast records in an HTML table, including a Roast Profile column, using the same fields/order as `ROAST_TABLE_COLUMNS` in coffeeroaster03. **(Phase 1, moved off `/` in Phase 5, requires login and scoped to the current account as of Phase 7)**
+4. `/roasts/<id>` — Roast detail: displays that roast's full time/actual/target temperature table (1:00-12:00) and a line chart (x-axis: time in minutes, y-axis: temperature °F) plotting actual vs. target temperature, rendered client-side with Chart.js. **(Phase 1, requires login and ownership as of Phase 7)**
+5. Add roast — select a roast profile, then a form to collect roast fields (including the profile's temperature table), validate inline, and save. **(Phase 2, requires login as of Phase 7; saved records are owned by the current account)**
+6. View and edit roast profiles — add a new profile, or view/edit existing ones. **(Phase 3, requires login and ownership as of Phase 7)**
+7. Delete a roast record, from its detail page, behind a confirmation step. **(Phase 4, requires login and ownership as of Phase 7)**
+8. Delete a roast profile, from its edit page, behind a confirmation step that notes how many roast records reference it. **(Phase 4, requires login and ownership as of Phase 7)**
 
 There is no "Exit" action for a web application; the process runs until the server is stopped.
 
