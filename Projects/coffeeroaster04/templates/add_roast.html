@@ -9,13 +9,31 @@
   {% endif %}
 
   <style>
-    .roast-layout { display: flex; gap: 2rem; align-items: flex-start; flex-wrap: wrap; }
+    .roast-layout { display: flex; gap: 2rem; align-items: center; flex-wrap: wrap; }
     .roast-form { flex: 1 1 420px; min-width: 320px; }
     .roast-live {
       flex: 1 1 420px;
       min-width: 320px;
       display: flex;
       flex-direction: column;
+      /* Stays vertically centered in the viewport while .roast-form scrolls
+         past it: sticky with both top and bottom offsets, inside a
+         center-aligned flex row, re-centers on every scroll frame instead of
+         pinning to a fixed offset. It only lets go once .roast-form's own
+         top/bottom edge reaches that centered position. */
+      position: sticky;
+      top: var(--space-4);
+      bottom: var(--space-4);
+    }
+    .date-field { display: inline-flex; align-items: center; gap: 0.5rem; }
+    .date-field input[type="date"] {
+      font-family: inherit;
+      font-size: var(--font-size-sm);
+      padding: 0.35rem 0.4rem;
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      background: var(--color-surface);
+      color: var(--color-text-muted);
     }
     .roast-controls { display: flex; gap: 0.6rem; }
     .timer-btn { border-color: transparent; color: #fff; min-width: 100px; text-align: center; }
@@ -36,6 +54,9 @@
     html.inverted { filter: invert(1); }
     @media (max-width: 640px) {
       .roast-readout { font-size: 2rem; flex-wrap: wrap; gap: 0.5rem; }
+      /* Columns stack on narrow screens anyway, so the sticky-centering
+         trick above has nothing to center against - turn it off. */
+      .roast-live { position: static; }
     }
   </style>
 
@@ -44,7 +65,19 @@
       <form method="post">
         <p>
           <label>Date (MM/DD/YYYY)<br>
-            <input type="text" name="date" value="{{ values.date }}">
+            <span class="date-field">
+              <input
+                type="text"
+                id="date-input"
+                name="date"
+                value="{{ values.date }}"
+                placeholder="MM/DD/YYYY"
+                inputmode="numeric"
+                autocomplete="off"
+                maxlength="10"
+              >
+              <input type="date" id="date-picker" aria-label="Choose date from calendar">
+            </span>
           </label>
         </p>
         <p>
@@ -121,9 +154,32 @@
     </div>
   </div>
 
+  <script>
+    (function () {
+      const dateInput = document.getElementById("date-input");
+      const datePicker = document.getElementById("date-picker");
+      datePicker.max = new Date().toISOString().slice(0, 10);
+
+      dateInput.addEventListener("input", () => {
+        const digits = dateInput.value.replace(/\D/g, "").slice(0, 8);
+        let formatted = digits.slice(0, 2);
+        if (digits.length > 2) formatted += "/" + digits.slice(2, 4);
+        if (digits.length > 4) formatted += "/" + digits.slice(4, 8);
+        dateInput.value = formatted;
+      });
+
+      datePicker.addEventListener("change", () => {
+        if (!datePicker.value) return;
+        const [year, month, day] = datePicker.value.split("-");
+        dateInput.value = `${month}/${day}/${year}`;
+      });
+    })();
+  </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js"></script>
   <script>
-    const ROOM_TEMP = 70;
+    const START_TEMP = 145; // roaster's starting/preheat temp, not ambient room temp
+    const INFLECTION_TIME = 0.5; // 30s, expressed in minutes to match the x-axis
+    const INFLECTION_TEMP = 270;
     const profileTemps = {{ profile.temps|tojson }};
 
     // Monotone cubic Hermite interpolation (Fritsch-Butland/PCHIP): unlike a
@@ -228,7 +284,11 @@
 
     if (enteredPoints.length > 0) {
       const lastEntered = enteredPoints[enteredPoints.length - 1];
-      const spline = buildMonotoneSpline([{ x: 0, y: ROOM_TEMP }, ...enteredPoints]);
+      const spline = buildMonotoneSpline([
+        { x: 0, y: START_TEMP },
+        { x: INFLECTION_TIME, y: INFLECTION_TEMP },
+        ...enteredPoints,
+      ]);
 
       targetTempAt = function (minutesElapsed) {
         const x = Math.max(0, minutesElapsed);
