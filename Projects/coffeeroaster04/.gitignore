@@ -1,0 +1,8 @@
+# Live application data (roast records, profiles, user accounts).
+# This project is deployed on PythonAnywhere with real beta-tester accounts,
+# so these files must never be tracked in git: a future commit touching them
+# would let `git pull` on the live server overwrite or merge-conflict with
+# real user data. See DEPLOY.md's Data section.
+data/roast_records.json
+data/roast_profiles.json
+data/users.json

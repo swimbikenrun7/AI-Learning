@@ -98,7 +98,9 @@ Then hit **Reload** on the Web tab again. That's the whole update cycle — no C
 
 ## Data
 
-`data/roast_records.json` and `data/roast_profiles.json` live inside the cloned repo on PythonAnywhere's own persistent filesystem — they'll survive reloads and won't reset to the git-committed seed data on their own. A `git pull` only touches files that changed upstream; if you haven't modified those two files in the git history since cloning, your live data is untouched by future pulls. (If you ever *do* want to reset to the committed seed data, that's a manual `git checkout` of those two files — not something that happens by accident.)
+`data/roast_records.json`, `data/roast_profiles.json`, and `data/users.json` live inside the cloned repo on PythonAnywhere's own persistent filesystem. They are gitignored (not tracked in git), so `git pull` will never touch, merge, or overwrite them, no matter what changes upstream — this is a guarantee, not a matter of remembering not to commit changes to them. They survive reloads and future pulls indefinitely.
+
+Because these files are gitignored, a fresh clone (a new deployment, or a fresh checkout for local dev) starts with no `data/` files at all. Per `SPEC.md`, the app treats a missing data file as an empty dataset and creates it on first write — so a new deployment simply starts empty rather than inheriting another deployment's seed/demo data. If you want to seed a specific deployment with sample data (e.g. for a demo), copy JSON files into `data/` by hand after cloning; that's a one-time local action, never something `git` does for you.
 
 ## Accounts
 
