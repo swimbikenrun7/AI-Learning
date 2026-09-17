@@ -115,6 +115,12 @@ class TestRoutes(unittest.TestCase):
         self.assertIn("ror-chart", body)
         self.assertIn("[null, 45, 35, 30, 15, 10, 5, null, null, null, null, null]", body)
 
+    def test_roast_detail_includes_target_rate_of_rise_series(self):
+        self.records["record-1"]["target_temps"] = [300, 350, 400] + [None] * 9
+        response = self.client.get("/roasts/record-1")
+        body = response.get_data(as_text=True)
+        self.assertIn("[null, 50, 50, null, null, null, null, null, null, null, null, null]", body)
+
 
 class TestSelectProfile(unittest.TestCase):
     def setUp(self):

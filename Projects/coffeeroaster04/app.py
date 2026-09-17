@@ -414,6 +414,7 @@ def roast_detail(record_id):
         target_temps=target_temps,
         actual_temps=actual_temps,
         rate_of_rise=calc.calculate_rate_of_rise(actual_temps),
+        target_rate_of_rise=calc.calculate_rate_of_rise(target_temps),
         weight_loss=weight_loss,
         development_time=format_mm_ss(development_time),
         classification=calc.classify_roast(weight_loss),

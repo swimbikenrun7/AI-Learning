@@ -75,6 +75,7 @@
     const actualTemps = {{ actual_temps|tojson }};
     const targetTemps = {{ target_temps|tojson }};
     const rateOfRise = {{ rate_of_rise|tojson }};
+    const targetRateOfRise = {{ target_rate_of_rise|tojson }};
 
     new Chart(document.getElementById("temp-chart"), {
       type: "line",
@@ -121,6 +122,21 @@
         labels: minutes.map((m) => m + ":00"),
         datasets: [
           {
+            // Same thick-dashed-underneath treatment as the temp chart's
+            // Target line above, so the two charts read as one visual
+            // language even though they're separate canvases.
+            label: "Target",
+            data: targetRateOfRise,
+            borderColor: "#7570b3",
+            backgroundColor: "#7570b3",
+            borderDash: [8, 5],
+            borderWidth: 6,
+            pointRadius: 0,
+            spanGaps: false,
+            tension: 0.2,
+          },
+          {
+            label: "Actual",
             data: rateOfRise,
             borderColor: "#1b9e77",
             backgroundColor: "#1b9e77",
@@ -131,7 +147,6 @@
         ],
       },
       options: {
-        plugins: { legend: { display: false } },
         scales: {
           x: { title: { display: true, text: "Time (minutes)" } },
           y: { title: { display: true, text: "Rate of rise (°F/min)" } },

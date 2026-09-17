@@ -9,23 +9,21 @@
   {% endif %}
 
   <style>
-    .roast-layout { display: flex; gap: 2rem; align-items: center; flex-wrap: wrap; }
-    .roast-form { flex: 1 1 420px; min-width: 320px; }
+    /* A true split pane, not the sticky-while-scrolling trick this used
+       before: .roast-layout gets an explicit height (set in JS, since it
+       depends on where the header/page chrome puts its top edge) so
+       .roast-form can scroll *inside* that fixed box while .roast-live
+       just sits still, centered on the cross-axis via align-self. */
+    .roast-layout { display: flex; gap: 2rem; align-items: stretch; }
+    .roast-form { flex: 1 1 420px; min-width: 320px; overflow-y: auto; padding-right: 0.5rem; }
     .roast-live {
       flex: 1 1 420px;
       min-width: 320px;
       display: flex;
       flex-direction: column;
-      /* Stays vertically centered in the viewport while .roast-form scrolls
-         past it: sticky with both top and bottom offsets, inside a
-         center-aligned flex row, re-centers on every scroll frame instead of
-         pinning to a fixed offset. It only lets go once .roast-form's own
-         top/bottom edge reaches that centered position. */
-      position: sticky;
-      top: var(--space-4);
-      bottom: var(--space-4);
+      align-self: center;
     }
-    .date-field, .inline-field { display: inline-flex; align-items: center; gap: 0.5rem; }
+    .date-field { display: inline-flex; align-items: center; gap: 0.5rem; }
     .date-field input[type="date"] {
       font-family: inherit;
       font-size: var(--font-size-sm);
@@ -51,12 +49,25 @@
     }
     #target-temp-readout { color: #d95f02; }
     #clock-readout { font-variant-numeric: tabular-nums; }
+    .ror-readout { font-size: var(--font-size-lg); color: var(--color-text-muted); margin-top: 0.25rem; }
+    #ror-readout { color: #1b9e77; font-weight: 700; }
+    .mark-first-crack-btn {
+      display: block;
+      width: 100%;
+      margin-top: 1rem;
+      padding: 0.9rem 1rem;
+      font-size: var(--font-size-lg);
+      font-weight: 700;
+    }
     html.inverted { filter: invert(1); }
     @media (max-width: 640px) {
       .roast-readout { font-size: 2rem; flex-wrap: wrap; gap: 0.5rem; }
-      /* Columns stack on narrow screens anyway, so the sticky-centering
-         trick above has nothing to center against - turn it off. */
-      .roast-live { position: static; }
+      /* The fixed-height split pane (sized in JS) is desktop-only - on
+         narrow screens the columns stack and the whole page scrolls
+         normally, same as any other page. */
+      .roast-layout { flex-wrap: wrap; }
+      .roast-form { overflow-y: visible; }
+      .roast-live { align-self: auto; }
     }
   </style>
 
@@ -135,10 +146,7 @@
 
         <p>
           <label>Time of first crack (MM:SS)<br>
-            <span class="inline-field">
-              <input type="text" id="first-crack-input" name="first_crack" value="{{ values.first_crack }}">
-              <button type="button" id="mark-first-crack-btn" class="btn btn--ghost">Mark now</button>
-            </span>
+            <input type="text" id="first-crack-input" name="first_crack" value="{{ values.first_crack }}">
           </label>
         </p>
         <p>
@@ -169,6 +177,8 @@
         <span id="target-temp-readout">&ndash;</span>
         <span id="clock-readout">0:00</span>
       </div>
+      <div class="ror-readout">Rate of rise: <span id="ror-readout">&ndash;</span></div>
+      <button type="button" id="mark-first-crack-btn" class="btn btn--primary mark-first-crack-btn">First Crack Now!</button>
     </div>
   </div>
 
@@ -191,6 +201,39 @@
         const [year, month, day] = datePicker.value.split("-");
         dateInput.value = `${month}/${day}/${year}`;
       });
+    })();
+  </script>
+  <script>
+    (function () {
+      const roastLayout = document.querySelector(".roast-layout");
+      const roastForm = document.querySelector(".roast-form");
+      const desktopQuery = window.matchMedia("(min-width: 641px)");
+
+      function sizeRoastLayout() {
+        if (!desktopQuery.matches) {
+          roastLayout.style.height = "";
+          return;
+        }
+        const top = roastLayout.getBoundingClientRect().top;
+        roastLayout.style.height = Math.max(300, window.innerHeight - top - 24) + "px";
+      }
+
+      sizeRoastLayout();
+      window.addEventListener("resize", sizeRoastLayout);
+
+      // The right pane (graph/timer) stays put; only the left form
+      // scrolls. The wheel always drives that scroll no matter which half
+      // the cursor is over - deliberately not the hover-dependent
+      // split-scroll some sites use.
+      window.addEventListener(
+        "wheel",
+        (event) => {
+          if (!desktopQuery.matches) return;
+          event.preventDefault();
+          roastForm.scrollTop += event.deltaY;
+        },
+        { passive: false }
+      );
     })();
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js"></script>
@@ -298,6 +341,7 @@
       .filter((point) => point.y !== null);
 
     let targetTempAt = null;
+    let targetRorAt = null;
     let chart = null;
 
     if (enteredPoints.length > 0) {
@@ -316,9 +360,22 @@
         return spline(x);
       };
 
+      // Rate of rise is the temperature curve's slope - estimated with a
+      // small central difference on the same spline used for the curve
+      // itself, rather than a second, separately-fit function.
+      const RATE_OF_RISE_STEP = 0.01;
+      targetRorAt = function (minutesElapsed) {
+        const x = Math.max(0, minutesElapsed);
+        const before = targetTempAt(Math.max(0, x - RATE_OF_RISE_STEP));
+        const after = targetTempAt(x + RATE_OF_RISE_STEP);
+        return (after - before) / (2 * RATE_OF_RISE_STEP);
+      };
+
       const curve = [];
+      const rorCurve = [];
       for (let x = 0; x <= 12; x += 0.1) {
         curve.push({ x, y: targetTempAt(x) });
+        rorCurve.push({ x, y: targetRorAt(x) });
       }
 
       chart = new Chart(document.getElementById("live-chart"), {
@@ -332,6 +389,7 @@
               backgroundColor: "#7570b3",
               pointRadius: 0,
               tension: 0,
+              yAxisID: "y",
             },
             {
               label: "Now",
@@ -340,6 +398,25 @@
               pointRadius: 7,
               pointBackgroundColor: "#d95f02",
               pointBorderColor: "#d95f02",
+              yAxisID: "y",
+            },
+            {
+              label: "Rate of rise",
+              data: rorCurve,
+              borderColor: "#1b9e77",
+              backgroundColor: "#1b9e77",
+              pointRadius: 0,
+              tension: 0,
+              yAxisID: "y1",
+            },
+            {
+              label: "RoR now",
+              data: [{ x: 0, y: targetRorAt(0) }],
+              showLine: false,
+              pointRadius: 7,
+              pointBackgroundColor: "#d95f02",
+              pointBorderColor: "#d95f02",
+              yAxisID: "y1",
             },
           ],
         },
@@ -356,13 +433,21 @@
                 callback: (value) => formatMinutesClock(value),
               },
             },
-            y: { title: { display: true, text: "Temperature (°F)" } },
+            y: { position: "left", title: { display: true, text: "Temperature (°F)" } },
+            y1: {
+              position: "right",
+              title: { display: true, text: "Rate of rise (°F/min)" },
+              grid: { drawOnChartArea: false },
+            },
           },
           plugins: {
             tooltip: {
               callbacks: {
                 title: (items) => (items.length ? formatMinutesClock(items[0].parsed.x) : ""),
-                label: (item) => `${item.dataset.label}: ${Math.round(item.parsed.y)}°F`,
+                label: (item) =>
+                  `${item.dataset.label}: ${Math.round(item.parsed.y)}${
+                    item.dataset.yAxisID === "y1" ? "°F/min" : "°F"
+                  }`,
               },
             },
           },
@@ -371,6 +456,8 @@
 
       document.getElementById("target-temp-readout").textContent =
         Math.round(targetTempAt(0)) + "°F";
+      document.getElementById("ror-readout").textContent =
+        Math.round(targetRorAt(0)) + "°F/min";
     } else {
       document.getElementById("live-chart").hidden = true;
       document.getElementById("no-profile-data").hidden = false;
@@ -382,6 +469,7 @@
     const firstCrackInput = document.getElementById("first-crack-input");
     const clockReadout = document.getElementById("clock-readout");
     const targetReadout = document.getElementById("target-temp-readout");
+    const rorReadout = document.getElementById("ror-readout");
 
     // The clock advances in whole seconds, but the target-temp readout and
     // the graph's "Now" marker track real elapsed time continuously (via
@@ -429,9 +517,13 @@
 
       if (targetTempAt) {
         const elapsedMinutes = elapsedMs / 60000;
+        const clampedMinutes = Math.min(elapsedMinutes, 12);
         const temp = targetTempAt(elapsedMinutes);
+        const ror = targetRorAt(elapsedMinutes);
         targetReadout.textContent = Math.round(temp) + "°F";
-        chart.data.datasets[1].data = [{ x: Math.min(elapsedMinutes, 12), y: temp }];
+        rorReadout.textContent = Math.round(ror) + "°F/min";
+        chart.data.datasets[1].data = [{ x: clampedMinutes, y: temp }];
+        chart.data.datasets[3].data = [{ x: clampedMinutes, y: ror }];
         chart.update("none");
       }
     }

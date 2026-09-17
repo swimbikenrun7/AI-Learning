@@ -183,17 +183,20 @@ No new external service or dependency — reuses the outbound SMTP path already 
 
 ### Requirements
 The roast detail page shall display each roast's weight loss %, roast classification, development time, and development time ratio (DTR% = development time / total roast time × 100) — these were already calculated for the `/roasts` list view but not surfaced on the roast's own detail page.
-The roast detail page's chart shall include a Rate of Rise (RoR) series — the °F-per-minute delta between consecutive whole-minute actual temperature readings — plotted against a second y-axis alongside the existing actual/target temperature lines.
+The roast detail page shall include a Rate of Rise (RoR) chart — the °F-per-minute delta between consecutive whole-minute readings — as its own chart (not sharing an axis with the temperature chart above it), plotting both the target-derived and actual RoR so the two are directly comparable, mirroring the temperature chart's target-vs-actual comparison.
+The Add Roast live timer shall display the target profile's current Rate of Rise (a numeric instantaneous derivative of the live target-temperature curve, not a delta between fixed points) below the live temperature/clock readouts, and the live chart shall plot the full target RoR curve against a second, right-hand y-axis alongside the existing temperature curve — a deliberate exception to one-axis-per-chart, since a roaster reads temperature and RoR together in real time off one instrument, matching the convention of dedicated roasting software (e.g. Artisan).
+The Add Roast live panel (graph, timer, and readouts) shall stay in a fixed position, vertically centered, while only the form fields on the left scroll; this is a true split pane (the right pane never moves), not a sticky-while-scrolling effect. Mouse wheel scrolling anywhere on the page shall scroll the left form, regardless of which half the cursor is over — not a hover-dependent split-scroll.
+The Add Roast live timer shall offer a prominent "First Crack Now!" button, styled as a primary action (not a subordinate inline control), positioned in the live panel below the timer/temperature readouts, that fills the first-crack field with the current elapsed time.
 `/roasts` shall offer a text search (matching bean name, profile name, or date) and click-to-sort table headers, applied client-side against the already-rendered table (no new server round-trip).
 `/roasts` shall offer a CSV export of the current account's own roast records, using the same columns/order as `ROAST_TABLE_COLUMNS`.
-The Add Roast live timer shall offer a "Mark first crack now" button that fills the first-crack field with the current elapsed time, as an alternative to typing it in after the fact.
 The Add Roast form shall collect optional bean origin, variety, and process fields alongside bean name.
 The roast detail page shall offer a form to record cupping notes (free text) and a cupping rating for a saved roast, submittable and re-editable independently of the roast record itself, since tasting happens after roasting is complete, not during the Add Roast submission.
 
 ### Constraints
-No new external dependency: CSV export uses the standard-library `csv` module; search/sort is plain JS, no client-side library.
+No new external dependency: CSV export uses the standard-library `csv` module; search/sort and the live RoR/split-pane behavior are plain JS, no client-side library.
 The `/roasts` list table's columns are unchanged — bean origin/variety/process and cupping notes/rating are shown on the roast detail page only, not added to `ROAST_TABLE_COLUMNS`.
 Cupping notes/rating are optional and have no bearing on any existing calculation (weight loss, DTR, classification).
+The fixed-height split-pane and wheel-forwarding behavior on Add Roast is desktop-only; below the existing 640px breakpoint the layout falls back to normal stacked columns and whole-page scrolling.
 
 ## Deferred Ideas
 
