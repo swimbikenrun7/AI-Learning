@@ -167,6 +167,34 @@ class TestSelectProfile(unittest.TestCase):
         body = response.get_data(as_text=True)
         self.assertLess(body.index("Zephyr Blend"), body.index("Amber Roast"))
 
+    def test_favorites_and_other_profiles_are_shown_as_separate_groups(self):
+        profiles = {
+            "profile-1": {"name": "Amber Roast", "temps": [None] * 12, "owner": OWNER_EMAIL},
+            "profile-2": {
+                "name": "Zephyr Blend",
+                "temps": [None] * 12,
+                "favorite": True,
+                "owner": OWNER_EMAIL,
+            },
+        }
+        with mock.patch.object(app, "roast_profiles", profiles):
+            response = self.client.get("/roasts/new")
+        body = response.get_data(as_text=True)
+        self.assertIn("Favorites", body)
+        self.assertIn("All other profiles", body)
+        self.assertLess(body.index("Favorites"), body.index("Zephyr Blend"))
+        self.assertLess(body.index("All other profiles"), body.index("Amber Roast"))
+
+    def test_no_favorites_heading_omitted_when_none_favorited(self):
+        profiles = {
+            "profile-1": {"name": "Amber Roast", "temps": [None] * 12, "owner": OWNER_EMAIL},
+        }
+        with mock.patch.object(app, "roast_profiles", profiles):
+            response = self.client.get("/roasts/new")
+        body = response.get_data(as_text=True)
+        self.assertNotIn("Favorites", body)
+        self.assertIn(">Profiles<", body)
+
 
 class TestAddRoast(unittest.TestCase):
     def setUp(self):

@@ -3,9 +3,65 @@
 {% block content %}
   <button class="btn btn--ghost back-link" onclick="window.location='/'">&larr; Back to menu</button>
   <h1>Select a roast profile</h1>
+
   {% if profiles %}
-    {% set profile_link_prefix = "/roasts/new/" %}
-    {% include "_profile_table.html" %}
+    <style>
+      .profile-picker__heading {
+        font-size: var(--font-size-lg);
+        margin: var(--space-4) 0 var(--space-2);
+        color: var(--color-text-muted);
+      }
+      .profile-picker__heading:first-of-type { margin-top: var(--space-3); }
+      .profile-picker { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+      .profile-card {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        min-width: 220px;
+        padding: var(--space-3) var(--space-4);
+        border: 1px solid var(--color-border);
+        border-radius: 10px;
+        background: var(--color-surface);
+        color: var(--color-text);
+        text-decoration: none;
+        transition: transform 0.1s ease, box-shadow 0.1s ease, border-color 0.1s ease;
+      }
+      .profile-card:hover {
+        text-decoration: none;
+        border-color: var(--color-accent);
+        box-shadow: 0 4px 12px rgba(43, 33, 24, 0.12);
+        transform: translateY(-2px);
+      }
+      .profile-card--favorite { border-color: #d9a520; background: #fff9ec; }
+      .profile-card__icon { font-size: 1.4rem; }
+      .profile-card__name { font-weight: 600; flex: 1; }
+      .profile-card__star { color: #d9a520; }
+    </style>
+
+    {% if favorite_profiles %}
+      <h2 class="profile-picker__heading">Favorites</h2>
+      <div class="profile-picker">
+        {% for profile_id, profile in favorite_profiles %}
+          <a class="profile-card profile-card--favorite" href="/roasts/new/{{ profile_id }}">
+            <span class="profile-card__icon" aria-hidden="true">&#9749;</span>
+            <span class="profile-card__name">{{ profile.name }}</span>
+            <span class="profile-card__star" aria-hidden="true">&#9733;</span>
+          </a>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if other_profiles %}
+      <h2 class="profile-picker__heading">{{ "All other profiles" if favorite_profiles else "Profiles" }}</h2>
+      <div class="profile-picker">
+        {% for profile_id, profile in other_profiles %}
+          <a class="profile-card" href="/roasts/new/{{ profile_id }}">
+            <span class="profile-card__icon" aria-hidden="true">&#9749;</span>
+            <span class="profile-card__name">{{ profile.name }}</span>
+          </a>
+        {% endfor %}
+      </div>
+    {% endif %}
   {% else %}
     <p>No roast profiles exist yet.</p>
     <button class="btn btn--primary" onclick="window.location='/profiles/new'">Create a roast profile</button>

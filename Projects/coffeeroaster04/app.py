@@ -449,7 +449,15 @@ def save_cupping_notes(record_id):
 @app.route("/roasts/new")
 @login_required
 def select_profile():
-    return render_template("select_profile.html", profiles=sorted_profiles())
+    profiles = sorted_profiles()
+    favorite_profiles = [item for item in profiles if item[1].get("favorite")]
+    other_profiles = [item for item in profiles if not item[1].get("favorite")]
+    return render_template(
+        "select_profile.html",
+        profiles=profiles,
+        favorite_profiles=favorite_profiles,
+        other_profiles=other_profiles,
+    )
 
 
 @app.route("/roasts/new/<profile_id>", methods=["GET", "POST"])
