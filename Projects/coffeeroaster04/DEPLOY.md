@@ -12,10 +12,10 @@ From the PythonAnywhere dashboard: **Consoles** tab → **Bash**.
 
 ## 3. Clone the repo
 
-`coffeeroaster04` lives on the `agent_lab` branch, not `main` — clone that branch specifically:
+The deployment branch is `main`. Day-to-day mission work happens on `agent_lab` and gets merged into `main` before it's deployed — `main` is what PythonAnywhere should always be running:
 
 ```bash
-git clone -b agent_lab https://github.com/swimbikenrun7/AI-Learning.git
+git clone https://github.com/swimbikenrun7/AI-Learning.git
 ```
 
 (GitHub is on PythonAnywhere's free-tier network allowlist, so this works without any extra configuration. If the repo is or becomes private, you'll need a [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) in place of a password when prompted.)
@@ -87,7 +87,7 @@ Hit the big green **Reload** button at the top of the **Web** tab. Your app is n
 
 ## Updating after future changes
 
-From a Bash console:
+Work happens on `agent_lab`, gets merged into `main`, and `main` gets pushed. Once that's pushed, pull it on PythonAnywhere:
 
 ```bash
 cd ~/AI-Learning
@@ -95,6 +95,13 @@ git pull
 ```
 
 Then hit **Reload** on the Web tab again. That's the whole update cycle — no CI/CD is set up for this (a possible future phase, not this one).
+
+**If `git pull` refuses with "local changes would be overwritten"**, it means a commit changed a path that PythonAnywhere's live data has since diverged from — most likely `data/roast_records.json` or `data/roast_profiles.json` before they were gitignored (see Data below). Never `git checkout`/`git reset` that path to force it through — that discards live user data. Instead untrack the path locally without touching the file, then pull:
+
+```bash
+git rm --cached <path/that/conflicted>
+git pull
+```
 
 ## Data
 
