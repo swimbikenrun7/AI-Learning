@@ -1,10 +1,21 @@
+import csv
+import io
 import os
 import secrets
 import uuid
 from datetime import datetime, timedelta
 from functools import wraps
 
-from flask import Flask, abort, redirect, render_template, request, session, url_for
+from flask import (
+    Flask,
+    Response,
+    abort,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 from werkzeug.security import check_password_hash, generate_password_hash
 
 import calculations as calc
@@ -306,38 +317,73 @@ def about():
     )
 
 
+def _build_roast_row(record_id, record):
+    weight_loss = calc.calculate_weight_loss(
+        record["green_weight"], record["finished_weight"]
+    )
+    development_time = calc.calculate_development_time(
+        record["total_roast_time"], record["time_of_first_crack"]
+    )
+    profile = roast_profiles.get(record.get("roast_profile_id"))
+    classification = calc.classify_roast(weight_loss)
+    return {
+        "id": record_id,
+        "date": record["date"],
+        "bean_name": record["bean_name"],
+        "profile_name": profile["name"] if profile else "-",
+        "green_weight": record["green_weight"],
+        "finished_weight": record["finished_weight"],
+        "total_roast_time": format_mm_ss(record["total_roast_time"]),
+        "time_of_first_crack": format_mm_ss(record["time_of_first_crack"]),
+        "weight_loss": weight_loss,
+        "development_time": format_mm_ss(development_time),
+        "classification": classification,
+        "classification_class": classification.lower().replace(" ", "-"),
+    }
+
+
 @app.route("/roasts")
 @login_required
 def view_roasts():
-    rows = []
-    for record_id, record in roast_records.items():
-        if record.get("owner") != session["user_email"]:
-            continue
-        weight_loss = calc.calculate_weight_loss(
-            record["green_weight"], record["finished_weight"]
-        )
-        development_time = calc.calculate_development_time(
-            record["total_roast_time"], record["time_of_first_crack"]
-        )
-        profile = roast_profiles.get(record.get("roast_profile_id"))
-        classification = calc.classify_roast(weight_loss)
-        rows.append(
-            {
-                "id": record_id,
-                "date": record["date"],
-                "bean_name": record["bean_name"],
-                "profile_name": profile["name"] if profile else "-",
-                "green_weight": record["green_weight"],
-                "finished_weight": record["finished_weight"],
-                "total_roast_time": format_mm_ss(record["total_roast_time"]),
-                "time_of_first_crack": format_mm_ss(record["time_of_first_crack"]),
-                "weight_loss": weight_loss,
-                "development_time": format_mm_ss(development_time),
-                "classification": classification,
-                "classification_class": classification.lower().replace(" ", "-"),
-            }
-        )
+    rows = [
+        _build_roast_row(record_id, record)
+        for record_id, record in roast_records.items()
+        if record.get("owner") == session["user_email"]
+    ]
     return render_template("roasts.html", columns=ROAST_TABLE_COLUMNS, rows=rows)
+
+
+@app.route("/roasts/export")
+@login_required
+def export_roasts():
+    rows = [
+        _build_roast_row(record_id, record)
+        for record_id, record in roast_records.items()
+        if record.get("owner") == session["user_email"]
+    ]
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(ROAST_TABLE_COLUMNS)
+    for row in rows:
+        writer.writerow(
+            [
+                row["date"],
+                row["bean_name"],
+                row["profile_name"],
+                f"{row['green_weight']:.1f}",
+                f"{row['finished_weight']:.1f}",
+                row["total_roast_time"],
+                row["time_of_first_crack"],
+                f"{row['weight_loss']:.2f}",
+                row["development_time"],
+                row["classification"],
+            ]
+        )
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=crackle-roasts.csv"},
+    )
 
 
 @app.route("/roasts/<record_id>")
@@ -352,6 +398,13 @@ def roast_detail(record_id):
     actual_temps = record.get("actual_temps") or [None] * 12
     profile = roast_profiles.get(record.get("roast_profile_id"))
 
+    weight_loss = calc.calculate_weight_loss(
+        record["green_weight"], record["finished_weight"]
+    )
+    development_time = calc.calculate_development_time(
+        record["total_roast_time"], record["time_of_first_crack"]
+    )
+
     return render_template(
         "roast_detail.html",
         record=record,
@@ -360,7 +413,36 @@ def roast_detail(record_id):
         minutes=minutes,
         target_temps=target_temps,
         actual_temps=actual_temps,
+        rate_of_rise=calc.calculate_rate_of_rise(actual_temps),
+        weight_loss=weight_loss,
+        development_time=format_mm_ss(development_time),
+        classification=calc.classify_roast(weight_loss),
+        dtr=calc.calculate_dtr(record["total_roast_time"], development_time),
     )
+
+
+@app.route("/roasts/<record_id>/cupping", methods=["POST"])
+@login_required
+def save_cupping_notes(record_id):
+    record = roast_records.get(record_id)
+    if record is None or record.get("owner") != session["user_email"]:
+        abort(404)
+
+    notes = request.form.get("cupping_notes", "").strip()
+    rating_raw = request.form.get("cupping_rating", "").strip()
+    rating = None
+    if rating_raw:
+        try:
+            rating = int(rating_raw)
+        except ValueError:
+            rating = None
+        if rating is None or not 1 <= rating <= 5:
+            abort(400)
+
+    record["cupping_notes"] = notes
+    record["cupping_rating"] = rating
+    save_roast_records(roast_records)
+    return redirect(url_for("roast_detail", record_id=record_id))
 
 
 @app.route("/roasts/new")
@@ -381,6 +463,9 @@ def add_roast(profile_id):
     values = {
         "date": "",
         "bean_name": "",
+        "bean_origin": "",
+        "bean_variety": "",
+        "bean_process": "",
         "green_weight": "",
         "actual_temps": [""] * 12,
         "first_crack": "",
@@ -392,6 +477,9 @@ def add_roast(profile_id):
     if request.method == "POST":
         values["date"] = request.form.get("date", "")
         values["bean_name"] = request.form.get("bean_name", "")
+        values["bean_origin"] = request.form.get("bean_origin", "").strip()
+        values["bean_variety"] = request.form.get("bean_variety", "").strip()
+        values["bean_process"] = request.form.get("bean_process", "").strip()
         values["green_weight"] = request.form.get("green_weight", "")
         values["actual_temps"] = [
             request.form.get(f"actual_temp_{minute}", "") for minute in minutes
@@ -424,6 +512,9 @@ def add_roast(profile_id):
             roast_records[record_id] = {
                 "date": date,
                 "bean_name": bean_name,
+                "bean_origin": values["bean_origin"],
+                "bean_variety": values["bean_variety"],
+                "bean_process": values["bean_process"],
                 "green_weight": green_weight,
                 "finished_weight": finished_weight,
                 "total_roast_time": total_roast_time,

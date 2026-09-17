@@ -25,7 +25,7 @@
       top: var(--space-4);
       bottom: var(--space-4);
     }
-    .date-field { display: inline-flex; align-items: center; gap: 0.5rem; }
+    .date-field, .inline-field { display: inline-flex; align-items: center; gap: 0.5rem; }
     .date-field input[type="date"] {
       font-family: inherit;
       font-size: var(--font-size-sm);
@@ -86,6 +86,21 @@
           </label>
         </p>
         <p>
+          <label>Origin (optional)<br>
+            <input type="text" name="bean_origin" value="{{ values.bean_origin }}">
+          </label>
+        </p>
+        <p>
+          <label>Variety (optional)<br>
+            <input type="text" name="bean_variety" value="{{ values.bean_variety }}">
+          </label>
+        </p>
+        <p>
+          <label>Process (optional)<br>
+            <input type="text" name="bean_process" value="{{ values.bean_process }}">
+          </label>
+        </p>
+        <p>
           <label>Green weight (g)<br>
             <input type="text" name="green_weight" value="{{ values.green_weight }}">
           </label>
@@ -120,7 +135,10 @@
 
         <p>
           <label>Time of first crack (MM:SS)<br>
-            <input type="text" name="first_crack" value="{{ values.first_crack }}">
+            <span class="inline-field">
+              <input type="text" id="first-crack-input" name="first_crack" value="{{ values.first_crack }}">
+              <button type="button" id="mark-first-crack-btn" class="btn btn--ghost">Mark now</button>
+            </span>
           </label>
         </p>
         <p>
@@ -360,6 +378,8 @@
 
     const startStopBtn = document.getElementById("start-stop-btn");
     const resetBtn = document.getElementById("reset-btn");
+    const markFirstCrackBtn = document.getElementById("mark-first-crack-btn");
+    const firstCrackInput = document.getElementById("first-crack-input");
     const clockReadout = document.getElementById("clock-readout");
     const targetReadout = document.getElementById("target-temp-readout");
 
@@ -448,6 +468,10 @@
       startStopBtn.classList.remove("timer-btn--stop");
       startStopBtn.classList.add("timer-btn--start");
       updateLiveDisplay();
+    });
+
+    markFirstCrackBtn.addEventListener("click", () => {
+      firstCrackInput.value = formatClock(Math.floor(currentElapsedMs() / 1000));
     });
   </script>
 {% endblock %}

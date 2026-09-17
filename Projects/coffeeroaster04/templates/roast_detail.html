@@ -4,11 +4,31 @@
   <button class="btn btn--ghost back-link" onclick="window.location='/roasts'">&larr; Back to roasts</button>
   <h1>{{ record.bean_name }} &mdash; {{ record.date }}</h1>
   <p>Roast profile: {{ profile_name }}</p>
+  {% if record.get("bean_origin") or record.get("bean_variety") or record.get("bean_process") %}
+    <p>
+      {% if record.get("bean_origin") %}Origin: {{ record.bean_origin }}<br>{% endif %}
+      {% if record.get("bean_variety") %}Variety: {{ record.bean_variety }}<br>{% endif %}
+      {% if record.get("bean_process") %}Process: {{ record.bean_process }}{% endif %}
+    </p>
+  {% endif %}
+
+  <table>
+    <tbody>
+      <tr><th>Weight loss</th><td>{{ "%.2f"|format(weight_loss) }}%</td></tr>
+      <tr><th>Classification</th><td>{{ classification }}</td></tr>
+      <tr><th>Development time</th><td>{{ development_time }}</td></tr>
+      <tr><th>DTR</th><td>{{ "%.1f"|format(dtr) }}%</td></tr>
+    </tbody>
+  </table>
+
   <div class="actions">
     <button class="btn btn--danger" onclick="window.location='/roasts/{{ record_id }}/delete'">Delete this roast</button>
   </div>
 
   <canvas id="temp-chart" width="700" height="350"></canvas>
+
+  <h2>Rate of rise</h2>
+  <canvas id="ror-chart" width="700" height="200"></canvas>
 
   <table>
     <thead>
@@ -29,11 +49,32 @@
     </tbody>
   </table>
 
+  <h2>Cupping notes</h2>
+  <form method="post" action="/roasts/{{ record_id }}/cupping">
+    <p>
+      <label>Notes<br>
+        <textarea name="cupping_notes" rows="4" style="width: 100%; max-width: 480px;">{{ record.get("cupping_notes", "") }}</textarea>
+      </label>
+    </p>
+    <p>
+      <label>Rating<br>
+        <select name="cupping_rating">
+          <option value="">&ndash;</option>
+          {% for value in range(1, 6) %}
+            <option value="{{ value }}" {{ "selected" if record.get("cupping_rating") == value }}>{{ value }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </p>
+    <button class="btn btn--primary" type="submit">Save cupping notes</button>
+  </form>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js"></script>
   <script>
     const minutes = {{ minutes|tojson }};
     const actualTemps = {{ actual_temps|tojson }};
     const targetTemps = {{ target_temps|tojson }};
+    const rateOfRise = {{ rate_of_rise|tojson }};
 
     new Chart(document.getElementById("temp-chart"), {
       type: "line",
@@ -70,6 +111,30 @@
         scales: {
           x: { title: { display: true, text: "Time (minutes)" } },
           y: { title: { display: true, text: "Temperature (°F)" } },
+        },
+      },
+    });
+
+    new Chart(document.getElementById("ror-chart"), {
+      type: "line",
+      data: {
+        labels: minutes.map((m) => m + ":00"),
+        datasets: [
+          {
+            data: rateOfRise,
+            borderColor: "#1b9e77",
+            backgroundColor: "#1b9e77",
+            borderWidth: 2,
+            spanGaps: false,
+            tension: 0.2,
+          },
+        ],
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { title: { display: true, text: "Time (minutes)" } },
+          y: { title: { display: true, text: "Rate of rise (°F/min)" } },
         },
       },
     });

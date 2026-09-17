@@ -6,6 +6,8 @@ from unittest import mock
 import data_persistence
 from calculations import (
     calculate_development_time,
+    calculate_dtr,
+    calculate_rate_of_rise,
     calculate_weight_loss,
     classify_roast,
     fill_forward,
@@ -262,6 +264,22 @@ class TestCalculations(unittest.TestCase):
     def test_calculate_development_time_raises_when_first_crack_not_before_total(self):
         with self.assertRaises(ValueError):
             calculate_development_time(500, 500)
+
+    def test_calculate_dtr(self):
+        total_roast_time = 900
+        development_time = 180
+        self.assertEqual(calculate_dtr(total_roast_time, development_time), 20.0)
+
+    def test_calculate_rate_of_rise_no_gaps(self):
+        temps = [200, 230, 255, 275]
+        self.assertEqual(calculate_rate_of_rise(temps), [None, 30, 25, 20])
+
+    def test_calculate_rate_of_rise_skips_gaps(self):
+        temps = [200, None, 255, None]
+        self.assertEqual(calculate_rate_of_rise(temps), [None, None, None, None])
+
+    def test_calculate_rate_of_rise_empty(self):
+        self.assertEqual(calculate_rate_of_rise([]), [])
 
     def test_classify_roast(self):
         weight_loss = 14.0

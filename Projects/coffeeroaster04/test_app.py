@@ -86,6 +86,35 @@ class TestRoutes(unittest.TestCase):
         response = self.client.get("/roasts/does-not-exist")
         self.assertEqual(response.status_code, 404)
 
+    def test_roast_detail_shows_calculated_stats(self):
+        response = self.client.get("/roasts/record-1")
+        body = response.get_data(as_text=True)
+        self.assertIn("13.40%", body)  # weight loss: (202.3-175.2)/202.3*100
+        self.assertIn("City Plus", body)
+        self.assertIn("1:15", body)  # development time: 450 - 375
+        self.assertIn("16.7%", body)  # DTR: 75/450*100
+
+    def test_export_roasts_returns_csv(self):
+        response = self.client.get("/roasts/export")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.mimetype, "text/csv")
+        body = response.get_data(as_text=True)
+        self.assertIn("Date,Bean Name,Roast Profile", body)
+        self.assertIn("Mysore Nuggets", body)
+        self.assertIn("13.40", body)
+
+    def test_export_roasts_excludes_other_owners(self):
+        self.records["record-2"] = {**self.records["record-1"], "owner": "other@example.com"}
+        response = self.client.get("/roasts/export")
+        body = response.get_data(as_text=True)
+        self.assertEqual(body.count("Mysore Nuggets"), 1)
+
+    def test_roast_detail_includes_rate_of_rise_series(self):
+        response = self.client.get("/roasts/record-1")
+        body = response.get_data(as_text=True)
+        self.assertIn("ror-chart", body)
+        self.assertIn("[null, 45, 35, 30, 15, 10, 5, null, null, null, null, null]", body)
+
 
 class TestSelectProfile(unittest.TestCase):
     def setUp(self):
@@ -216,6 +245,106 @@ class TestAddRoast(unittest.TestCase):
         self.assertIn("Invalid input", body)
         self.assertIn("Ethiopia Yirgacheffe", body)  # other fields preserved
         self.assertEqual(self.records, {})
+
+    def test_post_saves_optional_bean_metadata(self):
+        data = self.valid_form_data()
+        data["bean_origin"] = "Ethiopia"
+        data["bean_variety"] = "Heirloom"
+        data["bean_process"] = "Washed"
+        self.client.post("/roasts/new/profile-1", data=data)
+        (record,) = self.records.values()
+        self.assertEqual(record["bean_origin"], "Ethiopia")
+        self.assertEqual(record["bean_variety"], "Heirloom")
+        self.assertEqual(record["bean_process"], "Washed")
+
+    def test_post_without_bean_metadata_saves_empty_strings(self):
+        self.client.post("/roasts/new/profile-1", data=self.valid_form_data())
+        (record,) = self.records.values()
+        self.assertEqual(record["bean_origin"], "")
+        self.assertEqual(record["bean_variety"], "")
+        self.assertEqual(record["bean_process"], "")
+
+
+class TestCuppingNotes(unittest.TestCase):
+    def setUp(self):
+        self.records = {
+            "record-1": {
+                "date": "09/07/2026",
+                "bean_name": "Mysore Nuggets",
+                "green_weight": 202.3,
+                "finished_weight": 175.2,
+                "total_roast_time": 450,
+                "time_of_first_crack": 375,
+                "roast_profile_id": "profile-1",
+                "target_temps": [320] * 12,
+                "actual_temps": [320] * 12,
+                "owner": OWNER_EMAIL,
+            }
+        }
+        self.records_patcher = mock.patch.object(app, "roast_records", self.records)
+        self.save_patcher = mock.patch.object(app, "save_roast_records")
+        self.records_patcher.start()
+        self.save_patcher.start()
+        self.client = app.app.test_client()
+        login(self.client)
+
+    def tearDown(self):
+        self.records_patcher.stop()
+        self.save_patcher.stop()
+
+    def test_saves_notes_and_rating_and_redirects(self):
+        response = self.client.post(
+            "/roasts/record-1/cupping",
+            data={"cupping_notes": "Bright, floral, tea-like", "cupping_rating": "4"},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], "/roasts/record-1")
+        self.assertEqual(
+            self.records["record-1"]["cupping_notes"], "Bright, floral, tea-like"
+        )
+        self.assertEqual(self.records["record-1"]["cupping_rating"], 4)
+        app.save_roast_records.assert_called_once_with(self.records)
+
+    def test_rating_is_optional(self):
+        self.client.post(
+            "/roasts/record-1/cupping", data={"cupping_notes": "Needs more time"}
+        )
+        self.assertEqual(self.records["record-1"]["cupping_notes"], "Needs more time")
+        self.assertIsNone(self.records["record-1"]["cupping_rating"])
+
+    def test_out_of_range_rating_rejected(self):
+        response = self.client.post(
+            "/roasts/record-1/cupping",
+            data={"cupping_notes": "x", "cupping_rating": "9"},
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_non_numeric_rating_rejected(self):
+        response = self.client.post(
+            "/roasts/record-1/cupping",
+            data={"cupping_notes": "x", "cupping_rating": "great"},
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_missing_record_returns_404(self):
+        response = self.client.post(
+            "/roasts/does-not-exist/cupping", data={"cupping_notes": "x"}
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_other_owners_record_returns_404(self):
+        self.records["record-1"]["owner"] = "other@example.com"
+        response = self.client.post(
+            "/roasts/record-1/cupping", data={"cupping_notes": "x"}
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_roast_detail_shows_saved_cupping_notes(self):
+        self.records["record-1"]["cupping_notes"] = "Bright, floral"
+        self.records["record-1"]["cupping_rating"] = 4
+        response = self.client.get("/roasts/record-1")
+        body = response.get_data(as_text=True)
+        self.assertIn("Bright, floral", body)
 
 
 class TestListProfiles(unittest.TestCase):

@@ -13,7 +13,8 @@ This SPEC describes the full target feature set, carried forward from coffeeroas
 - **Phase 5**: Home page becomes a main menu (Add roast / View roasts / View and edit roast profiles as buttons), mirroring coffeeroaster03's `MainScreen`. The roast records table moves to its own `/roasts` route.
 - **Phase 6**: Deploy to PythonAnywhere.
 - **Phase 7**: User accounts. Each account has its own private roast records and profiles — the earlier "no authentication" decision applied while this was a purely local, single-user tool; it no longer holds once the app is reachable on the open internet.
-- **Phase 8 (current)**: About page. Static project description plus a feedback form that emails the site owner directly — no user-visible email address, no new external service.
+- **Phase 8**: About page. Static project description plus a feedback form that emails the site owner directly — no user-visible email address, no new external service.
+- **Phase 9 (current)**: Roast intelligence & data tools. Surfaces calculated roast quality metrics that already had the underlying data, plus search/sort, CSV export, a live first-crack marking shortcut, and richer per-roast metadata (bean origin/variety/process, post-roast cupping notes).
 
 ## Requirements
 The code shall have a separate module for calculations (`calculations.py`, carried forward from coffeeroaster03 unchanged).
@@ -178,6 +179,31 @@ On success, redirect to `/about?sent=1` and show a confirmation in place of the 
 ### Constraints
 No new external service or dependency — reuses the outbound SMTP path already built for Phase 7 email.
 
+## Roast Intelligence & Data Tools **(Phase 9)**
+
+### Requirements
+The roast detail page shall display each roast's weight loss %, roast classification, development time, and development time ratio (DTR% = development time / total roast time × 100) — these were already calculated for the `/roasts` list view but not surfaced on the roast's own detail page.
+The roast detail page's chart shall include a Rate of Rise (RoR) series — the °F-per-minute delta between consecutive whole-minute actual temperature readings — plotted against a second y-axis alongside the existing actual/target temperature lines.
+`/roasts` shall offer a text search (matching bean name, profile name, or date) and click-to-sort table headers, applied client-side against the already-rendered table (no new server round-trip).
+`/roasts` shall offer a CSV export of the current account's own roast records, using the same columns/order as `ROAST_TABLE_COLUMNS`.
+The Add Roast live timer shall offer a "Mark first crack now" button that fills the first-crack field with the current elapsed time, as an alternative to typing it in after the fact.
+The Add Roast form shall collect optional bean origin, variety, and process fields alongside bean name.
+The roast detail page shall offer a form to record cupping notes (free text) and a cupping rating for a saved roast, submittable and re-editable independently of the roast record itself, since tasting happens after roasting is complete, not during the Add Roast submission.
+
+### Constraints
+No new external dependency: CSV export uses the standard-library `csv` module; search/sort is plain JS, no client-side library.
+The `/roasts` list table's columns are unchanged — bean origin/variety/process and cupping notes/rating are shown on the roast detail page only, not added to `ROAST_TABLE_COLUMNS`.
+Cupping notes/rating are optional and have no bearing on any existing calculation (weight loss, DTR, classification).
+
+## Deferred Ideas
+
+These were considered and deliberately not scheduled — noted here so they aren't re-proposed as if new, and so a future decision to pursue one is a conscious choice rather than scope creep:
+
+- **Live roast comparison/overlay** — plotting a past roast's actual curve as a background line behind the live Add Roast graph or the roast detail chart (Artisan's "background profile," in miniature). Deferred: real value, but adds meaningful chart/state complexity; revisit once Phase 9's per-roast metrics are in use and it's clear which past roasts are worth comparing against.
+- **Live hardware/thermocouple integration** — reading actual temperature from a roasting machine instead of manual entry. Out of scope: this app is JSON + Flask on PythonAnywhere's free tier, with no path to a persistent serial/Bluetooth connection; this would be a different project.
+- **Roast alerts/notifications** — e.g. an audio cue approaching a predicted first-crack window. Deferred: meaningfully more surface area (Web Audio/Notification APIs) and would need historical first-crack data per profile to predict from.
+- **Photo attachments** on roast records (bean bag, roast color reference). Deferred: requires blob storage, which breaks the "JSON only" constraint below.
+
 ## User Interface
 On startup, after checking the JSON files for corruption, the application shall serve the following pages:
 
@@ -191,6 +217,8 @@ On startup, after checking the JSON files for corruption, the application shall 
 7. Delete a roast record, from its detail page, behind a confirmation step. **(Phase 4, requires login and ownership as of Phase 7)**
 8. Delete a roast profile, from its edit page, behind a confirmation step that notes how many roast records reference it. **(Phase 4, requires login and ownership as of Phase 7)**
 9. `/about` — About: project description and a feedback form, linked from a footer on every page. **(Phase 8)** Stays reachable while logged out.
+10. `/roasts/export` — CSV download of the current account's own roast records, same columns as the `/roasts` table. **(Phase 9, requires login and scoped to the current account)**
+11. `/roasts/<id>/cupping` (POST) — save or update cupping notes/rating on an existing roast, from its detail page. **(Phase 9, requires login and ownership)**
 
 There is no "Exit" action for a web application; the process runs until the server is stopped.
 

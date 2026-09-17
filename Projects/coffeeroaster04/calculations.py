@@ -1,3 +1,6 @@
+from itertools import pairwise
+
+
 def calculate_weight_loss(green_weight, finished_weight):
     if green_weight < 100 or green_weight > 300:
         raise ValueError(
@@ -27,6 +30,22 @@ def resolve_actual_temps(entered_temps, total_roast_time):
     relevant_count = min(len(entered_temps), total_minutes)
     within_roast = fill_forward(entered_temps[:relevant_count])
     return within_roast + [None] * (len(entered_temps) - relevant_count)
+
+
+def calculate_dtr(total_roast_time, development_time):
+    return (development_time / total_roast_time) * 100
+
+
+def calculate_rate_of_rise(temps):
+    if not temps:
+        return []
+    rate_of_rise = [None]
+    for previous, current in pairwise(temps):
+        if previous is None or current is None:
+            rate_of_rise.append(None)
+        else:
+            rate_of_rise.append(current - previous)
+    return rate_of_rise
 
 
 def classify_roast(weight_loss):

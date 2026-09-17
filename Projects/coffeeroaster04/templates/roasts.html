@@ -6,6 +6,7 @@
   <div class="actions">
     <button class="btn btn--primary" onclick="window.location='/roasts/new'">+ Add roast</button>
     <button class="btn" onclick="window.location='/profiles'">View &amp; edit roast profiles</button>
+    <a class="btn" href="/roasts/export">Export CSV</a>
   </div>
   <style>
     .badge {
@@ -21,14 +22,28 @@
     .badge--full-city-plus { background: #9c6a35; color: #fff; }
     .badge--vienna-roast { background: #7a4d24; color: #fff; }
     .badge--italian-roast { background: #4a2e18; color: #fff; }
+    #roast-search { margin: var(--space-3) 0; max-width: 320px; }
+    #roasts-table th[data-type] { cursor: pointer; user-select: none; }
+    #roasts-table th[data-type]:hover { background: #f3ece3; }
+    #roasts-table th[data-type].sorted::after { content: " " attr(data-arrow); }
   </style>
+
+  <input type="text" id="roast-search" placeholder="Search bean, profile, or date&hellip;">
+
   <div class="table-scroll">
-  <table>
+  <table id="roasts-table">
     <thead>
       <tr>
-        {% for column in columns %}
-          <th>{{ column }}</th>
-        {% endfor %}
+        <th data-type="date">Date</th>
+        <th data-type="text">Bean Name</th>
+        <th data-type="text">Roast Profile</th>
+        <th data-type="number">Green (g)</th>
+        <th data-type="number">Finished (g)</th>
+        <th data-type="time">Roast Time</th>
+        <th data-type="time">1st Crack</th>
+        <th data-type="number">Weight Loss (%)</th>
+        <th data-type="time">Dev Time</th>
+        <th data-type="text">Classification</th>
       </tr>
     </thead>
     <tbody>
@@ -49,4 +64,58 @@
     </tbody>
   </table>
   </div>
+
+  <script>
+    (function () {
+      const searchInput = document.getElementById("roast-search");
+      const table = document.getElementById("roasts-table");
+      const tbody = table.tBodies[0];
+      const headers = Array.from(table.querySelectorAll("th[data-type]"));
+
+      searchInput.addEventListener("input", () => {
+        const query = searchInput.value.trim().toLowerCase();
+        Array.from(tbody.rows).forEach((row) => {
+          // Date, Bean Name, Roast Profile are always the first three columns.
+          const haystack = [0, 1, 2]
+            .map((i) => row.cells[i].textContent.toLowerCase())
+            .join(" ");
+          row.hidden = query.length > 0 && !haystack.includes(query);
+        });
+      });
+
+      function sortKey(cellText, type) {
+        if (type === "number") return parseFloat(cellText);
+        if (type === "time") {
+          const [minutes, seconds] = cellText.split(":").map(Number);
+          return minutes * 60 + seconds;
+        }
+        if (type === "date") {
+          const [month, day, year] = cellText.split("/").map(Number);
+          return year * 10000 + month * 100 + day;
+        }
+        return cellText.toLowerCase();
+      }
+
+      headers.forEach((header, index) => {
+        let ascending = true;
+        header.addEventListener("click", () => {
+          const type = header.dataset.type;
+          const rows = Array.from(tbody.rows);
+          rows.sort((a, b) => {
+            const aKey = sortKey(a.cells[index].textContent, type);
+            const bKey = sortKey(b.cells[index].textContent, type);
+            if (aKey < bKey) return ascending ? -1 : 1;
+            if (aKey > bKey) return ascending ? 1 : -1;
+            return 0;
+          });
+          rows.forEach((row) => tbody.appendChild(row));
+
+          headers.forEach((h) => h.classList.remove("sorted"));
+          header.classList.add("sorted");
+          header.dataset.arrow = ascending ? "↑" : "↓";
+          ascending = !ascending;
+        });
+      });
+    })();
+  </script>
 {% endblock %}
