@@ -108,7 +108,7 @@
       color: var(--color-text-muted);
       margin-bottom: var(--space-1);
     }
-    input[type="text"], input[type="password"], input[type="email"] {
+    input[type="text"], input[type="password"], input[type="email"], textarea {
       font-family: inherit;
       font-size: var(--font-size-base);
       padding: 0.5rem 0.7rem;
@@ -117,7 +117,7 @@
       background: var(--color-surface);
       color: var(--color-text);
     }
-    input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus {
+    input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus, textarea:focus {
       outline: 2px solid var(--color-accent);
       outline-offset: 1px;
       border-color: var(--color-accent);
@@ -142,6 +142,8 @@
     .btn--danger { border-color: var(--color-danger); color: var(--color-danger); }
     .btn--danger:hover { background: var(--color-danger-hover); border-color: var(--color-danger-hover); color: #fff; }
     .back-link { margin-bottom: var(--space-3); }
+    .site-footer { margin-top: var(--space-5); padding: var(--space-4); text-align: center; }
+    .site-footer a { color: var(--color-text-muted); font-size: var(--font-size-sm); }
     .actions { display: flex; gap: var(--space-2); margin-bottom: var(--space-3); }
     .menu { display: flex; flex-direction: column; gap: var(--space-2); width: 280px; margin-top: var(--space-4); }
     .menu button { padding: 0.7rem 1rem; font-size: var(--font-size-base); }
@@ -325,5 +327,8 @@
   <div class="page">
     {% block content %}{% endblock %}
   </div>
+  <footer class="site-footer">
+    <a href="/about">About</a>
+  </footer>
 </body>
 </html>

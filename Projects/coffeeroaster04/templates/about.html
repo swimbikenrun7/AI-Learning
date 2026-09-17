@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}About{% endblock %}
+{% block content %}
+  <h1>About Crackle</h1>
+
+  <p>Crackle started as a vibe-coding passion project &mdash; an experiment in building a real, working tool from scratch while learning software engineering along the way.</p>
+
+  <p>Right now, it's built with fresh-roast coffee roasters in mind &mdash; for anyone tracking their own home or small-batch roasts who wants a simple way to log profiles and results as they go.</p>
+
+  <p>Thanks for checking it out! This is very much a work in progress, so if something doesn't work right, or you've got an idea that would make it more useful, I'd genuinely love to hear about it.</p>
+
+  <h2>Send feedback</h2>
+
+  {% if sent %}
+    <p>Thanks &mdash; your message is on its way!</p>
+  {% else %}
+    {% if error %}
+      <p style="color: var(--color-danger);">{{ error }}</p>
+    {% endif %}
+    <form method="post">
+      <p>
+        <label>Message<br>
+          <textarea name="message" rows="5" style="width: 100%; max-width: 480px;">{{ message }}</textarea>
+        </label>
+      </p>
+      <p>
+        <label>Your email (optional, if you'd like a reply)<br>
+          <input type="text" name="reply_to" value="{{ reply_to }}">
+        </label>
+      </p>
+      <button class="btn btn--primary" type="submit">Send feedback</button>
+    </form>
+  {% endif %}
+{% endblock %}

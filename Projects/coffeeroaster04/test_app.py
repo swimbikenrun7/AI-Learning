@@ -1056,5 +1056,43 @@ class TestResetPassword(unittest.TestCase):
         self.assertTrue(check_password_hash(user["password_hash"], "old-password"))
 
 
+class TestAbout(unittest.TestCase):
+    def setUp(self):
+        self.send_email_patcher = mock.patch.object(app, "send_email")
+        self.send_email_patcher.start()
+        self.client = app.app.test_client()
+
+    def tearDown(self):
+        self.send_email_patcher.stop()
+
+    def test_about_page_loads_without_login(self):
+        response = self.client.get("/about")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("vibe-coding", response.get_data(as_text=True))
+
+    def test_about_rejects_empty_message(self):
+        response = self.client.post("/about", data={"message": "   "})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Enter a message", response.get_data(as_text=True))
+        app.send_email.assert_not_called()
+
+    def test_about_sends_feedback_and_redirects(self):
+        response = self.client.post(
+            "/about", data={"message": "Love the app!", "reply_to": "fan@example.com"}
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], "/about?sent=1")
+        app.send_email.assert_called_once()
+        to_address, subject, body = app.send_email.call_args[0]
+        self.assertEqual(to_address, app.GMAIL_ADDRESS)
+        self.assertIn("Crackle feedback", subject)
+        self.assertIn("Love the app!", body)
+        self.assertIn("fan@example.com", body)
+
+    def test_about_shows_thank_you_after_sent(self):
+        response = self.client.get("/about?sent=1")
+        self.assertIn("on its way", response.get_data(as_text=True))
+
+
 if __name__ == "__main__":
     unittest.main()

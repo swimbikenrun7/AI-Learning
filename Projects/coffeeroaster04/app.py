@@ -16,7 +16,7 @@ from data_persistence import (
     save_roast_records,
     save_users,
 )
-from email_sender import send_email
+from email_sender import GMAIL_ADDRESS, send_email
 from validators import (
     validate_bean_name,
     validate_date,
@@ -277,6 +277,33 @@ def reset_password(token):
 @app.route("/")
 def home():
     return render_template("home.html")
+
+
+@app.route("/about", methods=["GET", "POST"])
+def about():
+    message = ""
+    reply_to = ""
+    error = None
+
+    if request.method == "POST":
+        message = request.form.get("message", "").strip()
+        reply_to = request.form.get("reply_to", "").strip()
+        if not message:
+            error = "Enter a message before sending."
+        else:
+            body = message
+            if reply_to:
+                body += f"\n\n-- from: {reply_to}"
+            send_email(GMAIL_ADDRESS, "Crackle feedback", body)
+            return redirect(url_for("about", sent="1"))
+
+    return render_template(
+        "about.html",
+        message=message,
+        reply_to=reply_to,
+        error=error,
+        sent=request.args.get("sent") == "1",
+    )
 
 
 @app.route("/roasts")

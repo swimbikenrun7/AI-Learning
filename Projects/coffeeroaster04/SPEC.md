@@ -12,7 +12,8 @@ This SPEC describes the full target feature set, carried forward from coffeeroas
 - **Phase 4**: Delete roast records and delete roast profiles. This did not exist in coffeeroaster03 (which had no delete for either) — it is new scope for this mission, not something carried forward.
 - **Phase 5**: Home page becomes a main menu (Add roast / View roasts / View and edit roast profiles as buttons), mirroring coffeeroaster03's `MainScreen`. The roast records table moves to its own `/roasts` route.
 - **Phase 6**: Deploy to PythonAnywhere.
-- **Phase 7 (current)**: User accounts. Each account has its own private roast records and profiles — the earlier "no authentication" decision applied while this was a purely local, single-user tool; it no longer holds once the app is reachable on the open internet.
+- **Phase 7**: User accounts. Each account has its own private roast records and profiles — the earlier "no authentication" decision applied while this was a purely local, single-user tool; it no longer holds once the app is reachable on the open internet.
+- **Phase 8 (current)**: About page. Static project description plus a feedback form that emails the site owner directly — no user-visible email address, no new external service.
 
 ## Requirements
 The code shall have a separate module for calculations (`calculations.py`, carried forward from coffeeroaster03 unchanged).
@@ -164,6 +165,19 @@ No password-complexity rules beyond a minimum length — deliberately sparse for
 Session state is Flask's built-in signed-cookie session — no server-side session store, no new dependency.
 Verification/reset emails are sent via Gmail SMTP through the standard-library `smtplib` (`email_sender.py`) — no new Python dependency, and the one outbound SMTP host PythonAnywhere's free tier allowlists. If `GMAIL_ADDRESS`/`GMAIL_APP_PASSWORD` aren't configured in the environment, the email is printed to the server log instead of sent, so the flow stays usable in local development without real credentials.
 
+## About / Feedback **(Phase 8)**
+
+### Requirements
+`/about` shall describe the project (currently: a vibe-coding passion project, presently intended for fresh-roast coffee roaster users) and offer a feedback form (message, plus an optional reply-to email).
+Submitting the form shall email the site owner via the existing Gmail SMTP integration (`email_sender.py`) — the same account already configured for verification/reset emails.
+No email address shall be displayed to users anywhere on the page or in the page source.
+The message field is required; an empty submission shall redisplay the form with an explanatory error and the reply-to value preserved.
+On success, redirect to `/about?sent=1` and show a confirmation in place of the form.
+`/about` stays reachable while logged out, mirroring the home page.
+
+### Constraints
+No new external service or dependency — reuses the outbound SMTP path already built for Phase 7 email.
+
 ## User Interface
 On startup, after checking the JSON files for corruption, the application shall serve the following pages:
 
@@ -176,6 +190,7 @@ On startup, after checking the JSON files for corruption, the application shall 
 6. View and edit roast profiles — add a new profile, or view/edit existing ones. **(Phase 3, requires login and ownership as of Phase 7)**
 7. Delete a roast record, from its detail page, behind a confirmation step. **(Phase 4, requires login and ownership as of Phase 7)**
 8. Delete a roast profile, from its edit page, behind a confirmation step that notes how many roast records reference it. **(Phase 4, requires login and ownership as of Phase 7)**
+9. `/about` — About: project description and a feedback form, linked from a footer on every page. **(Phase 8)** Stays reachable while logged out.
 
 There is no "Exit" action for a web application; the process runs until the server is stopped.
 
