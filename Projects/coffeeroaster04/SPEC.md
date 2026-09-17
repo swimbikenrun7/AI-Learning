@@ -1,4 +1,4 @@
-# Coffee Roast Logger Specification (Web UI)
+# Crackle Specification (Web UI)
 
 ## Purpose
 Record coffee roasting sessions and calculate basic roast metrics in Python, presented through a browser-based UI instead of a terminal UI. This is an independent iteration of the coffeeroaster exercise (see coffeeroaster01-03); it carries forward the calculation and persistence logic from coffeeroaster03 and replaces only the UI layer.

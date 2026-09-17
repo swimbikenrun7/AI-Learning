@@ -136,7 +136,7 @@ def signup():
             save_users(users)
             send_email(
                 email,
-                "Verify your email - Coffee Roast Logger",
+                "Verify your email - Crackle",
                 "Click to verify your email: "
                 + url_for("verify_email", token=verify_token, _external=True),
             )
@@ -213,7 +213,7 @@ def resend_verification():
     save_users(users)
     send_email(
         email,
-        "Verify your email - Coffee Roast Logger",
+        "Verify your email - Crackle",
         "Click to verify your email: "
         + url_for("verify_email", token=verify_token, _external=True),
     )
@@ -236,7 +236,7 @@ def forgot_password():
             save_users(users)
             send_email(
                 email,
-                "Reset your password - Coffee Roast Logger",
+                "Reset your password - Crackle",
                 "Click to reset your password: "
                 + url_for("reset_password", token=reset_token, _external=True),
             )
