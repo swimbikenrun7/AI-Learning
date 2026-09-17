@@ -8,6 +8,52 @@
     <p style="color: var(--color-danger);">{{ error }}</p>
   {% endif %}
 
+  {% if not profile_id %}
+    <p>
+      <button type="button" id="wizard-toggle" class="btn btn--ghost">Want some help? Try the profile wizard &rarr;</button>
+    </p>
+
+    <div id="wizard-panel" hidden>
+      <p>Tell the wizard a bit about your beans and roast goal, and it'll fill in a starting curve below &mdash; based on typical Maillard/development pacing and development-time-ratio guidance for each roast level. Review and adjust every value before saving; every roaster runs a little differently.</p>
+      <p>
+        <label>Bean density<br>
+          <select id="wizard-density">
+            <option value="low">Low (lowland / lower altitude)</option>
+            <option value="medium" selected>Medium (typical)</option>
+            <option value="high">High (high-altitude / dense)</option>
+          </select>
+        </label>
+      </p>
+      <p>
+        <label>Process<br>
+          <select id="wizard-process">
+            <option value="washed" selected>Washed</option>
+            <option value="natural">Natural / honey</option>
+          </select>
+        </label>
+      </p>
+      <p>
+        <label>Desired roast level<br>
+          <select id="wizard-roast-level">
+            <option value="City Roast">City Roast (light)</option>
+            <option value="City Plus">City Plus</option>
+            <option value="Full City" selected>Full City (medium)</option>
+            <option value="Full City Plus">Full City Plus</option>
+            <option value="Vienna Roast">Vienna Roast</option>
+            <option value="Italian Roast">Italian Roast (dark)</option>
+          </select>
+        </label>
+      </p>
+      <p>
+        <label>Your typical first crack temperature (&deg;F)<br>
+          <input type="number" id="wizard-fc-temp" value="400" min="300" max="480" step="1">
+        </label>
+        <br><small>This varies by roaster and probe placement &mdash; use what you usually observe on your own machine, not a generic number.</small>
+      </p>
+      <button type="button" id="wizard-generate-btn" class="btn btn--primary">Generate profile</button>
+    </div>
+  {% endif %}
+
   <form method="post">
     <p>
       <label>Profile name<br>
@@ -47,5 +93,126 @@
     <div class="actions">
       <button class="btn btn--danger" onclick="window.location='/profiles/{{ profile_id }}/delete'">Delete this profile</button>
     </div>
+  {% endif %}
+
+  {% if not profile_id %}
+    <script>
+      (function () {
+        document.getElementById("wizard-toggle").addEventListener("click", () => {
+          const panel = document.getElementById("wizard-panel");
+          panel.hidden = !panel.hidden;
+        });
+
+        // Roast-level targets use the same six-tier vocabulary as
+        // calculations.py's classify_roast, so the wizard speaks the same
+        // language as the rest of the app. Drop temps and development
+        // time ratios (DTR = development time / total time) are typical
+        // published ranges per style, not a single canonical source -
+        // see SPEC.md's Profile Wizard section for the sourcing note.
+        const ROAST_LEVEL_TARGETS = {
+          "City Roast": { dropTemp: 397, dtr: 0.16 },
+          "City Plus": { dropTemp: 407, dtr: 0.18 },
+          "Full City": { dropTemp: 417, dtr: 0.21 },
+          "Full City Plus": { dropTemp: 427, dtr: 0.24 },
+          "Vienna Roast": { dropTemp: 437, dtr: 0.27 },
+          "Italian Roast": { dropTemp: 452, dtr: 0.31 },
+        };
+
+        // Blended °F/minute pace through the Maillard phase (profile
+        // minute 1 to first crack). Denser, higher-altitude beans
+        // conventionally take a gentler pace; naturally processed beans
+        // (sugar-coated parchment) a touch gentler still, to avoid
+        // scorching/tipping.
+        const MAILLARD_PACE = { low: 16, medium: 13, high: 11 };
+        const NATURAL_PACE_ADJUST = -1;
+
+        // The profile grid starts at minute 1, not at charge: the live
+        // Add Roast graph already models the steep charge-to-drying ramp
+        // (145°F start, 270°F by 30s) outside the saved profile, so by
+        // minute 1 a roast is already just past drying and into early
+        // Maillard - see add_roast.html's START_TEMP/INFLECTION constants.
+        const PROFILE_START_TEMP = 315;
+
+        function clamp(value, min, max) {
+          return Math.min(max, Math.max(min, value));
+        }
+
+        // Spreads a phase's total temperature rise across its minutes
+        // with a larger share up front and a smaller share at the end,
+        // so the rate of rise steadily declines within the phase instead
+        // of staying flat or spiking - the "no crash, no flick" guidance
+        // (a flat/rising RoR risks baked or ashy flavor). Used for the
+        // Maillard phase, which typically has enough minutes for this
+        // shape to matter.
+        function decelerate(startTemp, endTemp, steps) {
+          const totalRise = endTemp - startTemp;
+          const weights = [];
+          for (let i = 0; i < steps; i++) weights.push(steps - i);
+          const weightSum = weights.reduce((a, b) => a + b, 0);
+          const temps = [];
+          let current = startTemp;
+          for (let i = 0; i < steps; i++) {
+            current += (totalRise * weights[i]) / weightSum;
+            temps.push(Math.round(current));
+          }
+          return temps;
+        }
+
+        // The development phase is usually only 1-3 minutes on this
+        // 12-point grid, too short for its own front-loaded deceleration
+        // to mean anything - applying one independently just relocates
+        // the "flick" discontinuity to wherever the phase's own steps
+        // happen to land. An even pace is simpler and, given development
+        // is already the gentler tail of the curve by construction (its
+        // average pace comes out well below Maillard's - see the DTR
+        // math above), doesn't reintroduce the problem it's avoiding.
+        function evenSteps(startTemp, endTemp, steps) {
+          const totalRise = endTemp - startTemp;
+          const temps = [];
+          let current = startTemp;
+          for (let i = 0; i < steps; i++) {
+            current += totalRise / steps;
+            temps.push(Math.round(current));
+          }
+          return temps;
+        }
+
+        document.getElementById("wizard-generate-btn").addEventListener("click", () => {
+          const density = document.getElementById("wizard-density").value;
+          const process = document.getElementById("wizard-process").value;
+          const roastLevel = document.getElementById("wizard-roast-level").value;
+          const fcTemp = Number(document.getElementById("wizard-fc-temp").value);
+
+          const maillardPace =
+            MAILLARD_PACE[density] + (process === "natural" ? NATURAL_PACE_ADJUST : 0);
+          const fcMinute = clamp(
+            Math.round(1 + (fcTemp - PROFILE_START_TEMP) / maillardPace),
+            2,
+            9
+          );
+
+          const { dropTemp, dtr } = ROAST_LEVEL_TARGETS[roastLevel];
+          const developmentMinutes = clamp(
+            Math.round((fcMinute * dtr) / (1 - dtr)),
+            1,
+            12 - fcMinute
+          );
+          const endMinute = Math.min(12, fcMinute + developmentMinutes);
+
+          const temps = new Array(12).fill("");
+          temps[0] = PROFILE_START_TEMP;
+          decelerate(PROFILE_START_TEMP, fcTemp, fcMinute - 1).forEach((temp, i) => {
+            temps[1 + i] = temp;
+          });
+          evenSteps(fcTemp, dropTemp, endMinute - fcMinute).forEach((temp, i) => {
+            temps[fcMinute + i] = temp;
+          });
+
+          for (let minute = 1; minute <= 12; minute++) {
+            document.querySelector(`[name="temp_${minute}"]`).value = temps[minute - 1];
+          }
+        });
+      })();
+    </script>
   {% endif %}
 {% endblock %}

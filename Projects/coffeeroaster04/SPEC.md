@@ -14,7 +14,8 @@ This SPEC describes the full target feature set, carried forward from coffeeroas
 - **Phase 6**: Deploy to PythonAnywhere.
 - **Phase 7**: User accounts. Each account has its own private roast records and profiles — the earlier "no authentication" decision applied while this was a purely local, single-user tool; it no longer holds once the app is reachable on the open internet.
 - **Phase 8**: About page. Static project description plus a feedback form that emails the site owner directly — no user-visible email address, no new external service.
-- **Phase 9 (current)**: Roast intelligence & data tools. Surfaces calculated roast quality metrics that already had the underlying data, plus search/sort, CSV export, a live first-crack marking shortcut, and richer per-roast metadata (bean origin/variety/process, post-roast cupping notes).
+- **Phase 9**: Roast intelligence & data tools. Surfaces calculated roast quality metrics that already had the underlying data, plus search/sort, CSV export, a live first-crack marking shortcut, and richer per-roast metadata (bean origin/variety/process, post-roast cupping notes).
+- **Phase 10 (current)**: Roast profile wizard. An opt-in helper on the Add roast profile page that recommends a starting target-temperature curve from bean characteristics, desired roast level, and the user's own observed first-crack temperature, which the user can then edit before saving.
 
 ## Requirements
 The code shall have a separate module for calculations (`calculations.py`, carried forward from coffeeroaster03 unchanged).
@@ -121,6 +122,18 @@ A profile's (or a roast's actual) temperature at any interval beyond the last ex
 ### Delete **(Phase 4)**
 A roast profile may be deleted, with a confirmation step first.
 Deleting a profile that past roast records reference shall not alter those records' stored `target_temps` snapshot or any other field (they hold their own copy at save time, not a live reference — see Constraints above). Such records shall continue to display normally, showing no profile name for the now-missing reference (same behavior as a record whose profile was never set).
+
+### Profile Wizard **(Phase 10)**
+The Add roast profile page (new profiles only, not the edit form) shall offer an opt-in "Want some help?" wizard that, given bean density, process (washed/natural), desired roast level, and the user's own typically-observed first-crack temperature, fills the 12 target-temperature fields with a recommended starting curve. The user may review and edit every generated value, or ignore the wizard entirely, before saving.
+The wizard's roast-level options shall use the same six-tier vocabulary as `classify_roast` in `calculations.py` (City Roast through Italian Roast), so a recommended curve and the eventual weight-loss-based classification of a roast made from it speak the same language, even though they're computed from unrelated inputs (temperature curve vs. actual weight loss).
+The wizard shall ask for the user's own first-crack temperature rather than assuming one, since it varies meaningfully by roaster model and probe placement.
+The generated curve is only two phases within the 12-point grid (minute 1 to first crack, then first crack to drop): the steep charge-to-drying ramp is already modeled outside the saved profile, by the live Add Roast graph's fixed 145°F start / 270°F-at-30s spline anchor (see `add_roast.html`), so a profile's own minute-1 value already starts just past drying, in early Maillard.
+Each phase's minute-by-minute values shall decelerate (a larger share of that phase's temperature rise in its earlier minutes, a smaller share later) rather than rise linearly or spike, consistent with published guidance that a flat or rising rate of rise risks a "crash and flick" (baked or ashy flavor) — see Artisan's and Scott Rao's documented rate-of-rise guidance.
+Minutes after the computed drop minute shall be left blank, relying on the existing carry-forward domain rule rather than duplicating the drop temperature into every remaining field.
+
+### Constraints
+No new dependency and no server round-trip: the wizard is client-side JS on the profile form page, reading its own inputs and writing directly into the existing `temp_1`–`temp_12` fields; nothing about the wizard's inputs is persisted.
+Per-tier drop temperature and development time ratio (DTR = development time ⁄ total time) targets are approximate, drawn from commonly published roasting guidance (e.g. light roasts around a 15–18% DTR dropping near 395–400°F, dark roasts around a 28–31% DTR dropping near 450°F+) rather than a single canonical source, since practice varies by roaster and roaster community; they're a starting point, not a guarantee.
 
 ## Calculations
 
