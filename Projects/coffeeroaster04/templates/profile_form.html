@@ -117,28 +117,35 @@
 
         // Roast-level DTRs use the same six-tier vocabulary as
         // calculations.py's classify_roast, so the wizard speaks the same
-        // language as the rest of the app. Development time ratios (DTR =
-        // development time / total time) are typical published ranges per
-        // style, not a single canonical source - see SPEC.md's Profile
-        // Wizard section for the sourcing note. Unlike an absolute drop
-        // temperature, a ratio has no scale-mismatch problem against the
-        // user's own observed first-crack temperature.
+        // language as the rest of the app. Scaled from a real logged Fresh
+        // Roast result (medium density, washed: 1:10 development time off a
+        // 6:15 first crack landed at Full City, i.e. ~15.7% DTR) by the
+        // same factor across all six tiers, preserving the relative
+        // progression of a commonly published drum-roaster DTR table
+        // (light ~16%, dark ~31%) while anchoring the absolute scale to
+        // this machine - see SPEC.md's Profile Wizard section.
         const ROAST_LEVEL_DTR = {
-          "City Roast": 0.16,
-          "City Plus": 0.18,
-          "Full City": 0.21,
-          "Full City Plus": 0.24,
-          "Vienna Roast": 0.27,
-          "Italian Roast": 0.31,
+          "City Roast": 0.12,
+          "City Plus": 0.13,
+          "Full City": 0.16,
+          "Full City Plus": 0.18,
+          "Vienna Roast": 0.2,
+          "Italian Roast": 0.23,
         };
 
         // Blended °F/minute pace through the Maillard phase (profile
         // minute 1 to first crack). Denser, higher-altitude beans
         // conventionally take a gentler pace; naturally processed beans
         // (sugar-coated parchment) a touch gentler still, to avoid
-        // scorching/tipping.
-        const MAILLARD_PACE = { low: 16, medium: 13, high: 11 };
-        const NATURAL_PACE_ADJUST = -1;
+        // scorching/tipping. Scaled up from generic/drum-roaster-derived
+        // values (which produced first-crack estimates around 8-9 minutes,
+        // clearly too slow for this machine - see SPEC.md) by the factor
+        // needed to land medium/washed at a 6:15 first crack at the
+        // wizard's default 400°F entry, the one real Fresh Roast data
+        // point available; the same factor is applied to low/high and to
+        // the natural adjustment to preserve their relative pacing.
+        const MAILLARD_PACE = { low: 19.9, medium: 16.2, high: 13.7 };
+        const NATURAL_PACE_ADJUST = -1.25;
 
         // The profile grid starts at minute 1, not at charge: the live
         // Add Roast graph already models the steep charge-to-drying ramp
@@ -188,17 +195,19 @@
 
           const maillardPace =
             MAILLARD_PACE[density] + (process === "natural" ? NATURAL_PACE_ADJUST : 0);
-          const fcMinute = clamp(
-            Math.round(1 + (fcTemp - PROFILE_START_TEMP) / maillardPace),
-            2,
-            9
-          );
+          // Precise (sub-minute) estimate, used for the displayed target
+          // first-crack/development-time fields and the DTR math below.
+          const fcMinuteExact = 1 + (fcTemp - PROFILE_START_TEMP) / maillardPace;
+          const fcSeconds = Math.round(fcMinuteExact * 60);
+          // Whole-minute grid index (the profile's 12-point grid has no
+          // sub-minute granularity - see SPEC.md's domain rules), used only
+          // to place the Maillard curve's temp-grid points.
+          const fcMinute = clamp(Math.round(fcMinuteExact), 2, 9);
 
           // The temp curve only models Maillard (minute 1 to first crack);
           // what happens after is a target development *time*, not a target
           // temperature - see SPEC.md's Profile Wizard section.
           const dtr = ROAST_LEVEL_DTR[roastLevel];
-          const fcSeconds = fcMinute * 60;
           const developmentSeconds = Math.round((fcSeconds * dtr) / (1 - dtr));
 
           const temps = new Array(12).fill("");
