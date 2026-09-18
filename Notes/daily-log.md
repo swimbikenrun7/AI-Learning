@@ -1230,7 +1230,7 @@ For now it takes it as a parameter because I haven't built a location module and
 
 3. The result type
 You chose what a limit check returns. Name one thing you can do with your chosen type that a bare `bool` would have made impossible, and be specific about where in the eventual application it matters.
-I wrote the limit checks as booleans, asserting result is True for the case of 13 panels and result is False for the case of 14 panels. I also wrote a separate check directly verifying the calculated output for maximum string voltage. Really all I care about for now is the boolean, but I want to verify the actual voltage is calculated correctly because I can always add something such as a helpful error later which displays the calculated voltage against the checked voltage for the user's information. The specific string voltage will be required for the permit package as well, so need to verify it's being calculated correctly at this stage.
+I wrote the limit checks as booleans, asserting result is True for the case of 13 panels and result is False for the case of 14 panels. I also wrote a separate check directly verifying the calculated output for maximum string voltage. Really all I care about for now is the boolean, but I want to verify the actual voltage is calculated correctly because I can always add O7Cq8zqtLH8Hfesomething such as a helpful error later which displays the calculated voltage against the checked voltage for the user's information. The specific string voltage will be required for the permit package as well, so need to verify it's being calculated correctly at this stage.
 	- Grade: C+
 	Refinement: I need a results.py eventually to store the required values that I allude to.
 
@@ -1263,5 +1263,48 @@ Still learning a lot of structure and syntax. Some of the organization is in rev
 ## Confusing
 Syntax, always syntax.
 
-## Next step
+## Next Step
 Mission 1.4
+
+# 2026-09-18
+
+## Accomplished
+Completed the calculations required for mission 1.4. It was a slog, but it's done.
+
+## Mission 1.4 Notes
+
+### Challenge Questions
+1. The prediction: Quantify the gap. Did research preclude the failure mode you described in 1.2, or not? Answer the question you asked me, with your own evidence.
+I had to scroll back through notes to confirm: the reference here is specifically on including data fields that are not relevant to the calculation. I posited that proper research should preclude this, and at least through this mission I confirm that that's the case. Because I am researching the code and the required calculations, I'm only populating the variables that I need to perform the calculations. As long as the work proceeds this way, I do think it's reasonable to expect the data model to be limited to only what is necessary. Now the counter-argument to this approach comes to mind, how expensive is a few bits of data storage for unused data? is it worth the effort of parsing out 2/3 of the variables to limit the database size, when a future calculation need may cause you to need to update the database to add back the value? If this were a code like ASME Section II-D I could see the issue clearly as there are literally thousands of pages of table data for different materials. At least from what I have observed of the NEC, the material options are much more limited. The right scarcity may be only adding particular tables as they are needed, but not going to the trouble of trimming data out of the tables. I definitely would not advocate creating a comprehensive directory of all NEC tables.
+	- Grade: A-
+	Refinement: The diff exercise proved that defining the tables and datafields before doing the research would not only lead to excess information, but in this case would have missed key data. Doing the research confirmed my prediction from 1.2, that the act of doing proper research would right-size the data population.
+
+2. Composition: Your calculation applied more than one correction. State the order and why it's that order. Then describe what a plausible wrong order would produce — a wrong number, or an error?
+I believe this is in regard to calculating the design current (1.25x) then per 690.8(B)(1) and (2) computing the second 1.25x value and the computed temperature-adjusted ampacity, where both must pass for a given conductor. It's done in that order because the design current does not change, and the 25% margin is a common approach to design current across the code. Also, that 1.25x design current is used as a reference in other calculations. The two subsequent "correction" factor calculations are particular to verifying conductor ampacity. Calculating in the reverse order (conductor ampacity adjustment followed by the design margin) wouldn't necessarily cause an issue, but would require more calculation. If applied the way the code is written, the intermediate value of design current can be calculated once and used for any calculation requiring design current. Reversing the order requires you to perform an extra calculation for n-1 instances.
+	- Grade: A-
+
+3. What governs: Name the limit that governed your result and the margin to the next one. If a future design change moved the governing limit, which would take over?
+I conservatively estimated a worst-case scenario with the conduit lying directly on the roof (<3/4") which required a 33 degC increase to the ambient temperature used for 690.8(B)(2) calculation, and it passed. The margin to (B)(1) was still very high. I didn't want to read any spoilers so didn't read the full mission before calculating (e.g. the research portion), so I went ahead and added some calculations that were later called as out-of-scope, including voltage drop. If one of the components were to fail, the current approach I wrote in the calculation is to upsize a conductor - but if it is specifically failing the (B)(2) test then the first thing I would consider is whether the 33 degC factor can be eliminated by elevating a condut run above the roof level. This sort of if: then optimization would be beneficial sophistication later in development I think, not strictly necessary at this moment. Upsizing a conductor is all-around better for performance (decreased resistance), just more expensive.
+	- Grade: C
+	Refinement: Claude wanted numbers, I don't see the purpose, the qualitative answer is what we're after here not a number. Additionally Claude apparently wanted terminal data (which was calculated in the mission and checked) but did not ask for it in the question and was not happy that I did not reference it even though it was not near on margin. I disagree with this grading.
+
+4. Tables as data: You decided where tables live and how they're keyed. Argue the case for the option you rejected. Under what conditions would it have been the better choice?
+I decided to create a JSON file for each relevant code year. The alternate suggested was to incorporate the tables in limits.py. Including all tables in limits.py limits the number of files needed in the system, and the limits are already a place where "fixed" data comes from, so it's a logical fit. Where it falls short, though, is that the file would have to be constantly changed and audited as new code years are produced and it would quickly grow quite large and complicated. The structure I've chosen makes it much cleaner to just drop in a new JSON file once a new code year is introduced or a new code requirement is added and the data has been verified. In a less complicated application, where new requirements would not be constantly expected over time, or where otherwise the values would be reasonable expected to be stable, then storing everything in limits.py would be a reasonable choice.
+	- Grade: A-
+
+5. Edition: Describe concretely what you would have to do, in your chosen structure, to answer: "what does this design look like under the 2026 NEC?" If the answer is "re-enter everything," say so.
+When the hand calculations are translated into an actual calculation file, there will need to be a "code year" layer which directs to the appropriate NEC JSON file for fetching values. But that is the only thing that would change for now. A more interesting problem would be if in the future the calculation methods are changed. Then the code years will have to be grouped together into families with different calculations belonging to those different family groupings. My past experience in ASME Section VIII BPVC exposed me to this - the calculation programs had you select a code year first for this reason, so it could query the right data for the code calculations for that set of code years. There were some code year cliffs where, say, from 1965 to 1968, the code substantially changed and the calculations would be incompatible. A scheme will need to be thought of down the road if such a thing happens with the governing NEC codes for this tool, because adoption will not be universal and the tool will have to be able to dance on both sides of the calculation change.
+	- Grade: A
+
+6. Transcription risk: You transcribed table values by hand. That's a manual data entry step inside a safety calculation. How would you verify the transcription is correct — and is that a test, a review, or something else?
+For now it's a review because it's all hand-written. I'm used to this approach from engineering, though my preference would be to have a peer review. The key for this app will be setting up an agent to transcribe the code tables, performing its own check. Then I would want to pass that output to an independent agent to check its work before passing on to me for final review and approval. The table values do follow clear patterns/datashapes, so I think some reasonable evaluation tools could be setup to identify outlier values for further scrutiny/correction. The tables only need to be done once up front, then every few years if/when code editions update values, so it's not a high frequency task, but is high consequence if a transcription error occurs. It's worth the time doing a manual verification.
+	- Grade: B+
+	Refinement: Correctly identified as review rather than test, but two agents performing an independent review still can make correlated errors. I correctly identify a true independent check solution: a script that verifies data shape and transposition/misalignment will be a necessary and great help for validating table data.
+
+## Learned
+Learned a lot about NEC code and the associated calcs.
+
+## Confusing
+
+## Next Step
+Mission 1.5
