@@ -71,6 +71,28 @@ def validate_profile_name(name):
     return name
 
 
+def validate_target_first_crack(value_str):
+    if not value_str:
+        return None
+    total_seconds = _parse_mm_ss(value_str)
+    if total_seconds is None or total_seconds < 60 or total_seconds >= 1200:
+        raise ValueError(
+            "Invalid input. Please enter a value in MM:SS format, between 01:00 and 20:00, or leave blank."
+        )
+    return total_seconds
+
+
+def validate_target_development_time(value_str):
+    if not value_str:
+        return None
+    total_seconds = _parse_mm_ss(value_str)
+    if total_seconds is None or total_seconds <= 0 or total_seconds >= 1200:
+        raise ValueError(
+            "Invalid input. Please enter a value in MM:SS format, between 00:01 and 20:00, or leave blank."
+        )
+    return total_seconds
+
+
 def validate_temperature(value_str):
     if not value_str:
         return None

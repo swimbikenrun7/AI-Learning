@@ -144,6 +144,15 @@
           </tbody>
         </table>
 
+        {% if target_first_crack or target_development_time %}
+          <p>
+            <small>
+              {% if target_first_crack %}Target first crack: {{ target_first_crack }}{% endif %}
+              {% if target_first_crack and target_development_time %} &middot; {% endif %}
+              {% if target_development_time %}Target development time: {{ target_development_time }}{% endif %}
+            </small>
+          </p>
+        {% endif %}
         <p>
           <label>Time of first crack (MM:SS)<br>
             <input type="text" id="first-crack-input" name="first_crack" value="{{ values.first_crack }}">

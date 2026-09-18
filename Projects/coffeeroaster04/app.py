@@ -38,6 +38,8 @@ from validators import (
     validate_password,
     validate_profile_name,
     validate_roast_time,
+    validate_target_development_time,
+    validate_target_first_crack,
     validate_temperature,
 )
 
@@ -61,6 +63,11 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY") or secrets.token_hex(32)
 def format_mm_ss(total_seconds):
     minutes, seconds = divmod(total_seconds, 60)
     return f"{minutes}:{seconds:02d}"
+
+
+def format_optional_mm_ss(total_seconds):
+    return format_mm_ss(total_seconds) if total_seconds is not None else ""
+
 
 roast_records = load_roast_records()
 roast_profiles = load_roast_profiles()
@@ -536,12 +543,19 @@ def add_roast(profile_id):
             save_roast_records(roast_records)
             return redirect(url_for("roast_detail", record_id=record_id))
 
+    target_first_crack = format_optional_mm_ss(profile.get("target_first_crack"))
+    target_development_time = format_optional_mm_ss(
+        profile.get("target_development_time")
+    )
+
     return render_template(
         "add_roast.html",
         profile=profile,
         profile_id=profile_id,
         minutes=minutes,
         target_temps=target_temps,
+        target_first_crack=target_first_crack,
+        target_development_time=target_development_time,
         values=values,
         error=error,
     )
@@ -585,6 +599,14 @@ def add_edit_profile(profile_id=None):
     values = {
         "name": existing_profile["name"] if existing_profile else "",
         "temps": ["" if temp is None else str(temp) for temp in existing_temps],
+        "target_first_crack": format_optional_mm_ss(
+            existing_profile.get("target_first_crack") if existing_profile else None
+        ),
+        "target_development_time": format_optional_mm_ss(
+            existing_profile.get("target_development_time")
+            if existing_profile
+            else None
+        ),
     }
     error = None
 
@@ -593,10 +615,20 @@ def add_edit_profile(profile_id=None):
         values["temps"] = [
             request.form.get(f"temp_{minute}", "") for minute in minutes
         ]
+        values["target_first_crack"] = request.form.get("target_first_crack", "")
+        values["target_development_time"] = request.form.get(
+            "target_development_time", ""
+        )
 
         try:
             name = validate_profile_name(values["name"])
             temps = [validate_temperature(value) for value in values["temps"]]
+            target_first_crack = validate_target_first_crack(
+                values["target_first_crack"]
+            )
+            target_development_time = validate_target_development_time(
+                values["target_development_time"]
+            )
         except ValueError as exc:
             error = str(exc)
         else:
@@ -606,6 +638,8 @@ def add_edit_profile(profile_id=None):
             roast_profiles[saved_profile_id] = {
                 "name": name,
                 "temps": temps,
+                "target_first_crack": target_first_crack,
+                "target_development_time": target_development_time,
                 "favorite": favorite,
                 "owner": owner,
             }

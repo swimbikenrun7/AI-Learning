@@ -61,6 +61,18 @@
       </label>
     </p>
 
+    <p>
+      <label>Target first crack (MM:SS)<br>
+        <input type="text" name="target_first_crack" value="{{ values.target_first_crack }}" size="6" placeholder="optional">
+      </label>
+    </p>
+    <p>
+      <label>Target development time (MM:SS)<br>
+        <input type="text" name="target_development_time" value="{{ values.target_development_time }}" size="6" placeholder="optional">
+      </label>
+      <br><small>Fixed reference values, not modeled as a temperature target &mdash; development pace varies too much to pin to a curve.</small>
+    </p>
+
     <table>
       <thead>
         <tr>
@@ -103,19 +115,21 @@
           panel.hidden = !panel.hidden;
         });
 
-        // Roast-level targets use the same six-tier vocabulary as
+        // Roast-level DTRs use the same six-tier vocabulary as
         // calculations.py's classify_roast, so the wizard speaks the same
-        // language as the rest of the app. Drop temps and development
-        // time ratios (DTR = development time / total time) are typical
-        // published ranges per style, not a single canonical source -
-        // see SPEC.md's Profile Wizard section for the sourcing note.
-        const ROAST_LEVEL_TARGETS = {
-          "City Roast": { dropTemp: 397, dtr: 0.16 },
-          "City Plus": { dropTemp: 407, dtr: 0.18 },
-          "Full City": { dropTemp: 417, dtr: 0.21 },
-          "Full City Plus": { dropTemp: 427, dtr: 0.24 },
-          "Vienna Roast": { dropTemp: 437, dtr: 0.27 },
-          "Italian Roast": { dropTemp: 452, dtr: 0.31 },
+        // language as the rest of the app. Development time ratios (DTR =
+        // development time / total time) are typical published ranges per
+        // style, not a single canonical source - see SPEC.md's Profile
+        // Wizard section for the sourcing note. Unlike an absolute drop
+        // temperature, a ratio has no scale-mismatch problem against the
+        // user's own observed first-crack temperature.
+        const ROAST_LEVEL_DTR = {
+          "City Roast": 0.16,
+          "City Plus": 0.18,
+          "Full City": 0.21,
+          "Full City Plus": 0.24,
+          "Vienna Roast": 0.27,
+          "Italian Roast": 0.31,
         };
 
         // Blended °F/minute pace through the Maillard phase (profile
@@ -158,23 +172,12 @@
           return temps;
         }
 
-        // The development phase is usually only 1-3 minutes on this
-        // 12-point grid, too short for its own front-loaded deceleration
-        // to mean anything - applying one independently just relocates
-        // the "flick" discontinuity to wherever the phase's own steps
-        // happen to land. An even pace is simpler and, given development
-        // is already the gentler tail of the curve by construction (its
-        // average pace comes out well below Maillard's - see the DTR
-        // math above), doesn't reintroduce the problem it's avoiding.
-        function evenSteps(startTemp, endTemp, steps) {
-          const totalRise = endTemp - startTemp;
-          const temps = [];
-          let current = startTemp;
-          for (let i = 0; i < steps; i++) {
-            current += totalRise / steps;
-            temps.push(Math.round(current));
-          }
-          return temps;
+        // Mirrors app.py's format_mm_ss so wizard-filled fields match the
+        // rest of the app's MM:SS convention.
+        function formatMmSs(totalSeconds) {
+          const minutes = Math.floor(totalSeconds / 60);
+          const seconds = totalSeconds % 60;
+          return `${minutes}:${String(seconds).padStart(2, "0")}`;
         }
 
         document.getElementById("wizard-generate-btn").addEventListener("click", () => {
@@ -191,26 +194,25 @@
             9
           );
 
-          const { dropTemp, dtr } = ROAST_LEVEL_TARGETS[roastLevel];
-          const developmentMinutes = clamp(
-            Math.round((fcMinute * dtr) / (1 - dtr)),
-            1,
-            12 - fcMinute
-          );
-          const endMinute = Math.min(12, fcMinute + developmentMinutes);
+          // The temp curve only models Maillard (minute 1 to first crack);
+          // what happens after is a target development *time*, not a target
+          // temperature - see SPEC.md's Profile Wizard section.
+          const dtr = ROAST_LEVEL_DTR[roastLevel];
+          const fcSeconds = fcMinute * 60;
+          const developmentSeconds = Math.round((fcSeconds * dtr) / (1 - dtr));
 
           const temps = new Array(12).fill("");
           temps[0] = PROFILE_START_TEMP;
           decelerate(PROFILE_START_TEMP, fcTemp, fcMinute - 1).forEach((temp, i) => {
             temps[1 + i] = temp;
           });
-          evenSteps(fcTemp, dropTemp, endMinute - fcMinute).forEach((temp, i) => {
-            temps[fcMinute + i] = temp;
-          });
 
           for (let minute = 1; minute <= 12; minute++) {
             document.querySelector(`[name="temp_${minute}"]`).value = temps[minute - 1];
           }
+          document.querySelector('[name="target_first_crack"]').value = formatMmSs(fcSeconds);
+          document.querySelector('[name="target_development_time"]').value =
+            formatMmSs(developmentSeconds);
         });
       })();
     </script>
