@@ -195,6 +195,16 @@ class TestSelectProfile(unittest.TestCase):
         self.assertNotIn("Favorites", body)
         self.assertIn(">Profiles<", body)
 
+    def test_each_card_has_a_favorite_toggle_pointing_back_to_this_page(self):
+        profiles = {
+            "profile-1": {"name": "Amber Roast", "temps": [None] * 12, "owner": OWNER_EMAIL},
+        }
+        with mock.patch.object(app, "roast_profiles", profiles):
+            response = self.client.get("/roasts/new")
+        body = response.get_data(as_text=True)
+        self.assertIn('action="/profiles/profile-1/favorite"', body)
+        self.assertIn('name="next" value="/roasts/new"', body)
+
 
 class TestAddRoast(unittest.TestCase):
     def setUp(self):
