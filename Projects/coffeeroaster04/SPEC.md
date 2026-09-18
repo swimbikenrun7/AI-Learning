@@ -15,7 +15,7 @@ This SPEC describes the full target feature set, carried forward from coffeeroas
 - **Phase 7**: User accounts. Each account has its own private roast records and profiles — the earlier "no authentication" decision applied while this was a purely local, single-user tool; it no longer holds once the app is reachable on the open internet.
 - **Phase 8**: About page. Static project description plus a feedback form that emails the site owner directly — no user-visible email address, no new external service.
 - **Phase 9**: Roast intelligence & data tools. Surfaces calculated roast quality metrics that already had the underlying data, plus search/sort, CSV export, a live first-crack marking shortcut, and richer per-roast metadata (bean origin/variety/process, post-roast cupping notes).
-- **Phase 10 (current)**: Roast profile wizard. An opt-in helper on the Add roast profile page that recommends a starting Maillard-phase target-temperature curve plus target first-crack/development-time reference values, from bean characteristics, desired roast level, and the user's own observed first-crack temperature, which the user can then edit before saving.
+- **Phase 10 (current)**: Roast profile wizard. An opt-in helper on the Add roast profile page that recommends a starting Maillard-phase target-temperature curve plus target first-crack/development-time reference values, from bean characteristics, desired roast level, and the user's own observed first-crack temperature, which the user can then edit before saving. The target reference values also drive a live pull countdown timer on the Add Roast page once first crack is marked.
 
 ## Requirements
 The code shall have a separate module for calculations (`calculations.py`, carried forward from coffeeroaster03 unchanged).
@@ -101,7 +101,8 @@ See Roast Profiles below. Collected as part of Add roast via a selected roast pr
 The application shall provide a "View and edit roast profiles" area leading to add-a-new-profile and view/edit-existing-profiles pages. **(Phase 3)**
 A roast profile shall consist of a name and a target temperature (°F) for each whole-minute interval from 1:00 through 12:00 (12 data points).
 Temperature entries within a profile are optional per minute.
-A roast profile may also store a target first-crack time (MM:SS) and a target development time (MM:SS), both optional, fixed reference values shown alongside the temperature table — not modeled as part of the temperature curve. **(Phase 10)**
+A roast profile may also store a target first-crack time (MM:SS) and a target development time (MM:SS), both optional, fixed reference values shown in the Add Roast live panel, directly above the "First Crack Now!" button — not modeled as part of the temperature curve. **(Phase 10)**
+Once a first-crack time is set on the Add Roast page (via "First Crack Now!" or by typing directly into the field) and the selected profile has a target development time, a pull countdown shall appear below the "First Crack Now!" button, live-updating as `first crack time + target development time − elapsed time` until it reaches zero, then holding at "Pull now!". Reaching zero triggers a quadruple flash (the existing per-whole-minute flash — see Phase 9 — is a double flash; this is visually distinct and reserved for the pull moment specifically). **(Phase 10)**
 Any minute interval left blank in a profile shall default to the most recently entered temperature at an earlier interval (carry-forward). An interval with no earlier entry has no default.
 Selecting Add roast shall first require selecting an existing roast profile before the roast entry form is shown. **(Phase 2)**
 If no roast profiles exist, the user shall be directed to create one before a roast can be added. **(Phase 2/3)**

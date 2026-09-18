@@ -51,11 +51,18 @@
     #clock-readout { font-variant-numeric: tabular-nums; }
     .ror-readout { font-size: var(--font-size-lg); color: var(--color-text-muted); margin-top: 0.25rem; }
     #ror-readout { color: #1b9e77; font-weight: 700; }
+    .target-reference { margin-top: 0.5rem; color: var(--color-text-muted); }
     .mark-first-crack-btn {
       display: block;
       width: 100%;
       margin-top: 1rem;
       padding: 0.9rem 1rem;
+      font-size: var(--font-size-lg);
+      font-weight: 700;
+    }
+    .pull-countdown {
+      margin-top: 0.75rem;
+      text-align: center;
       font-size: var(--font-size-lg);
       font-weight: 700;
     }
@@ -144,15 +151,6 @@
           </tbody>
         </table>
 
-        {% if target_first_crack or target_development_time %}
-          <p>
-            <small>
-              {% if target_first_crack %}Target first crack: {{ target_first_crack }}{% endif %}
-              {% if target_first_crack and target_development_time %} &middot; {% endif %}
-              {% if target_development_time %}Target development time: {{ target_development_time }}{% endif %}
-            </small>
-          </p>
-        {% endif %}
         <p>
           <label>Time of first crack (MM:SS)<br>
             <input type="text" id="first-crack-input" name="first_crack" value="{{ values.first_crack }}">
@@ -187,7 +185,17 @@
         <span id="clock-readout">0:00</span>
       </div>
       <div class="ror-readout">Rate of rise: <span id="ror-readout">&ndash;</span></div>
+      {% if target_first_crack or target_development_time %}
+        <p class="target-reference">
+          <small>
+            {% if target_first_crack %}Target first crack: {{ target_first_crack }}{% endif %}
+            {% if target_first_crack and target_development_time %} &middot; {% endif %}
+            {% if target_development_time %}Target development time: {{ target_development_time }}{% endif %}
+          </small>
+        </p>
+      {% endif %}
       <button type="button" id="mark-first-crack-btn" class="btn btn--primary mark-first-crack-btn">First Crack Now!</button>
+      <p id="pull-countdown" class="pull-countdown" hidden></p>
     </div>
   </div>
 
@@ -251,6 +259,7 @@
     const INFLECTION_TIME = 0.5; // 30s, expressed in minutes to match the x-axis
     const INFLECTION_TEMP = 270;
     const profileTemps = {{ profile.temps|tojson }};
+    const targetDevelopmentSeconds = {{ profile.get("target_development_time")|tojson }};
 
     // Monotone cubic Hermite interpolation (Fritsch-Butland/PCHIP): unlike a
     // natural spline this never overshoots between knots, so the curve stays
@@ -503,14 +512,50 @@
       return running ? elapsedMsAtPause + (performance.now() - resumeTimestamp) : elapsedMsAtPause;
     }
 
-    function flashInvert() {
+    function flashInvert(times = 2) {
       const root = document.documentElement;
-      const delays = [0, 150, 300, 450];
-      delays.forEach((delay, i) => {
+      const steps = times * 2;
+      for (let i = 0; i < steps; i++) {
         setTimeout(() => {
           root.classList.toggle("inverted", i % 2 === 0);
-        }, delay);
-      });
+        }, i * 150);
+      }
+    }
+
+    function parseMmSs(value) {
+      const match = /^(\d+):([0-5]\d)$/.exec((value || "").trim());
+      return match ? Number(match[1]) * 60 + Number(match[2]) : null;
+    }
+
+    const pullCountdownEl = document.getElementById("pull-countdown");
+    let lastCountdownFirstCrackSeconds = null;
+    let pullFlashed = false;
+
+    function updatePullCountdown(elapsedSeconds) {
+      if (!targetDevelopmentSeconds) return;
+
+      const firstCrackSeconds = parseMmSs(firstCrackInput.value);
+      if (firstCrackSeconds !== lastCountdownFirstCrackSeconds) {
+        pullFlashed = false;
+        lastCountdownFirstCrackSeconds = firstCrackSeconds;
+      }
+
+      if (firstCrackSeconds === null) {
+        pullCountdownEl.hidden = true;
+        return;
+      }
+
+      pullCountdownEl.hidden = false;
+      const remaining = firstCrackSeconds + targetDevelopmentSeconds - elapsedSeconds;
+      if (remaining > 0) {
+        pullCountdownEl.textContent = "Pull in " + formatClock(remaining);
+      } else {
+        pullCountdownEl.textContent = "Pull now!";
+        if (!pullFlashed) {
+          flashInvert(4);
+          pullFlashed = true;
+        }
+      }
     }
 
     function updateLiveDisplay() {
@@ -520,9 +565,11 @@
 
       const minuteMark = Math.floor(elapsedSeconds / 60);
       if (minuteMark > lastFlashedMinute) {
-        flashInvert();
+        flashInvert(2);
         lastFlashedMinute = minuteMark;
       }
+
+      updatePullCountdown(elapsedSeconds);
 
       if (targetTempAt) {
         const elapsedMinutes = elapsedMs / 60000;
@@ -565,6 +612,8 @@
       running = false;
       elapsedMsAtPause = 0;
       lastFlashedMinute = 0;
+      pullFlashed = false;
+      lastCountdownFirstCrackSeconds = null;
       startStopBtn.textContent = "Start";
       startStopBtn.classList.remove("timer-btn--stop");
       startStopBtn.classList.add("timer-btn--start");
