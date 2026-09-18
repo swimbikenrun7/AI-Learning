@@ -48,7 +48,7 @@
         <label>Your typical first crack temperature (&deg;F)<br>
           <input type="number" id="wizard-fc-temp" value="400" min="300" max="480" step="1">
         </label>
-        <br><small>This varies by roaster and probe placement &mdash; use what you usually observe on your own machine, not a generic number.</small>
+        <br><small>This varies by roaster and probe placement &mdash; use what you usually observe on your own machine, not a generic number. It shapes where the curve ends, not how long it takes to get there &mdash; time to first crack is estimated separately, from density/process.</small>
       </p>
       <button type="button" id="wizard-generate-btn" class="btn btn--primary">Generate profile</button>
     </div>
@@ -133,19 +133,19 @@
           "Italian Roast": 0.23,
         };
 
-        // Blended °F/minute pace through the Maillard phase (profile
-        // minute 1 to first crack). Denser, higher-altitude beans
-        // conventionally take a gentler pace; naturally processed beans
-        // (sugar-coated parchment) a touch gentler still, to avoid
-        // scorching/tipping. Scaled up from generic/drum-roaster-derived
-        // values (which produced first-crack estimates around 8-9 minutes,
-        // clearly too slow for this machine - see SPEC.md) by the factor
-        // needed to land medium/washed at a 6:15 first crack at the
-        // wizard's default 400°F entry, the one real Fresh Roast data
-        // point available; the same factor is applied to low/high and to
-        // the natural adjustment to preserve their relative pacing.
-        const MAILLARD_PACE = { low: 19.9, medium: 16.2, high: 13.7 };
-        const NATURAL_PACE_ADJUST = -1.25;
+        // Time to first crack, by density (seconds). Deriving this from
+        // (entered first-crack temp - a fixed start temp) / a density pace,
+        // as an earlier version did, conflated two unrelated things: how
+        // hot your probe reads at crack (which legitimately varies a lot by
+        // bean/instrument/altitude) and how long Maillard actually takes
+        // (which, per real-world Fresh Roast use, barely varies with
+        // density) - a high-altitude bean entered at a much higher FC temp
+        // produced a wildly inflated multi-minute estimate instead of the
+        // ~30s difference actually observed. These are direct time targets
+        // instead, anchored to one real logged result (medium/washed: 6:15)
+        // plus the user's own rule of thumb for the deltas - see SPEC.md.
+        const MAILLARD_TIME_SECONDS = { low: 375, medium: 375, high: 405 };
+        const NATURAL_TIME_ADJUST_SECONDS = 20;
 
         // The profile grid starts at minute 1, not at charge: the live
         // Add Roast graph already models the steep charge-to-drying ramp
@@ -193,16 +193,16 @@
           const roastLevel = document.getElementById("wizard-roast-level").value;
           const fcTemp = Number(document.getElementById("wizard-fc-temp").value);
 
-          const maillardPace =
-            MAILLARD_PACE[density] + (process === "natural" ? NATURAL_PACE_ADJUST : 0);
-          // Precise (sub-minute) estimate, used for the displayed target
-          // first-crack/development-time fields and the DTR math below.
-          const fcMinuteExact = 1 + (fcTemp - PROFILE_START_TEMP) / maillardPace;
-          const fcSeconds = Math.round(fcMinuteExact * 60);
+          // Time to first crack comes from density/process alone; entered
+          // fcTemp only shapes where the curve ends (below), not how long
+          // it takes to get there.
+          const fcSeconds =
+            MAILLARD_TIME_SECONDS[density] +
+            (process === "natural" ? NATURAL_TIME_ADJUST_SECONDS : 0);
           // Whole-minute grid index (the profile's 12-point grid has no
           // sub-minute granularity - see SPEC.md's domain rules), used only
           // to place the Maillard curve's temp-grid points.
-          const fcMinute = clamp(Math.round(fcMinuteExact), 2, 9);
+          const fcMinute = clamp(Math.round(fcSeconds / 60), 2, 9);
 
           // The temp curve only models Maillard (minute 1 to first crack);
           // what happens after is a target development *time*, not a target
