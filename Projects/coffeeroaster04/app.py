@@ -1,5 +1,6 @@
 import csv
 import io
+import math
 import os
 import secrets
 import uuid
@@ -29,6 +30,7 @@ from data_persistence import (
     save_users,
 )
 from email_sender import GMAIL_ADDRESS, send_email
+from roasters import LEGACY_SETTINGS, TEMP_UNITS, migrate_roaster_ids, settings_for
 from validators import (
     validate_bean_name,
     validate_date,
@@ -71,14 +73,32 @@ def format_optional_mm_ss(total_seconds):
     return format_mm_ss(total_seconds) if total_seconds is not None else ""
 
 
+DEFAULT_ROASTER_ID = "fresh-roast-sr800"
+
 roast_records = load_roast_records()
 roast_profiles = load_roast_profiles()
 roasters = load_roasters()
 users = load_users()
 
+# One-time, idempotent: profiles and records that predate roaster selection get a roaster.
+_profiles_changed, _records_changed = migrate_roaster_ids(
+    roasters, roast_profiles, roast_records, DEFAULT_ROASTER_ID
+)
+if _profiles_changed:
+    save_roast_profiles(roast_profiles)
+if _records_changed:
+    save_roast_records(roast_records)
+
 
 def sorted_roasters():
     return sorted(roasters.items(), key=lambda item: item[1]["name"].lower())
+
+
+def profile_settings(profile):
+    """The limits, units, and grid that apply to a saved profile (via its roaster)."""
+    return settings_for(
+        roasters, profile.get("roaster_id"), rows=len(profile.get("temps") or []) or None
+    )
 
 
 def roaster_name(profile):
@@ -341,13 +361,20 @@ def about():
     )
 
 
-def _build_roast_row(record_id, record):
+def _weight_loss_and_development_time(record):
+    # A saved record was validated against its roaster's limits when it was saved, so
+    # displaying it never re-checks them (the guards would reject e.g. a 60 g batch).
     weight_loss = calc.calculate_weight_loss(
-        record["green_weight"], record["finished_weight"]
+        record["green_weight"], record["finished_weight"], min_g=0, max_g=math.inf
     )
     development_time = calc.calculate_development_time(
-        record["total_roast_time"], record["time_of_first_crack"]
+        record["total_roast_time"], record["time_of_first_crack"], min_total_seconds=0
     )
+    return weight_loss, development_time
+
+
+def _build_roast_row(record_id, record):
+    weight_loss, development_time = _weight_loss_and_development_time(record)
     profile = roast_profiles.get(record.get("roast_profile_id"))
     classification = calc.classify_roast(weight_loss)
     return {
@@ -417,23 +444,24 @@ def roast_detail(record_id):
     if record is None or record.get("owner") != session["user_email"]:
         abort(404)
 
-    minutes = list(range(1, 13))
-    target_temps = record.get("target_temps") or [None] * 12
-    actual_temps = record.get("actual_temps") or [None] * 12
+    legacy_rows = LEGACY_SETTINGS["profile_grid_minutes"]
+    target_temps = record.get("target_temps") or [None] * legacy_rows
+    actual_temps = record.get("actual_temps") or [None] * len(target_temps)
+    minutes = list(range(1, len(target_temps) + 1))
     profile = roast_profiles.get(record.get("roast_profile_id"))
+    settings = settings_for(roasters, record.get("roaster_id"))
+    # The record's own snapshot of the unit wins: it stays true if roasters.json changes.
+    units = TEMP_UNITS.get(record.get("temp_unit", settings["temp_unit"]))
 
-    weight_loss = calc.calculate_weight_loss(
-        record["green_weight"], record["finished_weight"]
-    )
-    development_time = calc.calculate_development_time(
-        record["total_roast_time"], record["time_of_first_crack"]
-    )
+    weight_loss, development_time = _weight_loss_and_development_time(record)
 
     return render_template(
         "roast_detail.html",
         record=record,
         record_id=record_id,
         profile_name=profile["name"] if profile else "-",
+        roaster_name=settings["roaster_name"],
+        units=units,
         minutes=minutes,
         target_temps=target_temps,
         actual_temps=actual_temps,
@@ -491,8 +519,13 @@ def add_roast(profile_id):
     if profile is None or profile.get("owner") != session["user_email"]:
         abort(404)
 
-    minutes = list(range(1, 13))
-    target_temps = calc.fill_forward(profile.get("temps", [None] * 12))
+    # The profile's roaster decides the limits, units, and row count for this roast; it
+    # cannot be overridden here, since the profile's targets only fit that roaster.
+    settings = profile_settings(profile)
+    profile_temps = profile.get("temps") or [None] * settings["profile_grid_minutes"]
+    rows = len(profile_temps)
+    minutes = list(range(1, rows + 1))
+    target_temps = calc.fill_forward(profile_temps)
     values = {
         "date": "",
         "bean_name": "",
@@ -500,7 +533,7 @@ def add_roast(profile_id):
         "bean_variety": "",
         "bean_process": "",
         "green_weight": "",
-        "actual_temps": [""] * 12,
+        "actual_temps": [""] * rows,
         "first_crack": "",
         "roast_time": "",
         "finished_weight": "",
@@ -524,16 +557,30 @@ def add_roast(profile_id):
         try:
             date = validate_date(values["date"])
             bean_name = validate_bean_name(values["bean_name"])
-            green_weight = validate_green_weight(values["green_weight"])
-            entered_actual_temps = [
-                validate_temperature(value) for value in values["actual_temps"]
-            ]
-            total_roast_time = validate_roast_time(values["roast_time"])
+            green_weight = validate_green_weight(
+                values["green_weight"],
+                settings["green_weight_min_g"],
+                settings["green_weight_max_g"],
+            )
+            if settings["has_temp_readout"]:
+                entered_actual_temps = [
+                    validate_temperature(
+                        value, settings["temp_min"], settings["temp_max"]
+                    )
+                    for value in values["actual_temps"]
+                ]
+            else:
+                entered_actual_temps = [None] * rows
+            total_roast_time = validate_roast_time(
+                values["roast_time"],
+                settings["roast_time_min_s"],
+                settings["roast_time_max_s"],
+            )
             time_of_first_crack = validate_first_crack(
-                values["first_crack"], total_roast_time
+                values["first_crack"], total_roast_time, settings["first_crack_min_s"]
             )
             finished_weight = validate_finished_weight(
-                values["finished_weight"], green_weight
+                values["finished_weight"], green_weight, settings["finished_weight_min_g"]
             )
         except ValueError as exc:
             error = str(exc)
@@ -553,6 +600,8 @@ def add_roast(profile_id):
                 "total_roast_time": total_roast_time,
                 "time_of_first_crack": time_of_first_crack,
                 "roast_profile_id": profile_id,
+                "roaster_id": profile.get("roaster_id"),
+                "temp_unit": settings["temp_unit"],
                 "target_temps": target_temps,
                 "actual_temps": actual_temps,
                 "owner": session["user_email"],
@@ -564,11 +613,28 @@ def add_roast(profile_id):
     target_development_time = format_optional_mm_ss(
         profile.get("target_development_time")
     )
+    anchors = None
+    if settings["chart_start_temp"] is not None:
+        anchors = {
+            "startTemp": settings["chart_start_temp"],
+            "inflectionMin": settings["chart_inflection_min"],
+            "inflectionTemp": settings["chart_inflection_temp"],
+        }
+    roast_config = {
+        "profileTemps": profile_temps,
+        "targetDevelopmentSeconds": profile.get("target_development_time"),
+        "rows": rows,
+        "units": settings["units"],
+        "anchors": anchors,
+    }
 
     return render_template(
         "add_roast.html",
         profile=profile,
         profile_id=profile_id,
+        settings=settings,
+        max_roast_time=format_mm_ss(settings["roast_time_max_s"]),
+        roast_config=roast_config,
         minutes=minutes,
         target_temps=target_temps,
         target_first_crack=target_first_crack,
@@ -611,11 +677,36 @@ def add_edit_profile(profile_id=None):
         if existing_profile is None or existing_profile.get("owner") != session["user_email"]:
             abort(404)
 
-    minutes = list(range(1, 13))
-    existing_temps = existing_profile["temps"] if existing_profile else [None] * 12
+    # A profile's roaster is chosen at creation and can never change afterwards: its
+    # rows, limits, and units all come from that roaster.
+    if existing_profile:
+        roaster_id = existing_profile.get("roaster_id")
+        if request.method == "POST" and request.form.get("roaster_id", roaster_id or "") != (
+            roaster_id or ""
+        ):
+            abort(400)
+    elif request.method == "POST":
+        roaster_id = request.form.get("roaster_id", "").strip()
+    else:
+        roaster_id = request.args.get("roaster", "").strip()
+        if not roaster_id or roaster_id not in roasters:
+            # Step 1 of adding a profile: pick the roaster, which decides the form's rows.
+            return render_template(
+                "choose_roaster.html",
+                roaster_options=sorted_roasters(),
+                error="Choose a roaster from the list." if roaster_id else None,
+            )
+
+    known_roaster_id = roaster_id if roaster_id in roasters else None
+    grid_rows = settings_for(roasters, known_roaster_id)["profile_grid_minutes"]
+    existing_temps = list(existing_profile["temps"]) if existing_profile else []
+    # Never truncate a saved profile; pad it if its roaster's grid is now longer.
+    rows = max(len(existing_temps), grid_rows)
+    existing_temps += [None] * (rows - len(existing_temps))
+    settings = settings_for(roasters, known_roaster_id, rows=rows)
+    minutes = list(range(1, rows + 1))
     values = {
         "name": existing_profile["name"] if existing_profile else "",
-        "roaster_id": (existing_profile.get("roaster_id") or "") if existing_profile else "",
         "temps": ["" if temp is None else str(temp) for temp in existing_temps],
         "target_first_crack": format_optional_mm_ss(
             existing_profile.get("target_first_crack") if existing_profile else None
@@ -630,7 +721,6 @@ def add_edit_profile(profile_id=None):
 
     if request.method == "POST":
         values["name"] = request.form.get("name", "")
-        values["roaster_id"] = request.form.get("roaster_id", "")
         values["temps"] = [
             request.form.get(f"temp_{minute}", "") for minute in minutes
         ]
@@ -641,13 +731,22 @@ def add_edit_profile(profile_id=None):
 
         try:
             name = validate_profile_name(values["name"])
-            roaster_id = validate_roaster_id(values["roaster_id"], roasters)
-            temps = [validate_temperature(value) for value in values["temps"]]
+            if not existing_profile:
+                validate_roaster_id(roaster_id, roasters, required=True)
+            if settings["has_temp_readout"]:
+                temps = [
+                    validate_temperature(
+                        value, settings["temp_min"], settings["temp_max"]
+                    )
+                    for value in values["temps"]
+                ]
+            else:
+                temps = [None] * rows
             target_first_crack = validate_target_first_crack(
-                values["target_first_crack"]
+                values["target_first_crack"], settings["roast_time_max_s"]
             )
             target_development_time = validate_target_development_time(
-                values["target_development_time"]
+                values["target_development_time"], settings["roast_time_max_s"]
             )
         except ValueError as exc:
             error = str(exc)
@@ -657,7 +756,7 @@ def add_edit_profile(profile_id=None):
             owner = existing_profile["owner"] if existing_profile else session["user_email"]
             roast_profiles[saved_profile_id] = {
                 "name": name,
-                "roaster_id": roaster_id,
+                "roaster_id": roaster_id or None,
                 "temps": temps,
                 "target_first_crack": target_first_crack,
                 "target_development_time": target_development_time,
@@ -670,7 +769,7 @@ def add_edit_profile(profile_id=None):
     return render_template(
         "profile_form.html",
         profile_id=profile_id,
-        roaster_options=sorted_roasters(),
+        settings=settings,
         minutes=minutes,
         values=values,
         error=error,

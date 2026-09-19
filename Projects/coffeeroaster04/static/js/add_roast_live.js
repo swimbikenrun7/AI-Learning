@@ -1,9 +1,14 @@
-const START_TEMP = 145; // roaster's starting/preheat temp, not ambient room temp
-const INFLECTION_TIME = 0.5; // 30s, expressed in minutes to match the x-axis
-const INFLECTION_TEMP = 270;
 const roastConfig = JSON.parse(document.getElementById("roast-config").textContent);
 const profileTemps = roastConfig.profileTemps;
 const targetDevelopmentSeconds = roastConfig.targetDevelopmentSeconds;
+// One profile row per minute, so the x-axis runs 0..rowCount.
+const rowCount = roastConfig.rows;
+// The roaster's own unit ({symbol, ror}); no temperature is ever converted.
+const units = roastConfig.units;
+// The chart's opening for this roaster: {startTemp, inflectionMin, inflectionTemp}
+// (start temp is the roaster's starting/preheat temp, not ambient room temp; the
+// inflection is expressed in minutes to match the x-axis), or null for no synthetic ramp.
+const anchors = roastConfig.anchors;
 
 // Monotone cubic Hermite interpolation (Fritsch-Butland/PCHIP): unlike a
 // natural spline this never overshoots between knots, so the curve stays
@@ -108,11 +113,16 @@ let chart = null;
 
 if (enteredPoints.length > 0) {
   const lastEntered = enteredPoints[enteredPoints.length - 1];
-  const spline = buildMonotoneSpline([
-    { x: 0, y: START_TEMP },
-    { x: INFLECTION_TIME, y: INFLECTION_TEMP },
-    ...enteredPoints,
-  ]);
+  const spline = buildMonotoneSpline(
+    anchors
+      ? [
+          { x: 0, y: anchors.startTemp },
+          { x: anchors.inflectionMin, y: anchors.inflectionTemp },
+          ...enteredPoints,
+        ]
+      : // No known opening for this roaster: start flat at the first target temperature.
+        [{ x: 0, y: enteredPoints[0].y }, ...enteredPoints]
+  );
 
   targetTempAt = function (minutesElapsed) {
     const x = Math.max(0, minutesElapsed);
@@ -135,7 +145,7 @@ if (enteredPoints.length > 0) {
 
   const curve = [];
   const rorCurve = [];
-  for (let x = 0; x <= 12; x += 0.1) {
+  for (let x = 0; x <= rowCount; x += 0.1) {
     curve.push({ x, y: targetTempAt(x) });
     rorCurve.push({ x, y: targetRorAt(x) });
   }
@@ -188,17 +198,17 @@ if (enteredPoints.length > 0) {
         x: {
           type: "linear",
           min: 0,
-          max: 12,
+          max: rowCount,
           title: { display: true, text: "Time (minutes)" },
           ticks: {
             stepSize: 1,
             callback: (value) => formatMinutesClock(value),
           },
         },
-        y: { position: "left", title: { display: true, text: "Temperature (°F)" } },
+        y: { position: "left", title: { display: true, text: `Temperature (${units.symbol})` } },
         y1: {
           position: "right",
-          title: { display: true, text: "Rate of rise (°F/min)" },
+          title: { display: true, text: `Rate of rise (${units.ror})` },
           grid: { drawOnChartArea: false },
         },
       },
@@ -208,7 +218,7 @@ if (enteredPoints.length > 0) {
             title: (items) => (items.length ? formatMinutesClock(items[0].parsed.x) : ""),
             label: (item) =>
               `${item.dataset.label}: ${Math.round(item.parsed.y)}${
-                item.dataset.yAxisID === "y1" ? "°F/min" : "°F"
+                item.dataset.yAxisID === "y1" ? units.ror : units.symbol
               }`,
           },
         },
@@ -217,9 +227,9 @@ if (enteredPoints.length > 0) {
   });
 
   document.getElementById("target-temp-readout").textContent =
-    Math.round(targetTempAt(0)) + "°F";
+    Math.round(targetTempAt(0)) + units.symbol;
   document.getElementById("ror-readout").textContent =
-    Math.round(targetRorAt(0)) + "°F/min";
+    Math.round(targetRorAt(0)) + units.ror;
 } else {
   document.getElementById("live-chart").hidden = true;
   document.getElementById("no-profile-data").hidden = false;
@@ -317,11 +327,11 @@ function updateLiveDisplay() {
 
   if (targetTempAt) {
     const elapsedMinutes = elapsedMs / 60000;
-    const clampedMinutes = Math.min(elapsedMinutes, 12);
+    const clampedMinutes = Math.min(elapsedMinutes, rowCount);
     const temp = targetTempAt(elapsedMinutes);
     const ror = targetRorAt(elapsedMinutes);
-    targetReadout.textContent = Math.round(temp) + "°F";
-    rorReadout.textContent = Math.round(ror) + "°F/min";
+    targetReadout.textContent = Math.round(temp) + units.symbol;
+    rorReadout.textContent = Math.round(ror) + units.ror;
     chart.data.datasets[1].data = [{ x: clampedMinutes, y: temp }];
     chart.data.datasets[3].data = [{ x: clampedMinutes, y: ror }];
     chart.update("none");

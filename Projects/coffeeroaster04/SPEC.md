@@ -15,7 +15,8 @@ This SPEC describes the full target feature set, carried forward from coffeeroas
 - **Phase 7**: User accounts. Each account has its own private roast records and profiles — the earlier "no authentication" decision applied while this was a purely local, single-user tool; it no longer holds once the app is reachable on the open internet.
 - **Phase 8**: About page. Static project description plus a feedback form that emails the site owner directly — no user-visible email address, no new external service.
 - **Phase 9**: Roast intelligence & data tools. Surfaces calculated roast quality metrics that already had the underlying data, plus search/sort, CSV export, a live first-crack marking shortcut, and richer per-roast metadata (bean origin/variety/process, post-roast cupping notes).
-- **Phase 11 (current)**: Roaster selection. A reference list of home coffee roasters (`data/roasters.json`) and a roaster dropdown on the roast profile form, shown alongside the profile name wherever profiles are listed or used — groundwork for later customizing profiles and the Add Roast experience per roaster.
+- **Phase 11**: Roaster selection. A reference list of home coffee roasters (`data/roasters.json`) and a roaster dropdown on the roast profile form, shown alongside the profile name wherever profiles are listed or used — groundwork for later customizing profiles and the Add Roast experience per roaster.
+- **Phase 12 (current)**: Roaster-driven profiles. A profile belongs to one roaster, chosen first and locked afterward; that roaster's data supplies the profile's row count, the weight and time limits, and the temperature unit, and each saved roast records its roaster. See "Roaster-driven profiles" under Roasters.
 - **Phase 10**: Roast profile wizard. An opt-in helper on the Add roast profile page that recommends a starting Maillard-phase target-temperature curve plus target first-crack/development-time reference values, from bean characteristics, desired roast level, and the user's own observed first-crack temperature, which the user can then edit before saving. The target reference values also drive a live pull countdown timer on the Add Roast page once first crack is marked.
 
 ## Requirements
@@ -43,6 +44,8 @@ Keep the architecture reasonably simple.
 Explain the proposed changes before implementing them.
 
 ## User Inputs
+*(Phase 12: the numeric limits below (green/finished weight, roast time, first-crack time, temperature) are the limits for a profile with no roaster. For a profile with a roaster they come from that roaster's data — see "Roaster-driven profiles" under Roasters.)*
+
 *(These are domain/validation rules carried forward unchanged from coffeeroaster03. In Phase 1 they apply to the seeded records already on disk; there is no web form collecting them until Phase 2 — see Implementation Phases.)*
 
 ### Date
@@ -101,7 +104,7 @@ See Roast Profiles below. Collected as part of Add roast via a selected roast pr
 
 ### Requirements
 The application shall provide a "View and edit roast profiles" area leading to add-a-new-profile and view/edit-existing-profiles pages. **(Phase 3)**
-A roast profile shall consist of a name and a target temperature (°F) for each whole-minute interval from 1:00 through 12:00 (12 data points).
+A roast profile shall consist of a name and a target temperature for each whole-minute interval from 1:00 through its last row: 12 rows (°F) for a profile with no roaster; for a profile with a roaster, that roaster's row count and unit (Phase 12).
 Temperature entries within a profile are optional per minute.
 A roast profile may also store a target first-crack time (MM:SS) and a target development time (MM:SS), both optional, fixed reference values shown in the Add Roast live panel, directly above the "First Crack Now!" button — not modeled as part of the temperature curve. **(Phase 10)**
 Once a first-crack time is set on the Add Roast page (via "First Crack Now!" or by typing directly into the field) and the selected profile has a target development time, a pull countdown shall appear below the "First Crack Now!" button, live-updating as `first crack time + target development time − elapsed time` until it reaches zero, then holding at "Pull now!". Reaching zero triggers a quadruple flash (the existing per-whole-minute flash — see Phase 9 — is a double flash; this is visually distinct and reserved for the pull moment specifically). **(Phase 10)**
@@ -115,7 +118,7 @@ At submission, if total roast time exceeds the last whole minute at which an act
 Each saved roast record shall store the id of the selected roast profile and a snapshot of the resolved (carry-forward-applied) target temperatures as of the time the roast was saved.
 
 ### Constraints
-Temperature values (profile targets and actual roast entries) must be numeric and between 60 and 500 °F when provided.
+Temperature values (profile targets and actual roast entries) must be numeric and between 60 and 500 °F when provided (for a profile with a roaster, between that roaster's `temp_min` and `temp_max`, in its own unit).
 Target first-crack time, when provided, must be MM:SS between 01:00 and 20:00. Target development time, when provided, must be MM:SS between 00:01 and 20:00. Neither is validated against the other or against the profile's temperature entries — they're independent reference values.
 Editing a roast profile after a roast has been saved against it shall not alter the target temperatures already stored on that roast record (snapshot at save time, not a live reference).
 Roast profile persistence shall use its own JSON file in the `data/` folder, following the same load/corruption-check/save pattern as roast records.
@@ -145,15 +148,25 @@ This is a rough first pass, not a validated model — only one real logged resul
 
 ### Requirements
 `data/roasters.json` shall list known home coffee roasters, keyed by a stable slug id (e.g. `fresh-roast-sr800`), each with a display `name` and a `values` object holding that roaster's own data (see "Roaster data" below). Every roaster carries its own complete set of values — nothing is inherited or shared between roasters, so any one entry can be tuned later without touching another. Identical numbers across roasters are allowed where the research supports them, but each is written out on its own entry.
-The add/edit roast profile form shall offer a roaster dropdown (alphabetical, with a blank "No roaster selected" default), placed above the profile wizard so the wizard's inputs can later depend on it. The choice is stored on the profile as `roaster_id`.
-Selecting a roaster is optional. Profiles created before this phase have no `roaster_id` and continue to work unchanged.
+Adding a roast profile is two steps: first a page that asks which roaster the profile is for (an alphabetical dropdown, no default), then the profile form for that roaster. The choice is stored on the profile as `roaster_id`. **(Phase 12; Phase 11 put an optional dropdown on the form itself.)**
+A roaster is required for a new profile. A profile with no `roaster_id` (or one no longer in `roasters.json`) keeps working with the original limits, 12 rows, and °F, but at startup any profile or record with no roaster is assigned the Fresh Roast SR800 (see below).
 A profile's roaster name shall be displayed, in a faint italic style (`.roaster-tag`) so it reads as a different kind of data than the profile name, on: the View and edit roast profiles list, the Add Roast profile picker, and the Add Roast page heading (i.e. it propagates from the selected profile). It is omitted when the profile has no roaster.
 
 ### Constraints
 `roasters.json` is read-only reference data loaded once at startup, following the same load/corruption-check pattern as the other JSON files. Unlike `roast_records.json`, `roast_profiles.json`, and `users.json`, it is **tracked in git** — it ships with the app rather than holding live user data.
-A submitted `roaster_id` must be blank or a key of `roasters.json`; anything else is rejected with a validation error.
+A submitted `roaster_id` for a new profile must be a key of `roasters.json`; anything else, including blank, is rejected with a validation error (after the profile name is validated).
 A profile stores only the roaster's id, not its name, so renaming a roaster in `roasters.json` is reflected everywhere. If a profile's roaster id is later removed from the file, the profile still works and simply shows no roaster.
-Roast records do not snapshot the roaster (unlike `target_temps`): the Add Roast page reads it from the profile, and the roast detail page is unchanged.
+Each saved roast record stores the profile's `roaster_id` and the `temp_unit` in effect (Phase 12), so a record stays self-describing if the profile is later edited or deleted or `roasters.json` changes.
+
+### Roaster-driven profiles **(Phase 12)**
+The roaster is chosen once, when a profile is created, and can never be changed afterward: its rows, limits, and units all come from that roaster, so a change would silently invalidate the profile's targets. The edit form shows the roaster read-only, and a submitted change is rejected (400). Add Roast has no roaster override either: the roaster is the selected profile's.
+A profile has one temperature row per minute of its roaster's `profile_grid_minutes` (a saved profile is never truncated, and is padded with blank rows if its roaster's grid is now longer). The maximum roast time accepted equals the profile's row count in minutes (12 rows → 12:00 is accepted and 12:01 is not); target first-crack and development times obey the same maximum.
+On Add Roast, green weight is limited to the roaster's `green_weight_min_g`–`green_weight_max_g` and finished weight need only be positive and no more than green (the original 100 g floor is not applied); the roast-time and first-crack floors and the temperature range are the roaster's own. The allowed ranges are shown as hints beside the fields.
+Every temperature is stored and shown in the roaster's own unit and is never converted. Unit text (symbol and rate-of-rise label) comes only from `roasters.TEMP_UNITS`; no template, script, or module hard-codes a unit (enforced by a test), and the live chart's axis titles, tooltips, and readouts use the roaster's unit. A roaster with no temperature readout shows no temperature grid, temperature entry, chart, or temperature readout; its target first-crack and development times, timer, and first-crack button are unchanged.
+The live chart's opening (start temperature and first inflection) is the roaster's own `chart_*` data in its unit; a roaster with none starts the target curve flat at its first target temperature. Only the SR540, SR700, and SR800 have one.
+Saved records are never re-validated for display: weight loss and development time are calculated with the original guards opened, since a record was validated against its roaster's limits when it was saved.
+The profile wizard is offered only for a `calibrated` roaster (currently the SR800), because its constants are calibrated for that machine (and are in °F) until they become roaster data.
+At startup, once, and idempotently: every profile with no roaster is assigned the Fresh Roast SR800; every record with no roaster takes its profile's roaster (the SR800 if the profile is gone) and every record without a `temp_unit` gets its roaster's unit. Files are rewritten only when something changed.
 
 ### Roaster data (Tier 1)
 Each roaster's `values` object holds exactly these fields. They are the data the roaster-driven profile work (`to-do.md`, T-03) will read; nothing in the app reads them yet.
@@ -173,6 +186,7 @@ Each roaster's `values` object holds exactly these fields. They are the data the
 | `temp_source` | What the reading measures: `bean_probe`, `inlet_air`, `chamber_air` (a chamber, wall, exhaust, or thermostat sensor that does not touch the beans), `unspecified` (a reading exists but the sources do not say what it measures), or `none` |
 | `has_temp_readout` | Whether the machine itself provides a temperature reading. When `false`, `temp_source` is `none` and `temp_unit`, `temp_min`, `temp_max` are `null` — no unit or range is invented, and the temperature grid is not shown |
 | `temp_min`, `temp_max` | Sanity range for a temperature entry, in the roaster's own unit. Inlet-air roasters need a higher cap than bean-probe roasters (IKAWA inlet air can reach 290 °C) |
+| `chart_start_temp`, `chart_inflection_min`, `chart_inflection_temp` | Opening of the live Add Roast chart, in the roaster's own unit: the start temperature, and the minute and temperature of the first inflection. All three set or all three `null`; `null` means no synthetic ramp is drawn. Set only for the Fresh Roast SR series (the app's original constants, tuned on the SR800) — pulled forward from Tier 2 so a °C roaster never gets a °F-numbered chart |
 
 **Rules for values.** Values are stated by a source where one exists; otherwise they are inferred by these rules and listed in `inferred`:
 - *Row count* (`profile_grid_minutes`) = the longest roast in the sources' normal range, rounded up to whole minutes, plus 2. Exception: the Fresh Roast SR series is 12 rows, per the owner's experience that about 10 minutes is the longest anyone roasts on it.

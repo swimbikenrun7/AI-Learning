@@ -25,7 +25,10 @@
             "temp_source": "bean_probe",
             "has_temp_readout": true,
             "temp_min": 15,
-            "temp_max": 260
+            "temp_max": 260,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "aillio-bullet-r1-v2": {
@@ -54,7 +57,10 @@
             "temp_source": "bean_probe",
             "has_temp_readout": true,
             "temp_min": 15,
-            "temp_max": 260
+            "temp_max": 260,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "aillio-bullet-r2": {
@@ -87,7 +93,10 @@
             "temp_source": "bean_probe",
             "has_temp_readout": true,
             "temp_min": 15,
-            "temp_max": 260
+            "temp_max": 260,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "aillio-bullet-r2-pro": {
@@ -120,7 +129,10 @@
             "temp_source": "bean_probe",
             "has_temp_readout": true,
             "temp_min": 15,
-            "temp_max": 260
+            "temp_max": 260,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "behmor-1600-plus": {
@@ -149,7 +161,10 @@
             "temp_source": "none",
             "has_temp_readout": false,
             "temp_min": null,
-            "temp_max": null
+            "temp_max": null,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "behmor-1600ab": {
@@ -180,7 +195,10 @@
             "temp_source": "chamber_air",
             "has_temp_readout": true,
             "temp_min": 60,
-            "temp_max": 500
+            "temp_max": 500,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "behmor-2000ab-plus": {
@@ -212,7 +230,10 @@
             "temp_source": "chamber_air",
             "has_temp_readout": true,
             "temp_min": 60,
-            "temp_max": 500
+            "temp_max": 500,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "fresh-roast-sr300": {
@@ -239,7 +260,10 @@
             "temp_source": "none",
             "has_temp_readout": false,
             "temp_min": null,
-            "temp_max": null
+            "temp_max": null,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "fresh-roast-sr340": {
@@ -266,7 +290,10 @@
             "temp_source": "none",
             "has_temp_readout": false,
             "temp_min": null,
-            "temp_max": null
+            "temp_max": null,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "fresh-roast-sr500": {
@@ -293,7 +320,10 @@
             "temp_source": "none",
             "has_temp_readout": false,
             "temp_min": null,
-            "temp_max": null
+            "temp_max": null,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "fresh-roast-sr540": {
@@ -308,9 +338,12 @@
             "inferred": [
                 "green_weight_min_g",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "chart_start_temp",
+                "chart_inflection_min",
+                "chart_inflection_temp"
             ],
-            "notes": "Manual: about 4 oz / 114 g; retailer: 120 g. Real-time temperature shown on request, in F; the sources do not say what the sensor measures. Manual: allow 30 min between roasts. Row count 12 is the owner's rule for the whole Fresh Roast SR series (10 min is about the longest anyone roasts on it, +2 buffer).",
+            "notes": "Manual: about 4 oz / 114 g; retailer: 120 g. Real-time temperature shown on request, in F; the sources do not say what the sensor measures. Manual: allow 30 min between roasts. Row count 12 is the owner's rule for the whole Fresh Roast SR series (10 min is about the longest anyone roasts on it, +2 buffer). Chart anchors (145 F start, 270 F at 30 s) are the app's original live-chart constants, tuned on the SR800; assumed the same for this SR model.",
             "green_weight_min_g": 40,
             "green_weight_max_g": 120,
             "green_weight_recommended_g": 114,
@@ -321,7 +354,10 @@
             "temp_source": "unspecified",
             "has_temp_readout": true,
             "temp_min": 60,
-            "temp_max": 500
+            "temp_max": 500,
+            "chart_start_temp": 145,
+            "chart_inflection_min": 0.5,
+            "chart_inflection_temp": 270
         }
     },
     "fresh-roast-sr700": {
@@ -337,9 +373,12 @@
                 "green_weight_min_g",
                 "temp_unit",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "chart_start_temp",
+                "chart_inflection_min",
+                "chart_inflection_temp"
             ],
-            "notes": "About 4.5 oz / 130 g (3 scoops may roast better). Shows real-time temperature on the computer dashboard; heat settings listed in degrees (F assumed). Discontinued Oct 2019. Row count 12 is the owner's rule for the whole Fresh Roast SR series (10 min is about the longest anyone roasts on it, +2 buffer).",
+            "notes": "About 4.5 oz / 130 g (3 scoops may roast better). Shows real-time temperature on the computer dashboard; heat settings listed in degrees (F assumed). Discontinued Oct 2019. Row count 12 is the owner's rule for the whole Fresh Roast SR series (10 min is about the longest anyone roasts on it, +2 buffer). Chart anchors (145 F start, 270 F at 30 s) are the app's original live-chart constants, tuned on the SR800; assumed the same for this SR model.",
             "green_weight_min_g": 45,
             "green_weight_max_g": 130,
             "green_weight_recommended_g": 130,
@@ -350,7 +389,10 @@
             "temp_source": "unspecified",
             "has_temp_readout": true,
             "temp_min": 60,
-            "temp_max": 500
+            "temp_max": 500,
+            "chart_start_temp": 145,
+            "chart_inflection_min": 0.5,
+            "chart_inflection_temp": 270
         }
     },
     "fresh-roast-sr800": {
@@ -366,7 +408,7 @@
                 "temp_min",
                 "temp_max"
             ],
-            "notes": "The one CALIBRATED roaster (owner's logged roasts, in F). Retailer: washed 8 oz / 227 g, natural 6 oz / 170 g, minimum roast 4 oz / 113 g; real-time temperature readout, sensor type unstated. Retailer text says total roast 8-18 min and timer to 20 min, but the owner's experience is 10 min at most, so 12 rows per the owner's rule.",
+            "notes": "The one CALIBRATED roaster (owner's logged roasts, in F). Retailer: washed 8 oz / 227 g, natural 6 oz / 170 g, minimum roast 4 oz / 113 g; real-time temperature readout, sensor type unstated. Retailer text says total roast 8-18 min and timer to 20 min, but the owner's experience is 10 min at most, so 12 rows per the owner's rule. Chart anchors (145 F start, 270 F at 30 s) are the app's original live-chart constants, tuned on the SR800.",
             "green_weight_min_g": 113,
             "green_weight_max_g": 227,
             "green_weight_recommended_g": 227,
@@ -377,7 +419,10 @@
             "temp_source": "unspecified",
             "has_temp_readout": true,
             "temp_min": 60,
-            "temp_max": 500
+            "temp_max": 500,
+            "chart_start_temp": 145,
+            "chart_inflection_min": 0.5,
+            "chart_inflection_temp": 270
         }
     },
     "gene-cafe-cbr-101": {
@@ -408,7 +453,10 @@
             "temp_source": "chamber_air",
             "has_temp_readout": true,
             "temp_min": 60,
-            "temp_max": 500
+            "temp_max": 500,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "gene-cafe-cbr-301": {
@@ -438,7 +486,10 @@
             "temp_source": "chamber_air",
             "has_temp_readout": true,
             "temp_min": 60,
-            "temp_max": 500
+            "temp_max": 500,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "hottop-kn-8828b-2k": {
@@ -467,7 +518,10 @@
             "temp_source": "chamber_air",
             "has_temp_readout": true,
             "temp_min": 60,
-            "temp_max": 500
+            "temp_max": 500,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "hottop-kn-8828b-2k-plus": {
@@ -497,7 +551,10 @@
             "temp_source": "bean_probe",
             "has_temp_readout": true,
             "temp_min": 60,
-            "temp_max": 500
+            "temp_max": 500,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "hottop-kn-8828p-2k": {
@@ -525,7 +582,10 @@
             "temp_source": "chamber_air",
             "has_temp_readout": true,
             "temp_min": 60,
-            "temp_max": 500
+            "temp_max": 500,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "huky-500t": {
@@ -555,7 +615,10 @@
             "temp_source": "bean_probe",
             "has_temp_readout": true,
             "temp_min": 15,
-            "temp_max": 260
+            "temp_max": 260,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "ikawa-home": {
@@ -585,7 +648,10 @@
             "temp_source": "inlet_air",
             "has_temp_readout": true,
             "temp_min": 15,
-            "temp_max": 300
+            "temp_max": 300,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "ikawa-pro50": {
@@ -615,7 +681,10 @@
             "temp_source": "inlet_air",
             "has_temp_readout": true,
             "temp_min": 15,
-            "temp_max": 300
+            "temp_max": 300,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "ikawa-pro100": {
@@ -645,7 +714,10 @@
             "temp_source": "inlet_air",
             "has_temp_readout": true,
             "temp_min": 15,
-            "temp_max": 300
+            "temp_max": 300,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "kaffelogic-nano-7": {
@@ -673,7 +745,10 @@
             "temp_source": "bean_probe",
             "has_temp_readout": true,
             "temp_min": 15,
-            "temp_max": 260
+            "temp_max": 260,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "kaffelogic-nano-7e": {
@@ -701,7 +776,10 @@
             "temp_source": "bean_probe",
             "has_temp_readout": true,
             "temp_min": 15,
-            "temp_max": 260
+            "temp_max": 260,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "kaldi-mini": {
@@ -732,7 +810,10 @@
             "temp_source": "chamber_air",
             "has_temp_readout": true,
             "temp_min": 15,
-            "temp_max": 260
+            "temp_max": 260,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "kaldi-wide": {
@@ -763,7 +844,10 @@
             "temp_source": "chamber_air",
             "has_temp_readout": true,
             "temp_min": 15,
-            "temp_max": 260
+            "temp_max": 260,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "kaleido-sniper-m1": {
@@ -794,7 +878,10 @@
             "temp_source": "bean_probe",
             "has_temp_readout": true,
             "temp_min": 15,
-            "temp_max": 260
+            "temp_max": 260,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "kaleido-sniper-m2": {
@@ -825,7 +912,10 @@
             "temp_source": "bean_probe",
             "has_temp_readout": true,
             "temp_min": 15,
-            "temp_max": 260
+            "temp_max": 260,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "kaleido-sniper-m6": {
@@ -856,7 +946,10 @@
             "temp_source": "bean_probe",
             "has_temp_readout": true,
             "temp_min": 15,
-            "temp_max": 260
+            "temp_max": 260,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "kaleido-sniper-m10": {
@@ -887,7 +980,10 @@
             "temp_source": "bean_probe",
             "has_temp_readout": true,
             "temp_min": 15,
-            "temp_max": 260
+            "temp_max": 260,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "nesco-cr-1010-pr": {
@@ -916,7 +1012,10 @@
             "temp_source": "none",
             "has_temp_readout": false,
             "temp_min": null,
-            "temp_max": null
+            "temp_max": null,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "nostalgia-electric-popcorn-popper": {
@@ -946,7 +1045,10 @@
             "temp_source": "none",
             "has_temp_readout": false,
             "temp_min": null,
-            "temp_max": null
+            "temp_max": null,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "nuvo-eco-ceramic-stovetop": {
@@ -974,7 +1076,10 @@
             "temp_source": "none",
             "has_temp_readout": false,
             "temp_min": null,
-            "temp_max": null
+            "temp_max": null,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "presto-poplite-popcorn-popper": {
@@ -1004,7 +1109,10 @@
             "temp_source": "none",
             "has_temp_readout": false,
             "temp_min": null,
-            "temp_max": null
+            "temp_max": null,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "quest-m3": {
@@ -1033,7 +1141,10 @@
             "temp_source": "bean_probe",
             "has_temp_readout": true,
             "temp_min": 15,
-            "temp_max": 260
+            "temp_max": 260,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "quest-m3s": {
@@ -1062,7 +1173,10 @@
             "temp_source": "bean_probe",
             "has_temp_readout": true,
             "temp_min": 15,
-            "temp_max": 260
+            "temp_max": 260,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "roest-l100-ultra": {
@@ -1091,7 +1205,10 @@
             "temp_source": "bean_probe",
             "has_temp_readout": true,
             "temp_min": 15,
-            "temp_max": 260
+            "temp_max": 260,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "roest-l200-plus": {
@@ -1119,7 +1236,10 @@
             "temp_source": "bean_probe",
             "has_temp_readout": true,
             "temp_min": 15,
-            "temp_max": 260
+            "temp_max": 260,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "roest-l200-ultra": {
@@ -1149,7 +1269,10 @@
             "temp_source": "bean_probe",
             "has_temp_readout": true,
             "temp_min": 15,
-            "temp_max": 260
+            "temp_max": 260,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "roest-s200": {
@@ -1177,7 +1300,10 @@
             "temp_source": "bean_probe",
             "has_temp_readout": true,
             "temp_min": 15,
-            "temp_max": 260
+            "temp_max": 260,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "sandbox-smart-r1": {
@@ -1206,7 +1332,10 @@
             "temp_source": "bean_probe",
             "has_temp_readout": true,
             "temp_min": 15,
-            "temp_max": 260
+            "temp_max": 260,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "sandbox-smart-r2": {
@@ -1235,7 +1364,10 @@
             "temp_source": "bean_probe",
             "has_temp_readout": true,
             "temp_min": 15,
-            "temp_max": 260
+            "temp_max": 260,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "west-bend-poppery-popcorn-popper": {
@@ -1265,7 +1397,10 @@
             "temp_source": "none",
             "has_temp_readout": false,
             "temp_min": null,
-            "temp_max": null
+            "temp_max": null,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "west-bend-poppery-ii-popcorn-popper": {
@@ -1296,7 +1431,10 @@
             "temp_source": "none",
             "has_temp_readout": false,
             "temp_min": null,
-            "temp_max": null
+            "temp_max": null,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "whirley-pop-stovetop-popcorn-popper": {
@@ -1325,7 +1463,10 @@
             "temp_source": "none",
             "has_temp_readout": false,
             "temp_min": null,
-            "temp_max": null
+            "temp_max": null,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     },
     "zenroast-ceramic-stovetop": {
@@ -1356,7 +1497,10 @@
             "temp_source": "none",
             "has_temp_readout": false,
             "temp_min": null,
-            "temp_max": null
+            "temp_max": null,
+            "chart_start_temp": null,
+            "chart_inflection_min": null,
+            "chart_inflection_temp": null
         }
     }
 }

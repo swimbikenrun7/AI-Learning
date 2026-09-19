@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Add roast profile{% endblock %}
+{% block content %}
+  <button class="btn btn--ghost back-link" onclick="window.location='/profiles'">&larr; Back to profiles</button>
+  <h1>Add roast profile</h1>
+
+  {% if error %}
+    <p style="color: var(--color-danger);">{{ error }}</p>
+  {% endif %}
+
+  <p>Which roaster is this profile for? Its temperature rows, weight and time limits, and units all come from the roaster, so a profile belongs to one roaster and can't be moved to another later.</p>
+  <form method="get" action="/profiles/new">
+    <p>
+      <label>Roaster<br>
+        <select name="roaster" required>
+          <option value="">&mdash; Select a roaster &mdash;</option>
+          {% for roaster_id, roaster in roaster_options %}
+            <option value="{{ roaster_id }}">{{ roaster.name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </p>
+    <button class="btn btn--primary" type="submit">Continue</button>
+  </form>
+{% endblock %}

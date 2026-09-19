@@ -4,6 +4,7 @@
   <button class="btn btn--ghost back-link" onclick="window.location='/roasts'">&larr; Back to roasts</button>
   <h1>{{ record.bean_name }} &mdash; {{ record.date }}</h1>
   <p>Roast profile: {{ profile_name }}</p>
+  {% if roaster_name %}<p>Roaster: {{ roaster_name }}</p>{% endif %}
   {% if record.get("bean_origin") or record.get("bean_variety") or record.get("bean_process") %}
     <p>
       {% if record.get("bean_origin") %}Origin: {{ record.bean_origin }}<br>{% endif %}
@@ -25,29 +26,32 @@
     <button class="btn btn--danger" onclick="window.location='/roasts/{{ record_id }}/delete'">Delete this roast</button>
   </div>
 
-  <canvas id="temp-chart" width="700" height="350"></canvas>
+  {% if units %}
+    <canvas id="temp-chart" width="700" height="350"></canvas>
 
-  <h2>Rate of rise</h2>
-  <canvas id="ror-chart" width="700" height="200"></canvas>
+    <h2>Rate of rise</h2>
+    <canvas id="ror-chart" width="700" height="200"></canvas>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Time</th>
-        <th>Actual (&deg;F)</th>
-        <th>Target (&deg;F)</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for minute in minutes %}
+    <table>
+      <thead>
         <tr>
-          <td>{{ minute }}:00</td>
-          <td>{{ actual_temps[minute - 1] if actual_temps[minute - 1] is not none else "-" }}</td>
-          <td>{{ target_temps[minute - 1] if target_temps[minute - 1] is not none else "-" }}</td>
+          <th>Time</th>
+          <th>Actual ({{ units.symbol }})</th>
+          <th>Target ({{ units.symbol }})</th>
         </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {% for minute in minutes %}
+          <tr>
+            <td>{{ minute }}:00</td>
+            <td>{{ actual_temps[minute - 1] if actual_temps[minute - 1] is not none else "-" }}</td>
+            <td>{{ target_temps[minute - 1] if target_temps[minute - 1] is not none else "-" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  {% endif %}
 
   <h2>Cupping notes</h2>
   <form method="post" action="/roasts/{{ record_id }}/cupping">
@@ -69,89 +73,93 @@
     <button class="btn btn--primary" type="submit">Save cupping notes</button>
   </form>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js"></script>
-  <script>
-    const minutes = {{ minutes|tojson }};
-    const actualTemps = {{ actual_temps|tojson }};
-    const targetTemps = {{ target_temps|tojson }};
-    const rateOfRise = {{ rate_of_rise|tojson }};
-    const targetRateOfRise = {{ target_rate_of_rise|tojson }};
+  {% if units %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js"></script>
+    <script>
+      const unitSymbol = {{ units.symbol|tojson }};
+      const rorUnit = {{ units.ror|tojson }};
+      const minutes = {{ minutes|tojson }};
+      const actualTemps = {{ actual_temps|tojson }};
+      const targetTemps = {{ target_temps|tojson }};
+      const rateOfRise = {{ rate_of_rise|tojson }};
+      const targetRateOfRise = {{ target_rate_of_rise|tojson }};
 
-    new Chart(document.getElementById("temp-chart"), {
-      type: "line",
-      data: {
-        labels: minutes.map((m) => m + ":00"),
-        datasets: [
-          {
-            // Drawn first (underneath) and thicker, so when actual and target
-            // match exactly at every point - as they do for these seed
-            // records - the dashed target track still peeks out on both
-            // sides of the thinner actual line instead of being fully hidden.
-            label: "Target (°F)",
-            data: targetTemps,
-            borderColor: "#7570b3",
-            backgroundColor: "#7570b3",
-            borderDash: [8, 5],
-            borderWidth: 6,
-            pointRadius: 0,
-            spanGaps: false,
-            tension: 0.2,
-          },
-          {
-            label: "Actual (°F)",
-            data: actualTemps,
-            borderColor: "#d95f02",
-            backgroundColor: "#d95f02",
-            borderWidth: 2,
-            spanGaps: false,
-            tension: 0.2,
-          },
-        ],
-      },
-      options: {
-        scales: {
-          x: { title: { display: true, text: "Time (minutes)" } },
-          y: { title: { display: true, text: "Temperature (°F)" } },
+      new Chart(document.getElementById("temp-chart"), {
+        type: "line",
+        data: {
+          labels: minutes.map((m) => m + ":00"),
+          datasets: [
+            {
+              // Drawn first (underneath) and thicker, so when actual and target
+              // match exactly at every point - as they do for these seed
+              // records - the dashed target track still peeks out on both
+              // sides of the thinner actual line instead of being fully hidden.
+              label: `Target (${unitSymbol})`,
+              data: targetTemps,
+              borderColor: "#7570b3",
+              backgroundColor: "#7570b3",
+              borderDash: [8, 5],
+              borderWidth: 6,
+              pointRadius: 0,
+              spanGaps: false,
+              tension: 0.2,
+            },
+            {
+              label: `Actual (${unitSymbol})`,
+              data: actualTemps,
+              borderColor: "#d95f02",
+              backgroundColor: "#d95f02",
+              borderWidth: 2,
+              spanGaps: false,
+              tension: 0.2,
+            },
+          ],
         },
-      },
-    });
+        options: {
+          scales: {
+            x: { title: { display: true, text: "Time (minutes)" } },
+            y: { title: { display: true, text: `Temperature (${unitSymbol})` } },
+          },
+        },
+      });
 
-    new Chart(document.getElementById("ror-chart"), {
-      type: "line",
-      data: {
-        labels: minutes.map((m) => m + ":00"),
-        datasets: [
-          {
-            // Same thick-dashed-underneath treatment as the temp chart's
-            // Target line above, so the two charts read as one visual
-            // language even though they're separate canvases.
-            label: "Target",
-            data: targetRateOfRise,
-            borderColor: "#7570b3",
-            backgroundColor: "#7570b3",
-            borderDash: [8, 5],
-            borderWidth: 6,
-            pointRadius: 0,
-            spanGaps: false,
-            tension: 0.2,
-          },
-          {
-            label: "Actual",
-            data: rateOfRise,
-            borderColor: "#1b9e77",
-            backgroundColor: "#1b9e77",
-            borderWidth: 2,
-            spanGaps: false,
-            tension: 0.2,
-          },
-        ],
-      },
-      options: {
-        scales: {
-          x: { title: { display: true, text: "Time (minutes)" } },
-          y: { title: { display: true, text: "Rate of rise (°F/min)" } },
+      new Chart(document.getElementById("ror-chart"), {
+        type: "line",
+        data: {
+          labels: minutes.map((m) => m + ":00"),
+          datasets: [
+            {
+              // Same thick-dashed-underneath treatment as the temp chart's
+              // Target line above, so the two charts read as one visual
+              // language even though they're separate canvases.
+              label: "Target",
+              data: targetRateOfRise,
+              borderColor: "#7570b3",
+              backgroundColor: "#7570b3",
+              borderDash: [8, 5],
+              borderWidth: 6,
+              pointRadius: 0,
+              spanGaps: false,
+              tension: 0.2,
+            },
+            {
+              label: "Actual",
+              data: rateOfRise,
+              borderColor: "#1b9e77",
+              backgroundColor: "#1b9e77",
+              borderWidth: 2,
+              spanGaps: false,
+              tension: 0.2,
+            },
+          ],
         },
-      },
-    });
-  </script>
+        options: {
+          scales: {
+            x: { title: { display: true, text: "Time (minutes)" } },
+            y: { title: { display: true, text: `Rate of rise (${rorUnit})` } },
+          },
+        },
+      });
+    </script>
+  {% endif %}
 {% endblock %}

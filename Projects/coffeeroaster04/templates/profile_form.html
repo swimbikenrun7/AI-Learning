@@ -8,20 +8,18 @@
     <p style="color: var(--color-danger);">{{ error }}</p>
   {% endif %}
 
-  {# Sits above the wizard (outside the <form>, tied to it via form="...")
-     so the wizard can read the chosen roaster before generating a profile. #}
   <p>
-    <label>Roaster<br>
-      <select name="roaster_id" form="profile-form">
-        <option value="">&mdash; No roaster selected &mdash;</option>
-        {% for roaster_id, roaster in roaster_options %}
-          <option value="{{ roaster_id }}"{{ " selected" if roaster_id == values.roaster_id else "" }}>{{ roaster.name }}</option>
-        {% endfor %}
-      </select>
-    </label>
+    Roaster:
+    {% if settings.roaster_name %}
+      <strong>{{ settings.roaster_name }}</strong>
+      <small>&middot; fixed for this profile</small>
+    {% else %}
+      <em>none</em>
+      {% if not profile_id %}<small>&mdash; <a href="/profiles/new">choose a roaster</a></small>{% endif %}
+    {% endif %}
   </p>
 
-  {% if not profile_id %}
+  {% if not profile_id and settings.calibrated %}
     <p>
       <button type="button" id="wizard-toggle" class="btn btn--ghost">Want some help? Try the profile wizard &rarr;</button>
     </p>
@@ -58,7 +56,7 @@
         </label>
       </p>
       <p>
-        <label>Your typical first crack temperature (&deg;F)<br>
+        <label>Your typical first crack temperature ({{ settings.units.symbol }})<br>
           <input type="number" id="wizard-fc-temp" value="400" min="300" max="480" step="1">
         </label>
         <br><small>This varies by roaster and probe placement &mdash; use what you usually observe on your own machine, not a generic number. It shapes where the curve ends, not how long it takes to get there &mdash; time to first crack is estimated separately, from density/process.</small>
@@ -68,6 +66,9 @@
   {% endif %}
 
   <form method="post" id="profile-form">
+    {% if not profile_id %}
+      <input type="hidden" name="roaster_id" value="{{ settings.roaster_id or '' }}">
+    {% endif %}
     <p>
       <label>Profile name<br>
         <input type="text" name="name" value="{{ values.name }}">
@@ -86,30 +87,34 @@
       <br><small>Fixed reference values, not modeled as a temperature target &mdash; development pace varies too much to pin to a curve.</small>
     </p>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Time</th>
-          <th>Target (&deg;F)</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for minute in minutes %}
+    {% if settings.has_temp_readout %}
+      <table>
+        <thead>
           <tr>
-            <td>{{ minute }}:00</td>
-            <td>
-              <input
-                type="text"
-                name="temp_{{ minute }}"
-                value="{{ values.temps[minute - 1] }}"
-                size="6"
-                placeholder="optional"
-              >
-            </td>
+            <th>Time</th>
+            <th>Target ({{ settings.units.symbol }})</th>
           </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {% for minute in minutes %}
+            <tr>
+              <td>{{ minute }}:00</td>
+              <td>
+                <input
+                  type="text"
+                  name="temp_{{ minute }}"
+                  value="{{ values.temps[minute - 1] }}"
+                  size="6"
+                  placeholder="optional"
+                >
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p><small>This roaster has no temperature readout, so there is no temperature grid &mdash; the target times above are the reference values.</small></p>
+    {% endif %}
 
     <button class="btn btn--primary" type="submit">Submit</button>
   </form>
@@ -120,7 +125,7 @@
     </div>
   {% endif %}
 
-  {% if not profile_id %}
+  {% if not profile_id and settings.calibrated %}
     <script src="{{ url_for('static', filename='js/profile_wizard.js') }}"></script>
   {% endif %}
 {% endblock %}

@@ -119,7 +119,7 @@ Finished weight needs no per-roaster field: the domain rule is `0 < finished < g
 | Field | Meaning |
 |---|---|
 | `start_model` | `ramp` / `preheat_charge` / `programmed` / `none` — what the live chart's opening looks like |
-| `chart_start_temp`, `chart_inflection_min`, `chart_inflection_temp` | Live-chart anchors (SR: 145 °F, 0.5 min, 270 °F) |
+| `chart_start_temp`, `chart_inflection_min`, `chart_inflection_temp` | Live-chart anchors (SR: 145 °F, 0.5 min, 270 °F) — **done early in T-03** (SR540/SR700/SR800; `null` elsewhere = no synthetic ramp) |
 | `preheat_temp`, `charge_temp` | Drum roasters; null otherwise |
 | `controls` | List of `{name, min, max}` (e.g. Fan 1–9, Heat 1–9) |
 | `cooling` | `internal` / `external_tray` / `manual` |
@@ -149,39 +149,43 @@ Finished weight needs no per-roaster field: the domain rule is `0 < finished < g
 
 ---
 
-## T-03 [PLANNED] Roaster required and locked; limits, units, and grid driven by roaster data
+## T-03 [COMPLETE] Roaster required and locked; limits, units, and grid driven by roaster data
 
-**Depends on:** T-01 ✓ and T-02a.
-**Goal:** the profile and Add Roast flows read their limits, units, and grid length from the profile's roaster, and no code path assumes 12 rows or °F.
+Completed 2026-09-19 · **not yet committed** — awaiting your review. 273 tests passing (was 184 at the start of T-03).
 
-**Tasks**
-- [ ] **New `roasters.py`** (pure functions, no Flask): `settings_for(roaster_id)` returns that roaster's values with per-field fallback to today's constants when the id is unset, unknown, or a field is `null` (Settled #8). Also holds the `TEMP_UNITS` table (Settled #12).
-- [ ] **`validators.py`:** add optional limit arguments to `validate_green_weight`, `validate_finished_weight`, `validate_roast_time`, `validate_first_crack`, `validate_temperature`, and the two target-time validators. Defaults equal today's constants, so every existing call and test is untouched. With limits supplied, finished weight uses `0 < finished < green`, and the roast-time maximum is the roaster's row count (Settled #13; inclusive, so 12 rows accepts 12:00). Error messages are built from the limits; the legacy wording is kept verbatim for the default path (no existing test asserts these strings — checked).
-- [ ] **`calculations.py`:** `calculate_weight_loss` and `calculate_development_time` carry duplicate hard-coded guards (100–300 g; total ≥ 240 s). Give them optional limit arguments defaulting to the current values. Do not delete the guards: existing tests assert they raise. Formulas are unchanged (SPEC constraint).
-- [ ] **`app.py`:** remove the eight hard-coded "12" sites (lines ~420–422 in `roast_detail`, ~494/495/503 in `add_roast`, ~614/615 in `add_edit_profile`). New profile or new roast → length from the roaster. Existing profile or record → length from its stored list, so old 12-entry data keeps rendering even if a roaster's grid is later retuned. When a roaster's grid is longer than a stored profile, pad with blanks and never truncate non-empty values.
-- [ ] **Startup migration** (Settled #8): idempotent, saves only when something changed, unit-tested.
-- [ ] **Profile form:** roaster required on create; on edit it renders as read-only text, not a select. Server side, reject any attempt to change it.
-- [ ] **Add Roast:** show the allowed ranges as hints (e.g. "Recommended 226 g; allowed 100–226 g"); temperature column header and hints use the roaster's unit and probe type; hide the temperature grid when `has_temp_readout` is false.
-- [ ] **Records:** snapshot `roaster_id` and `temp_unit`; `roast_detail` shows the roaster and what its temperature measures.
-- [ ] **Units (Settled #12):** templates and the JS config take symbols, labels, and chart-axis settings from `TEMP_UNITS`; add the guard tests listed under "Temperature units — how Settled #12 is implemented".
-- [ ] **JS:** the three hard-coded 12s in the live chart (`x <= 12`, axis `max: 12`, elapsed clamp) and the literal `°F` in the readouts of `static/js/add_roast_live.js` come from the config island.
+**What now works**
+- **Choose the roaster first.** `/profiles/new` asks which roaster (an alphabetical dropdown, no default); the profile form for that roaster follows. The roaster is then shown read-only and is locked: an edit that tries to change it gets a 400. Add Roast has no roaster override.
+- **Rows, limits, and units come from the roaster.** A profile has one row per minute of its roaster's grid (never truncated; padded if the grid grew). Max roast time = the profile's row count (12 rows → 12:00 accepted, 12:01 rejected); target first-crack/development times obey the same cap. Green weight, finished weight (now just `> 0` and `≤ green`), roast-time and first-crack floors, and the temperature range are the roaster's own, with the allowed ranges shown as hints on Add Roast.
+- **Units.** Every temperature is stored and shown in the roaster's own unit, never converted. All unit text comes from `roasters.TEMP_UNITS`; the live chart's axis titles, tooltips, and readouts, the roast detail charts, and every table header use it. A guard test (`tests/test_no_hardcoded_units.py`) fails if a unit literal appears in any template, script, or module; run against the pre-T-03 code it finds all 17.
+- **No-readout roasters** show no temperature grid, temperature entry, chart, or temperature readout; the target times, timer, First Crack button, and pull countdown work as before.
+- **Records snapshot the roaster.** Each saved roast stores `roaster_id` and `temp_unit`; the detail page shows the roaster and uses the record's own unit and row count. Saved records are never re-validated for display (a 60 g or 3:30 roast would otherwise trip the original guards).
+- **Startup migration** (Settled #8): profiles and records with no roaster get the SR800 (records take their profile's roaster first) and a `temp_unit`; idempotent, rewrites only when something changed. Verified end to end on old-format data files, including a second start that changed nothing (`DEPLOY.md` notes it).
+- **Original limits still apply** to a profile with no roaster (or an unknown roaster id), so the earlier tests and any stray legacy profile behave exactly as before.
 
-**Files touched:** `roasters.py` (new), `validators.py`, `calculations.py`, `app.py`, `templates/profile_form.html`, `templates/add_roast.html`, `templates/roast_detail.html`, `static/js/add_roast_live.js`, `SPEC.md`.
+**Decisions made while building (all in `SPEC.md`, "Roaster-driven profiles")**
+1. **Two-step profile creation.** Because the row count depends on the roaster, the roaster is picked on its own page first instead of a dropdown on the form. This changed three existing Phase 11 tests beyond the four you approved; you approved those three separately (see below).
+2. **Chart anchors pulled forward from T-02b.** The live chart's opening (145 / 0.5 min / 270) is °F-specific, so it is now per-roaster data in the roaster's own unit: set for SR540, SR700, SR800; `null` for everyone else, which means no synthetic ramp (the curve starts flat at the first target). SR300/340/500 have no readout, so no chart at all. Without this a °C roaster would have been drawn on a °F-numbered ramp.
+3. **The wizard is offered only for a `calibrated` roaster** (the SR800), since its constants are °F and calibrated for that machine. T-04 makes it data-driven.
+4. **Max roast time uses the profile's own row count** rather than the roaster's current grid, so a roast can never run past the rows that describe it even if a roaster's grid is later retuned.
+5. **Error messages are built from the limits** ("between 113 and 227 grams", "between 04:00 and 12:00"); the wording changed slightly from "greater than X and less than Y". No test depended on the old text.
 
-**Existing tests changed by this item — approved 2026-09-19** (they encode "roaster optional", which Settled #1–3 and #9 reverse):
-- `test_post_new_profile_creates_and_redirects` and `test_post_new_profile_defaults_to_not_favorite` — POST `/profiles/new` with no roaster; they gain a `roaster_id` in the form data.
-- `test_form_lists_roasters_alphabetically_with_a_blank_default` and `test_post_new_profile_without_roaster_stores_none` (both added in Phase 11) — assert the blank "No roaster selected" default and `roaster_id: None`; they are replaced by "required" tests.
-- `test_post_new_profile_invalid_shows_error_and_preserves_input` — posts an empty name with no roaster; it stays valid only if the name is still validated first, so the roaster check must come after it (keep that order). No edit expected.
-- Not affected (verified by grep): the three edit-profile tests, all Add Roast tests, and all `test_units.py` validator/calculation tests, because the roaster-less fallback (Settled #8) and the default-argument design keep them valid.
+**Existing tests changed** (all approved): the four listed earlier (`test_post_new_profile_creates_and_redirects` and `..._defaults_to_not_favorite` gained a `roaster_id`; the blank-default and stores-None tests were replaced by "asks for a roaster first" and "a roaster is required"), plus three approved on 2026-09-19 because they asserted what Settled #7 reverses: `test_edit_form_preselects_the_saved_roaster` → shows the roaster read-only; `test_post_edit_can_change_the_roaster` → an attempt is rejected (400); `test_roaster_dropdown_sits_above_the_wizard_and_is_tied_to_the_form` → the chosen roaster is carried into the form with no dropdown. No other existing test changed.
 
-**Tests (new):** per-roaster limits accepted/rejected (using synthetic fixture roasters — a 60 g batch, a 454 g batch, a 3:30 roast — not real roaster data); roast time exactly at the row count is accepted and one second over is rejected; a 20-row grid renders, saves, and displays; roaster locked on edit; record snapshots roaster and unit; records with 12 stored entries still render under a longer-grid roaster; migration assigns SR800 once and is a no-op the second time; the temperature-unit guards, with an F and a C fixture roaster.
-**Done when:** the full suite passes; a profile for a synthetic fixture roaster with a 20-row grid can be created and roasted end to end; a °C roaster's pages show no °F anywhere.
+**Verified in a real browser** (headless Chromium, before/after): the SR800 Add Roast, timer, First Crack, wizard (two input sets), and profile pages match the pre-T-03 baseline on every recorded value with no console errors. A °C roaster shows `°C` on both axes and readouts and starts flat; a 25-row Gene Cafe profile gets 25 rows and a 25-minute axis; a no-readout roaster hides the chart but its timer and First Crack button work.
+
+**Known interim limits (by design; later items fix them)**
+- Non-SR roasters have no chart opening, so a curve starts flat and its rate-of-rise line spikes when it first climbs; T-05 gives each roaster a proper `start_model`.
+- The wizard is SR800-only (T-04).
+- SR300/340/500, the poppers, Nesco, Whirley-Pop, and the ceramic roasters have no temperature grid at all (they have no readout); if people use external probes there, that needs an override.
+- Roasters do not yet appear on the `/roasts` list or CSV export.
+
+**Files:** `roasters.py` (new), `validators.py`, `calculations.py`, `app.py`, `templates/{choose_roaster,profile_form,add_roast,roast_detail}.html`, `static/js/{add_roast_live,profile_wizard}.js`, `data/roasters.json` (chart anchors), `SPEC.md`, `DEPLOY.md`; tests: `test_roasters.py`, `test_limits.py`, `test_roaster_profiles.py`, `test_roaster_roasts.py`, `test_no_hardcoded_units.py` (new) and the seven edits above.
 
 ---
 
 ## T-04 [PLANNED] Data-driven profile wizard
 
-**Depends on:** T-02b, T-03.
+**Depends on:** T-02b, T-03 ✓. **Starting point after T-03:** the wizard is offered only for a `calibrated` roaster (the SR800); this item removes that gate.
 **Goal:** the wizard's hard-coded constants (`MAILLARD_TIME_SECONDS`, `NATURAL_TIME_ADJUST_SECONDS`, `ROAST_LEVEL_DTR`, `PROFILE_START_TEMP`, default first-crack temp, the 12-row loop in `static/js/profile_wizard.js`) come from the roaster's `wizard` values and grid length.
 
 **Tasks**
@@ -235,10 +239,10 @@ Add a read-only report script (not a web feature) that summarizes logged roasts 
 ## T-09 [PLANNED] Keep a browser regression check in the repo
 
 **Depends on:** none; most useful before T-04/T-05, which change the JS's behavior.
-There are no JS tests, and T-01's verification showed how much that matters: a headless-Chromium script (no new dependency beyond a Chromium binary and Node's built-in WebSocket) that loads Add Roast and the profile form, clicks Start / First Crack / Reset and the wizard, and records the resulting chart data, readouts, and console errors, then diffs the result against a stored baseline. A working prototype exists from T-01, but it lives in a scratch directory that is deleted with the session. Options: commit it under `tests/browser/` as an optional check that skips itself when Chromium isn't installed, or keep it out of the repo and rebuild it when needed. Your call.
+There are no JS tests, and T-01's verification showed how much that matters: a headless-Chromium script (no new dependency beyond a Chromium binary and Node's built-in WebSocket) that loads Add Roast and the profile form, clicks Start / First Crack / Reset and the wizard, and records the resulting chart data, readouts, and console errors, then diffs the result against a stored baseline. A working prototype exists from T-01 and was extended and reused to verify T-03 (a °C roaster, a 25-row grid, a no-readout roaster, plus the SR800 baseline comparison), but it lives in a scratch directory that is deleted with the session. It is now the only check of the chart and timer behavior, which T-04 and T-05 will change again. Options: commit it under `tests/browser/` as an optional check that skips itself when Chromium isn't installed, or keep it out of the repo and rebuild it when needed. Your call.
 
 ---
 
 ## Suggested order
 
-T-01 ✓ → T-02a (research) → T-03 → T-02b → T-09 (recommended before) → T-04 and T-05 → T-06 as warranted → T-08 once data exists. T-07 stays deferred.
+T-01 ✓ → T-02a ✓ → T-03 ✓ → T-02b → T-09 (recommended before) → T-04 and T-05 → T-06 as warranted → T-08 once data exists. T-07 stays deferred.

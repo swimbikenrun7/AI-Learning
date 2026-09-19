@@ -54,34 +54,39 @@
           <label>Green weight (g)<br>
             <input type="text" name="green_weight" value="{{ values.green_weight }}">
           </label>
+          {% if settings.roaster_id %}
+            <br><small>Allowed {{ settings.green_weight_min_g }}&ndash;{{ settings.green_weight_max_g }} g{% if settings.green_weight_recommended_g %}; recommended {{ settings.green_weight_recommended_g }} g{% endif %}.</small>
+          {% endif %}
         </p>
 
-        <table>
-          <thead>
-            <tr>
-              <th>Time</th>
-              <th>Actual (&deg;F)</th>
-              <th>Target (&deg;F)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for minute in minutes %}
+        {% if settings.has_temp_readout %}
+          <table>
+            <thead>
               <tr>
-                <td>{{ minute }}:00</td>
-                <td>
-                  <input
-                    type="text"
-                    name="actual_temp_{{ minute }}"
-                    value="{{ values.actual_temps[minute - 1] }}"
-                    size="6"
-                    placeholder="optional"
-                  >
-                </td>
-                <td>{{ target_temps[minute - 1] if target_temps[minute - 1] is not none else "-" }}</td>
+                <th>Time</th>
+                <th>Actual ({{ settings.units.symbol }})</th>
+                <th>Target ({{ settings.units.symbol }})</th>
               </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {% for minute in minutes %}
+                <tr>
+                  <td>{{ minute }}:00</td>
+                  <td>
+                    <input
+                      type="text"
+                      name="actual_temp_{{ minute }}"
+                      value="{{ values.actual_temps[minute - 1] }}"
+                      size="6"
+                      placeholder="optional"
+                    >
+                  </td>
+                  <td>{{ target_temps[minute - 1] if target_temps[minute - 1] is not none else "-" }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% endif %}
 
         <p>
           <label>Time of first crack (MM:SS)<br>
@@ -92,6 +97,9 @@
           <label>Total roast time (MM:SS)<br>
             <input type="text" name="roast_time" value="{{ values.roast_time }}">
           </label>
+          {% if settings.roaster_id %}
+            <br><small>Up to {{ max_roast_time }}{% if settings.has_temp_readout %} &mdash; the length of this profile's temperature rows{% endif %}.</small>
+          {% endif %}
         </p>
         <p>
           <label>Finished weight (g)<br>
@@ -108,15 +116,15 @@
         <button id="start-stop-btn" class="btn timer-btn timer-btn--start" type="button">Start</button>
         <button id="reset-btn" class="btn timer-btn timer-btn--reset" type="button">Reset</button>
       </div>
-      <div class="roast-graph">
+      <div class="roast-graph"{% if not settings.has_temp_readout %} hidden{% endif %}>
         <canvas id="live-chart"></canvas>
         <p id="no-profile-data" hidden>No profile data to graph.</p>
       </div>
       <div class="roast-readout">
-        <span id="target-temp-readout">&ndash;</span>
+        <span id="target-temp-readout"{% if not settings.has_temp_readout %} hidden{% endif %}>&ndash;</span>
         <span id="clock-readout">0:00</span>
       </div>
-      <div class="ror-readout">Rate of rise: <span id="ror-readout">&ndash;</span></div>
+      <div class="ror-readout"{% if not settings.has_temp_readout %} hidden{% endif %}>Rate of rise: <span id="ror-readout">&ndash;</span></div>
       {% if target_first_crack or target_development_time %}
         <p class="target-reference">
           <small>
@@ -135,6 +143,6 @@
   <script src="{{ url_for('static', filename='js/add_roast_layout.js') }}"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js"></script>
   {# Per-page data for the static scripts: parsed by add_roast_live.js. #}
-  <script id="roast-config" type="application/json">{{ {"profileTemps": profile.temps, "targetDevelopmentSeconds": profile.get("target_development_time")}|tojson }}</script>
+  <script id="roast-config" type="application/json">{{ roast_config|tojson }}</script>
   <script src="{{ url_for('static', filename='js/add_roast_live.js') }}"></script>
 {% endblock %}

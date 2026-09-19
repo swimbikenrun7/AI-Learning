@@ -1,17 +1,21 @@
 from itertools import pairwise
 
 
-def calculate_weight_loss(green_weight, finished_weight):
-    if green_weight < 100 or green_weight > 300:
-        raise ValueError(
-            "Green weight must be greater than 100 and less than 300 grams."
-        )
+def calculate_weight_loss(green_weight, finished_weight, min_g=100, max_g=300):
+    if green_weight < min_g or green_weight > max_g:
+        raise ValueError(f"Green weight must be between {min_g:g} and {max_g:g} grams.")
     return ((green_weight - finished_weight) / green_weight) * 100
 
 
-def calculate_development_time(total_roast_time, time_of_first_crack):
-    if total_roast_time < 240 or time_of_first_crack >= total_roast_time:
-        raise ValueError("Total roast time must be between 04:00 and 20:00.")
+def calculate_development_time(
+    total_roast_time, time_of_first_crack, min_total_seconds=240
+):
+    if total_roast_time < min_total_seconds or time_of_first_crack >= total_roast_time:
+        raise ValueError(
+            "Total roast time must be at least "
+            f"{min_total_seconds // 60:02d}:{min_total_seconds % 60:02d} "
+            "and longer than the time of first crack."
+        )
     return total_roast_time - time_of_first_crack
 
 

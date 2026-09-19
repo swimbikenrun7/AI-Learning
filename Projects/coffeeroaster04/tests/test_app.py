@@ -589,7 +589,11 @@ class TestAddEditProfile(unittest.TestCase):
 
     def test_post_new_profile_creates_and_redirects(self):
         data = self.blank_temp_form(
-            name="Brand New Profile", temp_1="300", temp_2="340", temp_3="380"
+            name="Brand New Profile",
+            roaster_id="fresh-roast-sr800",
+            temp_1="300",
+            temp_2="340",
+            temp_3="380",
         )
         response = self.client.post("/profiles/new", data=data)
         self.assertEqual(response.status_code, 302)
@@ -620,7 +624,9 @@ class TestAddEditProfile(unittest.TestCase):
         self.assertEqual(self.profiles["profile-1"]["name"], "Updated Name")
 
     def test_post_new_profile_defaults_to_not_favorite(self):
-        data = self.blank_temp_form(name="Brand New Profile")
+        data = self.blank_temp_form(
+            name="Brand New Profile", roaster_id="fresh-roast-sr800"
+        )
         self.client.post("/profiles/new", data=data)
         new_profile = next(
             profile
@@ -629,26 +635,34 @@ class TestAddEditProfile(unittest.TestCase):
         )
         self.assertFalse(new_profile["favorite"])
 
-    def test_form_lists_roasters_alphabetically_with_a_blank_default(self):
+    def test_new_profile_page_asks_for_a_roaster_first_listed_alphabetically(self):
         with mock.patch.object(app, "roasters", ROASTERS):
             body = self.client.get("/profiles/new").get_data(as_text=True)
-        self.assertIn('name="roaster_id"', body)
-        self.assertIn("No roaster selected", body)
+        self.assertIn('name="roaster"', body)
+        self.assertIn("Select a roaster", body)
+        self.assertNotIn('name="target_first_crack"', body)  # no profile form yet
         self.assertLess(body.index("Alpha Roaster 1"), body.index("Zeta Roaster 9"))
 
-    def test_roaster_dropdown_sits_above_the_wizard_and_is_tied_to_the_form(self):
+    def test_unknown_roaster_in_the_url_shows_the_chooser_again(self):
         with mock.patch.object(app, "roasters", ROASTERS):
-            body = self.client.get("/profiles/new").get_data(as_text=True)
-        self.assertIn('<form method="post" id="profile-form">', body)
-        self.assertIn('form="profile-form"', body)
-        self.assertLess(body.index('name="roaster_id"'), body.index('id="wizard-panel"'))
+            body = self.client.get("/profiles/new?roaster=nope").get_data(as_text=True)
+        self.assertIn("Choose a roaster from the list", body)
+        self.assertNotIn('name="target_first_crack"', body)
 
-    def test_edit_form_preselects_the_saved_roaster(self):
+    def test_chosen_roaster_is_carried_into_the_new_profile_form(self):
+        with mock.patch.object(app, "roasters", ROASTERS):
+            body = self.client.get("/profiles/new?roaster=zeta-9").get_data(as_text=True)
+        self.assertIn("Zeta Roaster 9", body)
+        self.assertIn('<input type="hidden" name="roaster_id" value="zeta-9">', body)
+        self.assertNotIn("<select", body)  # the roaster is no longer chosen on this form
+
+    def test_edit_form_shows_the_saved_roaster_read_only(self):
         self.profiles["profile-1"]["roaster_id"] = "zeta-9"
         with mock.patch.object(app, "roasters", ROASTERS):
             body = self.client.get("/profiles/profile-1").get_data(as_text=True)
-        self.assertIn('<option value="zeta-9" selected>', body)
-        self.assertNotIn('<option value="alpha-1" selected>', body)
+        self.assertIn("Zeta Roaster 9", body)
+        self.assertNotIn("<select", body)
+        self.assertNotIn('name="roaster_id"', body)
 
     def test_post_new_profile_saves_selected_roaster(self):
         data = self.blank_temp_form(name="With Roaster", roaster_id="alpha-1")
@@ -658,19 +672,21 @@ class TestAddEditProfile(unittest.TestCase):
         saved = next(p for p in self.profiles.values() if p["name"] == "With Roaster")
         self.assertEqual(saved["roaster_id"], "alpha-1")
 
-    def test_post_new_profile_without_roaster_stores_none(self):
+    def test_post_new_profile_without_a_roaster_is_rejected(self):
         data = self.blank_temp_form(name="No Roaster", roaster_id="")
         with mock.patch.object(app, "roasters", ROASTERS):
-            self.client.post("/profiles/new", data=data)
-        saved = next(p for p in self.profiles.values() if p["name"] == "No Roaster")
-        self.assertIsNone(saved["roaster_id"])
+            response = self.client.post("/profiles/new", data=data)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Choose a roaster from the list", response.get_data(as_text=True))
+        self.assertEqual(set(self.profiles), {"profile-1"})
 
-    def test_post_edit_can_change_the_roaster(self):
+    def test_post_edit_cannot_change_the_roaster(self):
         self.profiles["profile-1"]["roaster_id"] = "alpha-1"
         data = self.blank_temp_form(name="Existing Profile", roaster_id="zeta-9")
         with mock.patch.object(app, "roasters", ROASTERS):
-            self.client.post("/profiles/profile-1", data=data)
-        self.assertEqual(self.profiles["profile-1"]["roaster_id"], "zeta-9")
+            response = self.client.post("/profiles/profile-1", data=data)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(self.profiles["profile-1"]["roaster_id"], "alpha-1")
 
     def test_post_unknown_roaster_shows_error_and_does_not_save(self):
         data = self.blank_temp_form(name="Bad Roaster", roaster_id="not-a-roaster")

@@ -38,7 +38,7 @@
 
   // The profile grid starts at minute 1, not at charge: the live
   // Add Roast graph already models the steep charge-to-drying ramp
-  // (145°F start, 270°F by 30s) outside the saved profile, so by
+  // (145 start, 270 by 30s, in the roaster's own unit) outside the saved profile, so by
   // minute 1 a roast is already just past drying and into early
   // Maillard - see add_roast.html's START_TEMP/INFLECTION constants.
   const PROFILE_START_TEMP = 315;

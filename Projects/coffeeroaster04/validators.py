@@ -4,6 +4,17 @@ from datetime import datetime
 _EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
+def _mm_ss(total_seconds):
+    minutes, seconds = divmod(total_seconds, 60)
+    return f"{minutes:02d}:{seconds:02d}"
+
+
+def _max_time_label(max_seconds):
+    # Whole-minute caps (a roaster's row count) are inclusive: 720 reads "12:00". The
+    # original cap of 1199 means "under 20:00", so it reads "20:00".
+    return _mm_ss(max_seconds + 1 if max_seconds % 60 == 59 else max_seconds)
+
+
 def validate_date(date_str):
     try:
         date_obj = datetime.strptime(date_str, "%m/%d/%Y")
@@ -20,30 +31,30 @@ def validate_bean_name(name):
     return name
 
 
-def validate_green_weight(value_str):
+def validate_green_weight(value_str, min_g=100, max_g=300):
     try:
         green_weight = float(value_str)
     except ValueError:
         green_weight = None
-    if green_weight is None or green_weight < 100 or green_weight > 300:
+    if green_weight is None or green_weight < min_g or green_weight > max_g:
         raise ValueError(
-            "Invalid input. Please enter a numeric value greater than 100 and less than 300."
+            f"Invalid input. Please enter a numeric value between {min_g:g} and {max_g:g} grams."
         )
     return green_weight
 
 
-def validate_finished_weight(value_str, green_weight):
+def validate_finished_weight(value_str, green_weight, min_g=100):
     try:
         finished_weight = float(value_str)
     except ValueError:
         finished_weight = None
     if (
         finished_weight is None
-        or finished_weight < 100
+        or finished_weight < min_g
         or finished_weight > green_weight
     ):
         raise ValueError(
-            "Invalid input. Please enter a numeric value greater than 100 and less than the green weight."
+            f"Invalid input. Please enter a numeric value between {min_g:g} and the green weight ({green_weight:g} g)."
         )
     return finished_weight
 
@@ -56,11 +67,16 @@ def _parse_mm_ss(time_str):
         return None
 
 
-def validate_roast_time(value_str):
+def validate_roast_time(value_str, min_seconds=240, max_seconds=1199):
     total_seconds = _parse_mm_ss(value_str)
-    if total_seconds is None or total_seconds < 240 or total_seconds >= 1200:
+    if (
+        total_seconds is None
+        or total_seconds < min_seconds
+        or total_seconds > max_seconds
+    ):
         raise ValueError(
-            "Invalid input. Please enter a value in MM:SS format, between 04:00 and 20:00."
+            "Invalid input. Please enter a value in MM:SS format, "
+            f"between {_mm_ss(min_seconds)} and {_max_time_label(max_seconds)}."
         )
     return total_seconds
 
@@ -71,46 +87,52 @@ def validate_profile_name(name):
     return name
 
 
-def validate_roaster_id(value_str, roasters):
-    if not value_str:
+def validate_roaster_id(value_str, roasters, required=False):
+    if not value_str and not required:
         return None
     if value_str not in roasters:
-        raise ValueError("Choose a roaster from the list, or leave blank.")
+        raise ValueError(
+            "Choose a roaster from the list."
+            if required
+            else "Choose a roaster from the list, or leave blank."
+        )
     return value_str
 
 
-def validate_target_first_crack(value_str):
+def validate_target_first_crack(value_str, max_seconds=1199):
     if not value_str:
         return None
     total_seconds = _parse_mm_ss(value_str)
-    if total_seconds is None or total_seconds < 60 or total_seconds >= 1200:
+    if total_seconds is None or total_seconds < 60 or total_seconds > max_seconds:
         raise ValueError(
-            "Invalid input. Please enter a value in MM:SS format, between 01:00 and 20:00, or leave blank."
+            "Invalid input. Please enter a value in MM:SS format, "
+            f"between 01:00 and {_max_time_label(max_seconds)}, or leave blank."
         )
     return total_seconds
 
 
-def validate_target_development_time(value_str):
+def validate_target_development_time(value_str, max_seconds=1199):
     if not value_str:
         return None
     total_seconds = _parse_mm_ss(value_str)
-    if total_seconds is None or total_seconds <= 0 or total_seconds >= 1200:
+    if total_seconds is None or total_seconds <= 0 or total_seconds > max_seconds:
         raise ValueError(
-            "Invalid input. Please enter a value in MM:SS format, between 00:01 and 20:00, or leave blank."
+            "Invalid input. Please enter a value in MM:SS format, "
+            f"between 00:01 and {_max_time_label(max_seconds)}, or leave blank."
         )
     return total_seconds
 
 
-def validate_temperature(value_str):
+def validate_temperature(value_str, min_temp=60, max_temp=500):
     if not value_str:
         return None
     try:
         temperature = float(value_str)
     except ValueError:
         temperature = None
-    if temperature is None or temperature < 60 or temperature > 500:
+    if temperature is None or temperature < min_temp or temperature > max_temp:
         raise ValueError(
-            "Invalid input. Please enter a numeric value between 60 and 500, or leave blank."
+            f"Invalid input. Please enter a numeric value between {min_temp:g} and {max_temp:g}, or leave blank."
         )
     return temperature
 
@@ -128,14 +150,15 @@ def validate_password(value_str):
     return value_str
 
 
-def validate_first_crack(value_str, total_roast_time):
+def validate_first_crack(value_str, total_roast_time, min_seconds=240):
     total_seconds = _parse_mm_ss(value_str)
     if (
         total_seconds is None
-        or total_seconds < 240
+        or total_seconds < min_seconds
         or total_seconds >= total_roast_time
     ):
         raise ValueError(
-            "Invalid input. Please enter a value in MM:SS format, before the total roast time."
+            "Invalid input. Please enter a value in MM:SS format, "
+            f"from {_mm_ss(min_seconds)} up to (not including) the total roast time."
         )
     return total_seconds

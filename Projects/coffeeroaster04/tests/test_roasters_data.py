@@ -26,6 +26,9 @@ VALUE_FIELDS = [
     "has_temp_readout",
     "temp_min",
     "temp_max",
+    "chart_start_temp",
+    "chart_inflection_min",
+    "chart_inflection_temp",
 ]
 # Fields whose value may be "inferred" (everything except the descriptive/provenance fields).
 DATA_FIELDS = VALUE_FIELDS[5:]
@@ -165,6 +168,21 @@ class TestRoastersData(unittest.TestCase):
                 self.assertEqual(values["temp_source"], "none")
                 for field in ("temp_unit", "temp_min", "temp_max"):
                     self.assertIsNone(values[field])
+
+        self.for_each_roaster(check)
+
+    def test_chart_anchors_are_all_set_or_all_null(self):
+        anchors = ("chart_start_temp", "chart_inflection_min", "chart_inflection_temp")
+
+        def check(roaster_id, roaster, values):
+            given = [values[field] is not None for field in anchors]
+            self.assertIn(sum(given), (0, 3))
+            if all(given):
+                self.assertTrue(values["has_temp_readout"])
+                self.assertLess(
+                    values["chart_start_temp"], values["chart_inflection_temp"]
+                )
+                self.assertGreater(values["chart_inflection_min"], 0)
 
         self.for_each_roaster(check)
 
