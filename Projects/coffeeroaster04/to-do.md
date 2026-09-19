@@ -83,7 +83,7 @@ Kept deliberately modest: the live WSGI file does `from app import app` and `dat
 
 ### T-02a — Tier 1 fields (needed by T-03) — [COMPLETE]
 
-Completed 2026-09-19 · **not yet committed** — awaiting your review.
+Completed 2026-09-19 · commit `b9fbb58` on branch `roaster-selection`.
 - [x] Schema defined in `SPEC.md` ("Roaster data (Tier 1)", including the rules for values).
 - [x] All 46 entries filled, each with its own explicit values, source URLs, an `inferred` list, and notes.
 - [x] `tests/test_roasters_data.py` (11 tests): required keys, batch ranges, row counts, time floors, unit/readout consistency, provenance, only-SR800-calibrated, SR series = 12 rows. Each guard was checked against deliberately broken copies of the data. Suite: 184 passing.
@@ -151,7 +151,7 @@ Finished weight needs no per-roaster field: the domain rule is `0 < finished < g
 
 ## T-03 [COMPLETE] Roaster required and locked; limits, units, and grid driven by roaster data
 
-Completed 2026-09-19 · **not yet committed** — awaiting your review. 273 tests passing (was 184 at the start of T-03).
+Completed 2026-09-19 · commit `e01d917` on branch `roaster-selection` (not yet merged to `main`). 273 tests passing (was 184 at the start of T-03), verified on the commit in isolation.
 
 **What now works**
 - **Choose the roaster first.** `/profiles/new` asks which roaster (an alphabetical dropdown, no default); the profile form for that roaster follows. The roaster is then shown read-only and is locked: an edit that tries to change it gets a 400. Add Roast has no roaster override.
