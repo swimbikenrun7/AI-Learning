@@ -84,6 +84,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js"></script>
     <script>
       const unitSymbol = {{ units.symbol|tojson }};
+      // Chart.js's default shape is 2:1; on a phone a taller chart leaves room for the plot.
+      const chartAspectRatio = window.matchMedia("(max-width: 640px)").matches ? 4 / 3 : 2;
       const rorUnit = {{ units.ror|tojson }};
       const minutes = {{ minutes|tojson }};
       const actualTemps = {{ actual_temps|tojson }};
@@ -123,6 +125,7 @@
           ],
         },
         options: {
+          aspectRatio: chartAspectRatio,
           scales: {
             x: { title: { display: true, text: "Time (minutes)" } },
             y: { title: { display: true, text: `Temperature (${unitSymbol})` } },
@@ -161,6 +164,7 @@
           ],
         },
         options: {
+          aspectRatio: chartAspectRatio,
           scales: {
             x: { title: { display: true, text: "Time (minutes)" } },
             y: { title: { display: true, text: `Rate of rise (${rorUnit})` } },

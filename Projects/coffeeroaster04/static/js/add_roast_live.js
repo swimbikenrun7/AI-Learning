@@ -217,6 +217,9 @@ if (enteredPoints.length > 0) {
     },
     options: {
       animation: false,
+      // Chart.js keeps its own 2:1 shape unless told otherwise; phones get a taller
+      // 4:3 chart (matching .roast-graph in add_roast.css) so the plot isn't a thin strip.
+      aspectRatio: window.matchMedia("(max-width: 640px)").matches ? 4 / 3 : 2,
       scales: {
         x: {
           type: "linear",

@@ -619,6 +619,86 @@ class TestBrowser(unittest.TestCase):
         self.assertIsNone(page["tableRows"])
         self.assertTrue(page["showsRoaster"])
 
+    # ---- Phone-sized screens ----
+    PHONE_PAGES = (
+        "phoneAddRoast",
+        "phoneAddRoastLong",
+        "phoneAddRoastNoReadout",
+        "phoneRoasts",
+        "phoneDetail",
+        "phonePicker",
+        "phoneProfiles",
+        "phoneChooser",
+        "phoneProfileForm",
+        "phoneAbout",
+    )
+
+    def test_every_page_lays_out_at_phone_width(self):
+        for name in self.PHONE_PAGES:
+            with self.subTest(page=name):
+                page = self.scenario(name)
+                self.assertEqual(
+                    page["viewportMeta"], "width=device-width, initial-scale=1"
+                )
+                # Without the viewport tag a phone lays a page out at 980 px and shrinks it.
+                self.assertEqual(page["layoutWidth"], 390)
+                self.assertFalse(page["pageScrollsSideways"])
+
+    def test_phone_fields_and_buttons_are_big_enough_to_type_in_and_tap(self):
+        for name in self.PHONE_PAGES:
+            with self.subTest(page=name):
+                page = self.scenario(name)
+                # Under 16 px iOS zooms the page when a field is focused.
+                self.assertEqual(page["fieldsUnder16px"], [])
+                self.assertEqual(page["controlsUnder44px"], [])
+
+    def test_on_a_phone_the_timer_and_first_crack_button_come_before_the_form(self):
+        for name in ("phoneAddRoast", "phoneAddRoastLong", "phoneAddRoastNoReadout"):
+            with self.subTest(page=name):
+                page = self.scenario(name)
+                self.assertLess(page["liveTop"], page["formTop"])
+                self.assertLessEqual(
+                    page["firstCrackButton"]["bottom"], page["formTop"]
+                )
+                self.assertLessEqual(page["startButton"]["bottom"], page["formTop"])
+
+    def test_the_live_chart_is_4_to_3_on_a_phone_and_2_to_1_on_a_desktop(self):
+        for name in ("phoneAddRoast", "phoneAddRoastLong"):
+            with self.subTest(page=name):
+                self.assertAlmostEqual(
+                    self.scenario(name)["chartShape"], 0.75, delta=0.02
+                )
+        self.assertAlmostEqual(
+            self.scenario("addRoastSr800")["chartShape"], 0.5, delta=0.02
+        )
+
+    def test_the_date_and_calendar_button_fit_inside_the_card_on_a_phone(self):
+        page = self.scenario("phoneAddRoast")
+        self.assertLessEqual(page["dateField"]["right"], page["card"]["right"])
+        self.assertGreaterEqual(page["datePicker"]["width"], 100)
+
+    def test_on_a_tablet_the_date_row_fits_inside_the_narrow_form_column(self):
+        page = self.scenario("tabletAddRoast")
+        self.assertEqual(page["layoutWidth"], 768)
+        self.assertFalse(page["pageScrollsSideways"])
+        # The two-column layout is kept above the phone breakpoint, and the calendar
+        # button must not be cut off by the form column's edge.
+        self.assertGreater(page["formTop"], 0)
+        self.assertLessEqual(page["dateField"]["right"], page["formColumn"]["right"])
+        self.assertLessEqual(
+            page["datePicker"]["right"], page["dateField"]["right"] + 0.5
+        )
+
+    def test_the_detail_charts_are_4_to_3_on_a_phone(self):
+        for shape in self.scenario("phoneDetail")["detailChartShapes"]:
+            self.assertAlmostEqual(shape, 0.75, delta=0.02)
+
+    def test_the_wide_roast_table_scrolls_sideways_with_a_hint_only_on_a_phone(self):
+        phone = self.scenario("phoneRoasts")
+        self.assertEqual(phone["scrollHint"], "block")
+        self.assertTrue(phone["tableScrolls"])
+        self.assertEqual(self.scenario("roastsList")["scrollHint"], "none")
+
 
 if __name__ == "__main__":
     unittest.main()

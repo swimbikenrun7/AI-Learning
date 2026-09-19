@@ -4,7 +4,7 @@
 Record coffee roasting sessions and calculate basic roast metrics in Python, presented through a browser-based UI instead of a terminal UI. This is an independent iteration of the coffeeroaster exercise (see coffeeroaster01-03); it carries forward the calculation and persistence logic from coffeeroaster03 and replaces only the UI layer.
 
 ## Implementation Phases
-This SPEC describes the full feature set, carried forward from coffeeroaster03 and extended. It was built in phases, each requested explicitly; Phases 1 through 12 are all built, and Phase 12 is the current one. `to-do.md` tracks what was built for Phases 11 and 12 and what is still open.
+This SPEC describes the full feature set, carried forward from coffeeroaster03 and extended. It was built in phases, each requested explicitly; Phases 1 through 12 are built; Phase 13 (mobile optimization) is in progress and is the current one. `to-do.md` tracks what was built for Phases 11 to 13 and what is still open.
 
 - **Phase 1**: View roasts (read-only table) and a roast detail page with a temperature chart. Uses data seeded from coffeeroaster03's existing JSON files.
 - **Phase 2**: Add roast form.
@@ -17,7 +17,8 @@ This SPEC describes the full feature set, carried forward from coffeeroaster03 a
 - **Phase 9**: Roast intelligence & data tools. Surfaces calculated roast quality metrics that already had the underlying data, plus search/sort, CSV export, a live first-crack marking shortcut, and richer per-roast metadata (bean origin/variety/process, post-roast cupping notes).
 - **Phase 10**: Roast profile wizard. An opt-in helper on the Add roast profile page that recommends a starting Maillard-phase target-temperature curve plus target first-crack/development-time reference values, from bean characteristics, desired roast level, and the user's own observed first-crack temperature, which the user can then edit before saving. The target reference values also drive a live pull countdown timer on the Add Roast page once first crack is marked.
 - **Phase 11**: Roaster selection. A reference list of home coffee roasters (`data/roasters.json`) and a roaster dropdown on the roast profile form, shown alongside the profile name wherever profiles are listed or used — groundwork for later customizing profiles and the Add Roast experience per roaster.
-- **Phase 12 (current)**: Roaster-driven profiles. A profile belongs to one roaster, chosen first and locked afterward; that roaster's data supplies the profile's row count, the weight and time limits, and the temperature unit, and each saved roast records its roaster. Also part of this phase: an optional start condition and ambient temperature on each roast (see "Start condition and ambient temperature" under User Inputs), and a read-only calibration report that compares logged roasts with each roaster's stored values (see "Calibration report" under Roasters). See "Roaster-driven profiles" under Roasters.
+- **Phase 12**: Roaster-driven profiles. A profile belongs to one roaster, chosen first and locked afterward; that roaster's data supplies the profile's row count, the weight and time limits, and the temperature unit, and each saved roast records its roaster. Also part of this phase: an optional start condition and ambient temperature on each roast (see "Start condition and ambient temperature" under User Inputs), and a read-only calibration report that compares logged roasts with each roaster's stored values (see "Calibration report" under Roasters). See "Roaster-driven profiles" under Roasters.
+- **Phase 13 (current)**: Mobile optimization. Every page is usable on a phone without zooming or scrolling the page sideways, and Add Roast puts the timer and First Crack button first. See "Phone-sized screens" under User Interface.
 
 ## Requirements
 The code shall have a separate module for calculations (`calculations.py`, carried forward from coffeeroaster03 unchanged).
@@ -37,7 +38,7 @@ JSON only; do not introduce a database.
 Do not introduce external Python dependencies except `flask` (and its own required dependencies, e.g. Jinja2, Werkzeug) for the web layer.
 Charting is rendered client-side via Chart.js, loaded from a CDN `<script>` tag — this is not a Python package dependency and introduces no build tooling (no npm, no bundler, no SPA framework).
 Page-specific JavaScript and CSS live as plain files under `static/` (served by Flask's built-in `/static/` route) rather than inline in templates; per-page data reaches them through a JSON data island in the template, not Jinja interpolated into script code. Still no build step.
-A browser check (`tests/browser/`) drives the pages in headless Chromium through the DevTools protocol using Node's built-in WebSocket, against the real app on fixture data. It uses the system's Chromium and Node, so it adds no Python or npm dependency, and it skips itself (with the reason) when they or the network are unavailable.
+A browser check (`tests/browser/`) drives the pages in headless Chromium through the DevTools protocol using Node's built-in WebSocket, against the real app on fixture data. It also loads the pages at phone (390 px) and tablet (768 px) widths as a touch device. It uses the system's Chromium and Node, so it adds no Python or npm dependency, and it skips itself (with the reason) when they or the network are unavailable.
 The UI shall be a server-rendered web application (Flask + Jinja2 templates), not a terminal UI and not a single-page JS application.
 Do not change the existing calculation formulas.
 Do not delete existing functionality once implemented in this mission.
@@ -341,6 +342,15 @@ On startup, after checking the JSON files for corruption, the application shall 
 12. `/profiles/<id>/favorite` (POST) — toggle a profile's favorite flag, from the Add roast profile picker. **(requires login and ownership)**
 
 There is no "Exit" action for a web application; the process runs until the server is stopped.
+
+### Phone-sized screens **(Phase 13)**
+Every page shall be usable on a phone (about 360 to 430 px wide) without zooming and without the page scrolling sideways. A table too wide for the screen scrolls sideways inside its own container, with a hint ("Swipe sideways to see every column") shown on phones only.
+- *Viewport:* every page inherits `<meta name="viewport" content="width=device-width, initial-scale=1">` from `base.html`; without it a phone lays a page out at 980 px and shrinks it, and no responsive rule applies. A test fails for any page template that does not extend `base.html`.
+- *Phone rules* apply at 640 px wide and below: text fields and selects use 16 px text (smaller and iOS zooms the page when one is focused) and are at least 44 px tall; buttons, and the profile favorite stars, are at least 44 px tall; links get extra vertical tap area without moving any text; the header may wrap.
+- *Keypads:* weights and temperatures (green and finished weight, the actual-temperature and profile-target grids) ask for a decimal keypad. Times (MM:SS) and the ambient temperature do not: iPhone number pads have no colon or minus sign, and ambient can be negative in °C.
+- *Add Roast on a phone* is a single column with the live panel (Start/Reset, chart, temperature and clock readouts, First Crack Now!, pull countdown) above the form, because it is used during the roast and below the form it would be several screens down. The typed date and its calendar button share one row inside the card.
+- *Charts* (the live chart and both detail-page charts) are 4:3 on a phone; on wider screens they keep Chart.js's default 2:1. Add Roast keeps its two-column split-pane layout above 640 px (tablets), where the typed date shrinks so the calendar button is never cut off.
+- *Not part of this phase:* an installable app (web manifest), keeping the screen awake during a roast, and the splash animation, which is unchanged.
 
 ## Tables
 

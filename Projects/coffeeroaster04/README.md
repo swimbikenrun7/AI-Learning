@@ -41,7 +41,7 @@ ruff format --check .    # preview formatting changes without applying them
 
 ## Browser check
 
-`tests/browser/` runs the real app on fixture data and drives its pages in headless Chromium: it loads Add Roast and the profile pages, clicks Start / First Crack Now! / Reset and the wizard, and checks the chart data, axis titles and units, readouts, and that the console stayed clean. It is the only check of the JavaScript, so run it after changing anything in `static/js/` or the page scripts.
+`tests/browser/` runs the real app on fixture data and drives its pages in headless Chromium: it loads Add Roast and the profile pages, clicks Start / First Crack Now! / Reset and the wizard, and checks the chart data, axis titles and units, readouts, and that the console stayed clean. It also loads the pages as a phone-sized and a tablet-sized touch device and checks the layout, tap sizes, and chart shapes there. It is the only check of the JavaScript, so run it after changing anything in `static/js/` or the page scripts.
 
 It needs Chromium (or Chrome) and Node 22+ on your `PATH` and network access for the Chart.js CDN tag the pages use; if any is missing the tests are skipped with the reason. There is nothing to install for it (no npm packages), and it takes about ten seconds.
 

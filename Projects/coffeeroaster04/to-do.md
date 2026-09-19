@@ -16,12 +16,12 @@ A running list of planned feature updates and their detailed plans.
 ## Current status (as of 2026-09-19)
 
 - **Branches.** `roaster-selection` was merged into `main` by fast-forward (no merge commit, matching `main`'s linear history) and `main` was pushed: `main` and `origin/main` are both at `e068e85`. The `roaster-selection` branch still exists locally at that same commit and can be deleted (`git branch -d roaster-selection`). Whether PythonAnywhere has pulled and reloaded this is not recorded here; before its first reload, back up `data/` (the startup migration rewrites the profile and record files once; see `DEPLOY.md`).
-- **Tests.** 398 passing (`pytest`), including the 22-test browser check (about 10 s; it skips itself without Chromium, Node 22, or the CDN). `ruff check`/`ruff format --check` are clean on every file added in this work; the 18 remaining `ruff check` findings (naive `datetime` calls and unused unpacked variables) and the unformatted `app.py` and `tests/test_app.py` were there before it started and are left for you to review.
+- **Tests.** 398 passing on `main` (409 on the `mobile-optimization` branch), including the browser check (22 tests on `main`, 30 on the branch; about 10 s; it skips itself without Chromium, Node 22, or the CDN). `ruff check`/`ruff format --check` are clean on every file added in this work; the 18 remaining `ruff check` findings (naive `datetime` calls and unused unpacked variables) and the unformatted `app.py` and `tests/test_app.py` were there before it started and are left for you to review.
 - **Done:** T-00 through T-06 (1: start condition + ambient temperature), T-08 (calibration report), T-09 (browser check), T-10 (review follow-ups). Commit hashes are in each item.
 - **Not yet done or decided:**
   - The calibration report has only run on synthetic records; run it on your real SR800 roasts (see T-08) before trusting the thresholds.
   - `validate_green_weight("nan")` and `validate_temperature("nan")` accept NaN (found during T-06, not fixed; see Open decisions).
-  - **Queued (2026-09-19, none started):** T-11 mobile optimization, T-12 app version and in-app release notes, T-13 espresso profile style, T-14 how-to/tutorial. Each lists the decisions it needs from you.
+  - **T-11 mobile optimization is built** on branch `mobile-optimization` (uncommitted, awaiting your review and a test on your phone). **Queued, not started:** T-12 app version and in-app release notes, T-13 espresso profile style, T-14 how-to/tutorial; each lists the decisions it needs from you.
   - Unscheduled: T-06 candidates 2–4 (charge/turning point, control-change log, cooling start) and T-07 (native profile formats, deferred).
   - `app.py` is 879 lines, so the Blueprint split (T-01, "revisit once it passes roughly 900 lines") is still not due.
 
@@ -330,26 +330,32 @@ Completed 2026-09-19 · commit `0652029` on branch `roaster-selection`. Suite: 3
 
 ---
 
-## T-11 [PLANNED] Mobile optimization
+## T-11 [BUILT, awaiting your review and phone test] Mobile optimization
 
-**Depends on:** none (T-09's browser check is the test harness). Queued 2026-09-19.
-**Goal:** every page is comfortable to use on a phone (about 360–430 px wide) without pinching or side-scrolling the page. The **Add Roast** page is the priority: it is the one used next to the roaster, mid-roast, often on a phone.
+Built 2026-09-19 on branch `mobile-optimization` (branched from `main` at `1d0638d`; uncommitted). Suite: 409 passing (was 398); the browser check is 30 tests (was 22). Queued the same day; nothing needed a decision from you to start, so the open points below were settled with defaults you can reverse.
 
-**What is there now (checked 2026-09-19).** No template has a `<meta name="viewport">` tag, so a phone renders every page as a ~980 px desktop page shrunk to fit and none of the responsive CSS ever fires. The CSS has only two `@media (max-width: 640px)` rules (`templates/base.html`: header, page padding, `h1`; `static/css/add_roast.css`: the Add Roast layout) and a `.table-scroll` helper for wide tables. So this is more "make the existing rules reachable, then audit each page" than a rewrite.
+**The finding.** No template had a `<meta name="viewport">` tag, so a phone laid every page out at 980 px and shrank it (measured in headless Chromium as a 390 px touch device: every page had a 980 px layout). The two existing `@media (max-width: 640px)` rules never fired. One line fixed that; the rest is what a real phone width then showed.
 
-**Tasks**
-- [ ] Add the viewport tag to `base.html` (one line, and the biggest single gain), then look at every page at 375 px and 768 px: header and menu, `/roasts` (a many-column table: scroll inside its container, or cards), profile list and picker, profile form with the wizard (up to 28 temperature rows), Add Roast (chart, timer, First Crack button, temperature table), roast detail (two charts), login/signup/reset pages, About.
-- [ ] Touch and typing: tap targets of at least about 44 px; inputs at 16 px or larger (iOS zooms the page when a smaller field is focused); `inputmode="decimal"` on the numeric fields so phones show a number pad.
-- [ ] Add Roast at the roaster: keep the chart, clock, and First Crack button on screen without scrolling; size the chart for a short, wide screen.
-- [ ] Extend the browser check with phone-sized scenarios (its driver already sets a device size; add a mobile one such as 390×844 with touch emulation) asserting, per page, no horizontal page overflow (`scrollWidth <= innerWidth`) and that the key controls are visible and large enough.
+**What changed**
+- **Viewport tag** in `base.html`, so every page has it. A test fails for any page template that does not extend the base.
+- **Phone rules** (640 px and below, `base.html`): text fields and selects 16 px and at least 44 px tall (under 16 px, iOS zooms the page when a field is focused); buttons and the favorite stars at least 44 px; extra vertical tap area on links (padding on an inline link moves no text); the header may wrap; the search box and menu use the full width.
+- **Keypads:** `inputmode="decimal"` on green and finished weight and the actual-temperature and profile-target grids. Not on MM:SS times (iPhone number pads have no colon) or on ambient (no minus sign, and it can be negative in °C).
+- **Add Roast on a phone:** one column with the live panel (Start/Reset, chart, readouts, First Crack Now!, pull countdown) **above** the form; before, it was about four screens down. Start/Reset are large half-width buttons. The typed date and calendar button share one row inside the card.
+- **Charts:** the live chart and both detail charts were held at Chart.js's default 2:1 shape (a thin strip on a phone, with empty space under it). They are 4:3 on a phone; wider screens are unchanged (still 2:1).
+- **`/roasts`:** the table already scrolled sideways inside its own box; it now says so ("Swipe sideways to see every column", phones only).
+- **Tablet (641–~800 px)** keeps the two-column layout; there the typed date now shrinks so the calendar button isn't cut off (a flaw that existed before this).
 
-**Open design points**
-- `/roasts` on a phone: a scrolling table (simple; keeps sort and search as they are) or a card per roast (nicer to read; a second layout to maintain).
-- Keep the screen awake during a roast with the Screen Wake Lock API (a phone that sleeps mid-roast is a real problem). It is small and only works on HTTPS, which PythonAnywhere provides. Include it, or not?
-- Installable app (a web manifest) is **not** in scope unless you want it.
+**Decisions I made** (each easy to reverse)
+- `/roasts` stays a scrolling table with a hint, not cards: it keeps sort and search as they are and adds no second layout.
+- **Screen wake lock: not built.** It cannot be verified in headless Chromium and needs your phone. It is a small addition (ask for the lock on Start, release it on Stop/Reset, re-ask when the tab returns to the front). I recommend adding it once you have tried the layout on your phone; say the word.
+- **The timer is not sticky.** On a phone the live panel is at the top, but typing temperatures into the table below scrolls it out of view. A slim always-visible bar (clock, temperature, First Crack, Start/Stop) would fix that; it needs the panel restructured, so I left it as a follow-up decision (do you type temperatures during the roast on your phone?).
+- Not touched: the splash animation (it plays on every page load, and its own comment plans a settings toggle), the profile-list Favorite column width, and the desktop layout.
 
-**Tests:** the phone-sized browser scenarios; a template test that every page carries the viewport tag.
-**Done when:** each page passes the overflow and size checks at phone width, and you have tried Add Roast on your own phone.
+**Tests.** 11 new: `tests/test_mobile.py` (3: the tag is in the base, every page extends it, served pages carry it) and 8 in the browser check, which now also loads the pages as a 390 px touch device and a 768 px one. It checks: 980 vs 390 px layout and no sideways scroll on ten pages; fields at least 16 px and controls at least 44 px on every one; the live panel and First Crack button above the form on three Add Roast pages (including a 25-row profile and one with no temperature readout); chart shapes (4:3 phone, 2:1 desktop, both detail charts); the date row fitting on phone and tablet; the scroll hint (shown on phone, hidden on desktop). Fourteen deliberate breakages in a scratch copy were each caught, plus the tablet date fix; the clean suite was confirmed passing before each mutation run. **No existing test changed.**
+
+**Files:** `templates/base.html`, `templates/{add_roast,profile_form,roast_detail,roasts}.html`, `static/css/add_roast.css`, `static/js/add_roast_live.js`, `SPEC.md` (Phase 13 and "Phone-sized screens"), `tests/test_mobile.py` (new), `tests/browser/{driver.mjs,test_browser.py}`.
+
+**Still to do for "done":** you try Add Roast, Roasts, and a profile on your own phone (real fonts, real keyboard, real thumb) and tell me what feels wrong.
 
 ---
 
@@ -436,4 +442,4 @@ I lean to (a), with (c)'s contextual links added once the page exists.
 
 T-01 ✓ → T-02a ✓ → T-03 ✓ → T-02b ✓ → T-09 ✓ → T-04 ✓ → T-05 ✓ → T-10 ✓ → T-06 (start condition + ambient) ✓ → T-08 ✓ → merged to `main` and pushed. The other T-06 candidates and T-07 stay unscheduled.
 
-**Queued 2026-09-19 (order not yet decided):** T-11 mobile optimization, T-12 app version and release notes, T-13 espresso profile style, T-14 how-to. A suggestion, not a decision: T-11 first (the missing viewport tag is a one-line fix that helps every page), T-12 next (small, and gives later items somewhere to be announced), then T-13, and T-14 last because it documents the final screens.
+**Queued 2026-09-19 (order not yet decided; T-11 has since been built, awaiting review):** T-11 mobile optimization, T-12 app version and release notes, T-13 espresso profile style, T-14 how-to. A suggestion, not a decision: T-11 first (the missing viewport tag is a one-line fix that helps every page), T-12 next (small, and gives later items somewhere to be announced), then T-13, and T-14 last because it documents the final screens.

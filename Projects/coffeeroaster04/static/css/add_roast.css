@@ -13,6 +13,9 @@
   align-self: center;
 }
 .date-field { display: inline-flex; align-items: center; gap: 0.5rem; }
+/* In a narrow form column (tablets) the typed date gives way, so the calendar button isn't cut off. */
+.date-field { max-width: 100%; }
+.date-field input[type="text"] { min-width: 0; }
 .date-field input[type="date"] {
   font-family: inherit;
   font-size: var(--font-size-sm);
@@ -60,8 +63,18 @@ html.inverted { filter: invert(1); }
   .roast-readout { font-size: 2rem; flex-wrap: wrap; gap: 0.5rem; }
   /* The fixed-height split pane (sized in JS) is desktop-only - on
      narrow screens the columns stack and the whole page scrolls
-     normally, same as any other page. */
-  .roast-layout { flex-wrap: wrap; }
-  .roast-form { overflow-y: visible; }
-  .roast-live { align-self: auto; }
+     normally, same as any other page. The timer, chart and First Crack
+     button come first: they are what you use during the roast, and
+     below the form they would be several screens down. */
+  .roast-layout { flex-direction: column; gap: 1.25rem; }
+  .roast-form, .roast-live { flex: 0 0 auto; min-width: 0; }
+  .roast-form { overflow-y: visible; padding-right: 0; }
+  .roast-live { align-self: stretch; order: -1; }
+  .roast-graph { aspect-ratio: 4 / 3; }
+  .timer-btn { flex: 1; min-height: 52px; font-size: var(--font-size-base); }
+  .mark-first-crack-btn { padding: 1.1rem 1rem; }
+  /* The typed date and the calendar button share one row without pushing past the card. */
+  .date-field { display: flex; width: 100%; }
+  .date-field input[type="text"] { flex: 1 1 auto; min-width: 0; }
+  .date-field input[type="date"] { flex: 0 0 auto; width: 9.5rem; min-height: 44px; font-size: 1rem; }
 }

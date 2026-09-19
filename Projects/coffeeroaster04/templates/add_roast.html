@@ -71,7 +71,7 @@
         {% endif %}
         <p>
           <label>Green weight (g)<br>
-            <input type="text" name="green_weight" value="{{ values.green_weight }}">
+            <input type="text" name="green_weight" value="{{ values.green_weight }}" inputmode="decimal">
           </label>
           {% if settings.roaster_id %}
             <br><small>Allowed {{ settings.green_weight_min_g }}&ndash;{{ settings.green_weight_max_g }} g{% if settings.green_weight_recommended_g %}; recommended {{ settings.green_weight_recommended_g }} g{% endif %}.</small>
@@ -96,6 +96,7 @@
                       type="text"
                       name="actual_temp_{{ minute }}"
                       value="{{ values.actual_temps[minute - 1] }}"
+                      inputmode="decimal"
                       size="6"
                       placeholder="optional"
                     >
@@ -122,7 +123,7 @@
         </p>
         <p>
           <label>Finished weight (g)<br>
-            <input type="text" name="finished_weight" value="{{ values.finished_weight }}">
+            <input type="text" name="finished_weight" value="{{ values.finished_weight }}" inputmode="decimal">
           </label>
         </p>
 

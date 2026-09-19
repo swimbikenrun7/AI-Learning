@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Crackle{% endblock %}</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='6' y='14' width='16' height='12' rx='2' fill='%23a15c2e'/%3E%3Cpath d='M22 16h3a3 3 0 0 1 0 6h-3' fill='none' stroke='%23a15c2e' stroke-width='2.5'/%3E%3Crect x='8' y='17' width='12' height='3' fill='%23fff8f0'/%3E%3Cpath d='M11 6c0 2-2 2-2 4s2 2 2 4' fill='none' stroke='%237a6a5c' stroke-width='1.5' stroke-linecap='round'/%3E%3Cpath d='M16 6c0 2-2 2-2 4s2 2 2 4' fill='none' stroke='%237a6a5c' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E">
   <style>
@@ -80,10 +81,28 @@
       box-shadow: 0 1px 3px rgba(43, 33, 24, 0.08), 0 8px 24px rgba(43, 33, 24, 0.06);
     }
     .table-scroll { overflow-x: auto; }
+    .scroll-hint { display: none; margin: 0; color: var(--color-text-muted); font-size: var(--font-size-sm); }
     @media (max-width: 640px) {
-      .site-header__inner { padding: var(--space-2) var(--space-3); }
+      .site-header__inner { padding: var(--space-2) var(--space-3); flex-wrap: wrap; }
       .page { margin: var(--space-3) var(--space-2); padding: var(--space-4) var(--space-3); }
       h1 { font-size: 1.5rem; }
+      /* Phones: 16px text stops iOS zooming the page when a field is focused, and 44px is a
+         comfortable fingertip target. The header's account block may wrap under the name. */
+      input[type="text"], input[type="password"], input[type="email"], input[type="number"], select, textarea {
+        font-size: 1rem;
+        min-height: 44px;
+        box-sizing: border-box;
+      }
+      .btn { min-height: 44px; }
+      /* Vertical padding on an inline link grows its tap area without moving any text. */
+      .page a:not(.btn), .site-header a, .site-footer a { padding-block: 0.65rem; }
+      .site-header__account button { padding-block: 0.65rem; }
+      .page .star-btn, .page .profile-card__star-btn { min-width: 44px; min-height: 44px; }
+      .site-header__account { min-width: 0; flex-wrap: wrap; }
+      .actions { flex-wrap: wrap; }
+      .menu { width: 100%; }
+      #roast-search { max-width: none; width: 100%; box-sizing: border-box; }
+      .scroll-hint { display: block; }
     }
     h1 {
       font-size: var(--font-size-xl);

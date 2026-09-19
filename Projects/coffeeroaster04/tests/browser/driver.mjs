@@ -129,6 +129,7 @@ async function addRoast(path) {
     pullCountdownHidden: await ev("document.getElementById('pull-countdown').hidden"),
     hasFahrenheit: await ev("document.body.innerText.includes('°F')"),
     hasCelsius: await ev("document.body.innerText.includes('°C')"),
+    chartShape: await ev("(() => { const c = document.getElementById('live-chart'); return c.clientWidth ? c.clientHeight / c.clientWidth : null; })()"),
     chart: await ev(`(() => {
       const chart = Chart.getChart('live-chart');
       if (!chart) return null;
@@ -274,6 +275,7 @@ await scenario("roastsList", async () => {
   const roasterCells = () => ev(`Array.from(document.querySelectorAll('#roasts-table tbody tr')).filter((row) => !row.hidden).map((row) => row.cells[${column}].textContent.trim())`);
   const clickHeader = (index) => ev(`document.querySelectorAll('#roasts-table th[data-type]')[${index}].click()`);
   const state = { headers, unsorted: await roasterCells() };
+  state.scrollHint = await ev("getComputedStyle(document.querySelector('.scroll-hint')).display");
   await clickHeader(column);
   state.ascending = await roasterCells();
   await clickHeader(column);
@@ -352,6 +354,52 @@ await scenario("submitRoast", async () => {
     heading: await ev("document.querySelector('h1').textContent.trim()"),
   };
 });
+
+// ---- Phone-sized screens (T-11): a 390 x 844 touch device, which honors the viewport tag ----
+await send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
+await send("Emulation.setTouchEmulationEnabled", { enabled: true });
+
+async function phonePage(path, action) {
+  await visit(path);
+  if (action) await ev(action);
+  return ev(`(() => {
+    const visible = (el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && !el.closest('[hidden]') && getComputedStyle(el).visibility !== 'hidden'; };
+    const controls = [...document.querySelectorAll('input:not([type=hidden]):not([type=checkbox]), select, textarea, .btn, .timer-btn, .mark-first-crack-btn, .star-btn, .profile-card__star-btn')].filter(visible);
+    const fields = controls.filter((el) => ['INPUT', 'SELECT', 'TEXTAREA'].includes(el.tagName));
+    const top = (selector) => { const el = document.querySelector(selector); return el ? el.getBoundingClientRect().top + window.scrollY : null; };
+    const box = (selector) => { const el = document.querySelector(selector); if (!el || !visible(el)) return null; const r = el.getBoundingClientRect(); return { top: r.top + window.scrollY, bottom: r.bottom + window.scrollY, left: r.left, right: r.right, width: r.width, height: r.height }; };
+    return {
+      viewportMeta: document.querySelector('meta[name=viewport]')?.content ?? null,
+      layoutWidth: document.documentElement.clientWidth,
+      pageScrollsSideways: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+      fieldsUnder16px: fields.filter((el) => parseFloat(getComputedStyle(el).fontSize) < 16).map((el) => el.name || el.id || el.tagName),
+      controlsUnder44px: controls.filter((el) => el.getBoundingClientRect().height < 43.5).map((el) => (el.name || el.id || el.className || el.tagName) + ' ' + Math.round(el.getBoundingClientRect().height)),
+      liveTop: top('.roast-live'), formTop: top('.roast-form'),
+      startButton: box('#start-stop-btn'), resetButton: box('#reset-btn'), firstCrackButton: box('#mark-first-crack-btn'),
+      dateField: box('.date-field'), datePicker: box('#date-picker'), card: box('.page'), formColumn: box('.roast-form'),
+      chartShape: (() => { const c = document.getElementById('live-chart'); return c && c.clientWidth ? c.clientHeight / c.clientWidth : null; })(),
+      detailChartShapes: ['temp-chart', 'ror-chart'].map((id) => { const c = document.getElementById(id); return c && c.clientWidth ? c.clientHeight / c.clientWidth : null; }),
+      scrollHint: (() => { const h = document.querySelector('.scroll-hint'); return h ? getComputedStyle(h).display : null; })(),
+      tableScrolls: (() => { const t = document.querySelector('.table-scroll'); return t ? t.scrollWidth > t.clientWidth : null; })(),
+    };
+  })()`);
+}
+
+await scenario("phoneAddRoast", () => phonePage("/roasts/new/p-sr800"));
+await scenario("phoneAddRoastLong", () => phonePage("/roasts/new/p-genecafe"));
+await scenario("phoneAddRoastNoReadout", () => phonePage("/roasts/new/p-whirley"));
+await scenario("phoneRoasts", () => phonePage("/roasts"));
+await scenario("phoneDetail", () => phonePage("/roasts/r-sr800"));
+await scenario("phonePicker", () => phonePage("/roasts/new"));
+await scenario("phoneProfiles", () => phonePage("/profiles"));
+await scenario("phoneChooser", () => phonePage("/profiles/new"));
+await scenario("phoneProfileForm", () => phonePage("/profiles/new?roaster=fresh-roast-sr800", "document.getElementById('wizard-toggle').click()"));
+await scenario("phoneAbout", () => phonePage("/about"));
+
+// A tablet is wider than the 640 px phone breakpoint, so Add Roast keeps its two-column layout
+// there with a narrow form column.
+await send("Emulation.setDeviceMetricsOverride", { width: 768, height: 1024, deviceScaleFactor: 2, mobile: true });
+await scenario("tabletAddRoast", () => phonePage("/roasts/new/p-sr800"));
 
 console.log(JSON.stringify(out));
 ws.close();
