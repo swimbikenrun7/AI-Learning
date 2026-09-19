@@ -266,10 +266,27 @@ Completed 2026-09-19 · commit `1916067` on branch `roaster-selection`. Suite: 3
 
 Program-driven roasters take profiles in their own shape — IKAWA (up to 6 inlet-temperature points and 3 airflow points over ≤ 12 min), Kaffelogic (temperature curve + fan curve + an end-of-roast "level"), Gene Cafe (multi-stage setpoints). Representing those natively, or importing/exporting Artisan/Kaffelogic/IKAWA files, is a large step and overlaps the existing Deferred Ideas in `SPEC.md`. Revisit only after T-03–T-05 have real users on more than one roaster.
 
-## T-08 [PLANNED] Calibration feedback loop
+## T-08 [COMPLETE, awaiting commit] Calibration feedback loop
 
-**Depends on:** T-03 (records carry `roaster_id`), plus real data. **Chosen next after T-06 (Settled #17).**
-Add a read-only report script (not a web feature) that summarizes logged roasts per roaster — time to first crack, development ratio, weight loss, temperature at first crack — to compare against each roaster's stored values. When a roaster has enough consistent data, tune its entry and flip `calibrated` to true. This is how values for non-SR800 roasters get refined from user data (Settled #6).
+**Depends on:** T-03 (records carry `roaster_id`), plus real data. Built 2026-09-19 on branch `roaster-selection` (Settled #17: the item after T-06). Suite: 398 passing (was 365); browser check unchanged (22 tests).
+
+**What it is.** `calibration_report.py`, a read-only script (not a web feature): `python calibration_report.py [--records PATH]` prints, for each roaster with logged roasts, the roast count, whether it is marked calibrated, and the median and range of time to first crack, total roast time, and weight loss; the temperature at first crack; and the development ratio by roast level — each set beside that roaster's stored value (`wizard.time_to_first_crack_s.medium`, `wizard.default_first_crack_temp`, `wizard.dtr_by_level`) with the difference. A roaster not yet calibrated also gets a plain "enough consistent data to consider calibrating?" line. Tuning a roaster and flipping `calibrated` stays a manual edit of `data/roasters.json` (Settled #6) — the report changes nothing.
+
+**Design choices** (each easy to change):
+- **Read-only and standalone.** It reuses the existing loaders and `calculations.py` (so roast levels and ratios are exactly the app's) but never imports `app.py`, whose startup migration would write to the data files. A missing records file is an error, a corrupted one stops with the loaders' message (never an empty or partial report).
+- **The data isn't in the repo.** `data/roast_records.json` is gitignored and this checkout has none, so the report takes `--records PATH`: run it where the real file is, or download a copy.
+- **Temperature at first crack** is interpolated between the two once-a-minute readings either side of first crack (a missing reading, or a different unit than the roaster's, leaves that roast out; the line says "n of N with readings").
+- **Development ratio is grouped by roast level** (from weight loss, via `classify_roast`), because the stored table is per level: "Full City roasts averaged 16.7% against a stored 16.0%" is a like-for-like comparison, whereas one overall average would not be.
+- **Readiness thresholds are my defaults, not domain rules:** at least 5 roasts whose first-crack times lie within 60 s of each other (`MIN_ROASTS`, `MAX_FIRST_CRACK_SPREAD_S` at the top of the file). The numbers are printed so you decide; change the two constants if they feel wrong.
+- **Rough first-crack comparison:** the stored first-crack time is for a medium-density washed coffee, and records don't store density, so the difference is a guide, not a verdict (the report says so beside the number).
+- **Records from every owner are combined** and no bean names or owners are printed. With no other users yet this is moot; if that changes and calibration should use only your roasts, an `--owner` filter is a few lines.
+- **Not included** (not asked for): breaking results down by start condition or ambient temperature, the point of T-06's fields. It would be a small addition once there are enough roasts with those recorded.
+
+**Tests.** 33 new in `tests/test_calibration_report.py`: the interpolation (whole minutes, between readings, missing neighbours, before/after the grid), the numbers gathered per roaster (including a small-batch roast outside the original guards), every comparison line and its sign, units, readiness at each boundary, roasters with no readout / no roaster / unknown roaster, ordering, no names leaked, and the command line (reads the named file with the real roaster data, writes nothing and leaves the data path as it was, missing and corrupted files, empty file). Sixteen deliberate breakages in a scratch copy were each caught, after two fixes to the tests (see below) (wrong interpolation slope, unit filter removed, original guards left on, ratio against the wrong denominator, roast level ignored, three flipped/unscaled differences, both readiness boundaries, path not restored, missing-file check removed, ordering, calibrated branch, unit symbol dropped, wrong column). **No existing test changed.** Problems in my own new tests, all fixed before this was finished: four wrong expectations (roast-level thresholds and where the readings fall; the report was right each time); a boundary test whose data was impossible (first crack after the end of the roast), which made an early mutation run meaningless because it was the failing test each time — so every mutation was re-run against the clean file; and that re-run found two real gaps (the first-crack difference's sign, and the total-roast-time line, were untested), now covered.
+
+**Not yet exercised on real roasts:** it ran on synthetic records only, since none are available here. Run it on your SR800 roasts and see whether the numbers read sensibly.
+
+**Files:** `calibration_report.py` (new), `tests/test_calibration_report.py` (new), `README.md` (a section and a layout row), `SPEC.md` ("Calibration report").
 
 ## T-09 [COMPLETE] Keep a browser regression check in the repo
 
@@ -299,4 +316,4 @@ Completed 2026-09-19 · commit `0652029` on branch `roaster-selection`. Suite: 3
 
 ## Suggested order
 
-T-01 ✓ → T-02a ✓ → T-03 ✓ → T-02b ✓ → T-09 ✓ → T-04 ✓ → T-05 ✓ → T-10 ✓ → T-06 (start condition + ambient) ✓ → **T-08**. The other T-06 candidates and T-07 stay unscheduled.
+T-01 ✓ → T-02a ✓ → T-03 ✓ → T-02b ✓ → T-09 ✓ → T-04 ✓ → T-05 ✓ → T-10 ✓ → T-06 (start condition + ambient) ✓ → T-08 ✓. The other T-06 candidates and T-07 stay unscheduled; merging `roaster-selection` into `main` is still open.

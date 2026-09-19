@@ -238,6 +238,15 @@ Weight loss percentage is calculated as:
 Roast time after first crack calculated as:
 (total roast time - time of first crack)
 
+### Calibration report **(T-08)**
+A read-only script, `calibration_report.py`, compares logged roasts with each roaster's stored values so those values can be refined from real data (only the SR800 is calibrated so far). It is not part of the web app and imports none of it, so it can be pointed at a copy of the live data (`--records PATH`; default `data/roast_records.json`) without changing anything: it writes no file, and a missing file is an error while a corrupted one stops it with the loaders' message rather than reporting on partial data.
+For each roaster with logged roasts (records with no roaster, or one no longer in `roasters.json`, are reported under their own headings without comparisons) it shows the roast count, whether the roaster is marked calibrated, and:
+- *Time to first crack*, *total roast time* and *weight loss*: median and range; the first-crack time also against the roaster's stored `wizard.time_to_first_crack_s.medium` (which is for a medium-density washed coffee; records do not store density, so this comparison is rough).
+- *Temperature at first crack*, in the roaster's own unit: the actual temperatures are once a minute, so it is the straight line between the two readings either side of first crack; a roast with a missing reading there, or in another unit than the roaster's, is left out. Compared with the stored `wizard.default_first_crack_temp`.
+- *Development ratio by roast level*: development time as a share of total roast time, grouped by the roast level `classify_roast` gives the roast's weight loss, next to the stored `wizard.dtr_by_level` for that level.
+- For a roaster not yet calibrated, whether it has enough consistent data to consider calibrating: at least 5 roasts whose first-crack times lie within 60 seconds of each other (starting points, not domain rules; the numbers are printed so the owner decides). Records from every owner in the file are combined and no bean names or owners appear.
+Saved records are summarized with the original calculation guards opened, as when they are displayed. Editing a roaster's values or setting `calibrated` stays a manual edit of `data/roasters.json`.
+
 ## Persistence
 Roast records must persist between program executions.
 The application will use JSON for storage, in this project's own `data/` folder (seeded from coffeeroaster03's existing `roast_records.json` and `roast_profiles.json` as starting data).
