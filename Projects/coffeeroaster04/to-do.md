@@ -170,7 +170,7 @@ Completed 2026-09-19 · commit `e01d917` on branch `roaster-selection` (not yet 
 
 ## T-04 [COMPLETE] Data-driven profile wizard
 
-Completed 2026-09-19 · **not yet committed** — awaiting your review. Suite: 310 passing (was 293).
+Completed 2026-09-19 · commit `c6a279b` on branch `roaster-selection`. Suite: 310 passing (was 293).
 
 **What now works**
 - **No constants in the script.** `static/js/profile_wizard.js` reads a JSON config island (`#wizard-config`) built from the profile's roaster's `wizard` data: first-crack time by density, the natural-process adjustment (0 if unknown), the DTR by roast level, the start and default first-crack temperatures, and the roaster's row count. The curve loop, array length, and first-crack-minute clamp all use the roaster's rows instead of 12.
