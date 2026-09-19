@@ -238,7 +238,7 @@ Add a read-only report script (not a web feature) that summarizes logged roasts 
 
 ## T-09 [COMPLETE] Keep a browser regression check in the repo
 
-Completed 2026-09-19 · **not yet committed** — awaiting your review. Suite: 284 passing (11 of them the browser check), about 8.5 s in all.
+Completed 2026-09-19 · commit `22976f0` on branch `roaster-selection`. Suite: 284 passing (11 of them the browser check), about 8.5 s in all.
 The scratch prototype from T-01/T-03 became `tests/browser/`, committed as an automatic check that skips itself when it can't run.
 
 - **How it works.** `test_browser.py` writes fixture profiles and records, starts the real app on them (`serve.py`, with a session injected and the project's real data untouched), launches headless Chromium, and runs `driver.mjs` (Node's built-in WebSocket; no npm packages, no build step). The driver only observes; the Python test asserts, so a failure says what is wrong and there is no golden file to go stale. No pixel screenshots (they differ across machines).
