@@ -266,9 +266,9 @@ Completed 2026-09-19 · commit `1916067` on branch `roaster-selection`. Suite: 3
 
 Program-driven roasters take profiles in their own shape — IKAWA (up to 6 inlet-temperature points and 3 airflow points over ≤ 12 min), Kaffelogic (temperature curve + fan curve + an end-of-roast "level"), Gene Cafe (multi-stage setpoints). Representing those natively, or importing/exporting Artisan/Kaffelogic/IKAWA files, is a large step and overlaps the existing Deferred Ideas in `SPEC.md`. Revisit only after T-03–T-05 have real users on more than one roaster.
 
-## T-08 [COMPLETE, awaiting commit] Calibration feedback loop
+## T-08 [COMPLETE] Calibration feedback loop
 
-**Depends on:** T-03 (records carry `roaster_id`), plus real data. Built 2026-09-19 on branch `roaster-selection` (Settled #17: the item after T-06). Suite: 398 passing (was 365); browser check unchanged (22 tests).
+**Depends on:** T-03 (records carry `roaster_id`), plus real data. Completed 2026-09-19 · commit `34155db` on branch `roaster-selection` (Settled #17: the item after T-06). Suite: 398 passing (was 365); browser check unchanged (22 tests).
 
 **What it is.** `calibration_report.py`, a read-only script (not a web feature): `python calibration_report.py [--records PATH]` prints, for each roaster with logged roasts, the roast count, whether it is marked calibrated, and the median and range of time to first crack, total roast time, and weight loss; the temperature at first crack; and the development ratio by roast level — each set beside that roaster's stored value (`wizard.time_to_first_crack_s.medium`, `wizard.default_first_crack_temp`, `wizard.dtr_by_level`) with the difference. A roaster not yet calibrated also gets a plain "enough consistent data to consider calibrating?" line. Tuning a roaster and flipping `calibrated` stays a manual edit of `data/roasters.json` (Settled #6) — the report changes nothing.
 
