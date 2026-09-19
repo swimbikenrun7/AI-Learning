@@ -21,7 +21,7 @@ A running list of planned feature updates and their detailed plans.
 - **Not yet done or decided:**
   - The calibration report has only run on synthetic records; run it on your real SR800 roasts (see T-08) before trusting the thresholds.
   - `validate_green_weight("nan")` and `validate_temperature("nan")` accept NaN (found during T-06, not fixed; see Open decisions).
-  - **T-11 mobile optimization is built** on branch `mobile-optimization` (uncommitted, awaiting your review and a test on your phone). **Queued, not started:** T-12 app version and in-app release notes, T-13 espresso profile style, T-14 how-to/tutorial; each lists the decisions it needs from you.
+  - **T-11 mobile optimization is built and committed** (`2ff59ad`) on branch `mobile-optimization`, not yet merged to `main`; it still needs a test on your phone. **Queued, not started:** T-12 app version and in-app release notes, T-13 espresso profile style, T-14 how-to/tutorial; each lists the decisions it needs from you.
   - Unscheduled: T-06 candidates 2–4 (charge/turning point, control-change log, cooling start) and T-07 (native profile formats, deferred).
   - `app.py` is 879 lines, so the Blueprint split (T-01, "revisit once it passes roughly 900 lines") is still not due.
 
@@ -330,9 +330,9 @@ Completed 2026-09-19 · commit `0652029` on branch `roaster-selection`. Suite: 3
 
 ---
 
-## T-11 [BUILT, awaiting your review and phone test] Mobile optimization
+## T-11 [COMPLETE, phone test pending] Mobile optimization
 
-Built 2026-09-19 on branch `mobile-optimization` (branched from `main` at `1d0638d`; uncommitted). Suite: 409 passing (was 398); the browser check is 30 tests (was 22). Queued the same day; nothing needed a decision from you to start, so the open points below were settled with defaults you can reverse.
+Built and committed 2026-09-19 · commit `2ff59ad` on branch `mobile-optimization` (branched from `main` at `1d0638d`; not yet merged to `main`). Suite: 409 passing (was 398); the browser check is 30 tests (was 22). Queued the same day; nothing needed a decision from you to start, so the open points below were settled with defaults you can reverse.
 
 **The finding.** No template had a `<meta name="viewport">` tag, so a phone laid every page out at 980 px and shrank it (measured in headless Chromium as a 390 px touch device: every page had a 980 px layout). The two existing `@media (max-width: 640px)` rules never fired. One line fixed that; the rest is what a real phone width then showed.
 
