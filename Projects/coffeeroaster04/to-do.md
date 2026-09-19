@@ -21,6 +21,7 @@ A running list of planned feature updates and their detailed plans.
 - **Not yet done or decided:**
   - The calibration report has only run on synthetic records; run it on your real SR800 roasts (see T-08) before trusting the thresholds.
   - `validate_green_weight("nan")` and `validate_temperature("nan")` accept NaN (found during T-06, not fixed; see Open decisions).
+  - **Queued (2026-09-19, none started):** T-11 mobile optimization, T-12 app version and in-app release notes, T-13 espresso profile style, T-14 how-to/tutorial. Each lists the decisions it needs from you.
   - Unscheduled: T-06 candidates 2–4 (charge/turning point, control-change log, cooling start) and T-07 (native profile formats, deferred).
   - `app.py` is 879 lines, so the Blueprint split (T-01, "revisit once it passes roughly 900 lines") is still not due.
 
@@ -327,9 +328,112 @@ Completed 2026-09-19 · commit `0652029` on branch `roaster-selection`. Suite: 3
 - **Verified:** the new column tests failed when the cell or the CSV value was removed (the misaligned-cell breakage failed 3 tests, the missing CSV value 2); the gap tests failed the moment the data changed and passed once updated.
 - **Files:** `data/roasters.json`, `app.py`, `templates/roasts.html`, `SPEC.md`, `tests/test_roasters.py`, `tests/test_roaster_roasts.py`, `tests/browser/{driver.mjs,test_browser.py}`.
 
+---
+
+## T-11 [PLANNED] Mobile optimization
+
+**Depends on:** none (T-09's browser check is the test harness). Queued 2026-09-19.
+**Goal:** every page is comfortable to use on a phone (about 360–430 px wide) without pinching or side-scrolling the page. The **Add Roast** page is the priority: it is the one used next to the roaster, mid-roast, often on a phone.
+
+**What is there now (checked 2026-09-19).** No template has a `<meta name="viewport">` tag, so a phone renders every page as a ~980 px desktop page shrunk to fit and none of the responsive CSS ever fires. The CSS has only two `@media (max-width: 640px)` rules (`templates/base.html`: header, page padding, `h1`; `static/css/add_roast.css`: the Add Roast layout) and a `.table-scroll` helper for wide tables. So this is more "make the existing rules reachable, then audit each page" than a rewrite.
+
+**Tasks**
+- [ ] Add the viewport tag to `base.html` (one line, and the biggest single gain), then look at every page at 375 px and 768 px: header and menu, `/roasts` (a many-column table: scroll inside its container, or cards), profile list and picker, profile form with the wizard (up to 28 temperature rows), Add Roast (chart, timer, First Crack button, temperature table), roast detail (two charts), login/signup/reset pages, About.
+- [ ] Touch and typing: tap targets of at least about 44 px; inputs at 16 px or larger (iOS zooms the page when a smaller field is focused); `inputmode="decimal"` on the numeric fields so phones show a number pad.
+- [ ] Add Roast at the roaster: keep the chart, clock, and First Crack button on screen without scrolling; size the chart for a short, wide screen.
+- [ ] Extend the browser check with phone-sized scenarios (its driver already sets a device size; add a mobile one such as 390×844 with touch emulation) asserting, per page, no horizontal page overflow (`scrollWidth <= innerWidth`) and that the key controls are visible and large enough.
+
+**Open design points**
+- `/roasts` on a phone: a scrolling table (simple; keeps sort and search as they are) or a card per roast (nicer to read; a second layout to maintain).
+- Keep the screen awake during a roast with the Screen Wake Lock API (a phone that sleeps mid-roast is a real problem). It is small and only works on HTTPS, which PythonAnywhere provides. Include it, or not?
+- Installable app (a web manifest) is **not** in scope unless you want it.
+
+**Tests:** the phone-sized browser scenarios; a template test that every page carries the viewport tag.
+**Done when:** each page passes the overflow and size checks at phone width, and you have tried Add Roast on your own phone.
+
+---
+
+## T-12 [PLANNED] App version and in-app release notes
+
+**Depends on:** none. Queued 2026-09-19.
+**Goal:** a version number the user can see in the app, and a short, plain-language "What's new" list, kept in the app (not only in `to-do.md`, `SPEC.md`, and git, which are written for the developer).
+
+**What is there now.** `pyproject.toml` says `version = "0.1.0"`, which no longer means anything; nothing in the app shows a version or a change list; the footer has only an About link (`base.html`).
+
+**Proposed design** (say if you'd change any)
+- **One source of truth, so the version can't drift from the notes:** a tracked data file (for example `data/release_notes.json`, tracked like `roasters.json`), newest entry first: `{version, date, changes: [short user-facing lines]}`. The app's version is the first entry's version. (Reading `pyproject.toml` at runtime is out: PythonAnywhere is set up on Python 3.10, which has no `tomllib`.)
+- **Where it shows:** the version in the footer ("Crackle v1.3.0 · What's new"), linking to a public `/whats-new` page (public like `/about`) that lists the entries.
+- **Numbering:** MAJOR.MINOR.PATCH. MINOR for a user-visible feature (each roadmap item that reaches users), PATCH for a fix, MAJOR only for a change that alters existing data or behavior.
+- **Style:** a few plain lines per version ("Choose your roaster first; profiles now follow it"), not commit messages. Developer detail stays in `to-do.md`.
+
+**Tasks**
+- [ ] The data file and a small loader (missing or corrupt file: same rules as the other data files); footer version; `/whats-new` page.
+- [ ] Write the first entries from the project's history (see the open point below).
+- [ ] Guard tests: entries are valid and newest-first, versions strictly increase, each has a date and at least one change, `pyproject.toml`'s version equals the newest entry (a plain-text check, no `tomllib`), and the page and footer render.
+- [ ] Add the habit to the workflow: a user-visible item ships with its release-note line and version bump in the same commit (in `to-do.md`'s conventions, and `CLAUDE.md`).
+
+**Open design points**
+- **Where to start counting.** Either one retrospective entry per group of phases (0.x → 1.0), or a single "1.0.0" covering everything up to the roaster-driven redesign. Which release is "1.0"?
+- **Git tags** (`v1.3.0`) alongside the notes: optional; worth it if you want to see what was deployed when.
+- A "new since your last visit" marker: not proposed (needs per-user state for little gain).
+
+**Done when:** the footer shows the version, `/whats-new` lists the release history, and a test fails if the notes and version disagree.
+
+---
+
+## T-13 [PLANNED] Espresso profile style
+
+**Depends on:** T-03 ✓ (roaster-driven profiles), T-04 ✓ (data-driven wizard). Queued 2026-09-19.
+**Goal:** every current profile is a drip/filter profile. Add a second **profile style, Espresso**, with a modified curve shape from the wizard, chosen when a profile is created and shown the way the roaster is: a faint tag beside the profile name in the profile list, the Add Roast picker, and the Add Roast heading.
+
+**Design points that need your decisions (nothing here is assumed yet)**
+1. **What "espresso-shaped" means, and its source.** Every roaster value in this app is either stated by a source or listed as `inferred`; I will not invent espresso numbers. Which parts change for espresso: the development-time ratio, the time to first crack, the end point/roast level, the shape of the curve after first crack, or all of these? Do you have your own numbers or a preferred source (like the SR800 result behind the drip values), or should this start with a researched "estimated, not calibrated" version?
+2. **Where the numbers live.** (A) A per-roaster `wizard.espresso` block written out for each roaster (Settled #5: explicit values, so any one can be tuned alone; more data, and where the drip wizard is times-only the espresso one would be too) or (B) one small shared set of adjustments applied on top of each roaster's drip values (much less data, but a shared variable, which Settled #5 avoided). I lean to (A) for consistency with how everything else was built; your call.
+3. **Locked at creation, like the roaster?** I lean yes: the targets are shaped for a style, so changing it later would silently invalidate them (the reasoning in Settled #7). To move a profile to another style, make a new one.
+4. **Records snapshot the style** (a `profile_style` on each roast, like `roaster_id`, Settled #10) so a roast stays self-describing if its profile is deleted. Should the `/roasts` list and CSV also get a **Style** column (as Roaster did, Settled #16)?
+5. **Names on screen:** "Drip" and "Espresso"? (The current profiles would be "Drip".)
+
+**Tasks (once 1–5 are settled)**
+- [ ] Data: `style` field on profiles and records; startup migration sets every existing profile and record to drip (idempotent, like the roaster migration: back up `data/` first, per `DEPLOY.md`).
+- [ ] Profile creation: a style choice next to the roaster choice (`choose_roaster.html` / `profile_form.html`); locked on the edit form; server-side validation like `validate_roaster_id`.
+- [ ] Wizard: reads the espresso values when the style is Espresso; the curve, target times, and the "Estimated for this roaster — not calibrated" notice (no roaster, including the SR800, has calibrated espresso data, because its logged roasts are drip).
+- [ ] Display: a style tag beside the roaster tag everywhere the roaster tag shows (`_profile_table.html`, `select_profile.html`, `add_roast.html`); the roast detail page.
+- [ ] The T-08 calibration report groups by roaster **and** style, so espresso roasts are never averaged into (or compared with) the drip values.
+- [ ] `SPEC.md`: the style, its rules, and its data.
+
+**Tests:** migration (including idempotence); creation with each style and rejection of an unknown one; locked on edit; the wizard's output for each style (browser check); tags shown; records snapshot; report grouping.
+**Done when:** you can create an espresso profile for a roaster, get a wizard curve for it, see the style in every menu, and the report keeps the two styles apart.
+
+---
+
+## T-14 [PLANNED] How-to / tutorial
+
+**Depends on:** none, but best written **after T-11 and T-13** so it describes the final screens and the phone layout. Queued 2026-09-19.
+**Goal:** a new user can learn the app's flow without asking. It is not obvious today: choose your roaster → create a profile (optionally with the wizard) → Add Roast → run the live timer and mark first crack → save → read the result. The only help now is the About page.
+
+**Options**
+- (a) A `/help` page: one readable page with sections and anchors, linked from the header or footer. Plain HTML in a template; cheap and easy to keep accurate.
+- (b) A first-run walkthrough or tooltips over the real pages. More engaging; more code and more to keep in sync with the UI.
+- (c) Both, with small "?" links from key pages (the wizard, the live panel) to the matching help section.
+- **Screenshots** are not proposed at first: they go stale with every UI change (the browser check could generate them later if you want them).
+I lean to (a), with (c)'s contextual links added once the page exists.
+
+**Proposed contents:** 1. Getting started (roaster → profile → first roast). 2. Making a profile and using the wizard. 3. Logging a roast: the timer, First Crack Now!, the pull countdown, entering temperatures, start condition and ambient. 4. Reading a roast: weight loss, roast level, development ratio and time, cupping notes, CSV export. 5. Favorites. 6. A short glossary (first crack, development, DTR, rate of rise, profile). If T-13 happens: drip vs espresso.
+
+**Tasks**
+- [ ] Write the content (plain language; ask you to check it, since it is your app's voice).
+- [ ] The `/help` route and template; a header or footer link; public like `/about`.
+- [ ] Contextual links from the key pages to their sections (if (c)).
+- [ ] `SPEC.md`: the page and its links.
+
+**One constraint to know:** `tests/test_no_hardcoded_units.py` fails if a template contains a hard-coded temperature unit, so the help page has to say "your roaster's unit" (or draw the symbol from the units table), not "°F".
+**Tests:** the page renders logged in and out; every in-page anchor and every "?" link points at a section that exists; the unit guard still passes.
+**Done when:** the page covers the flow above and you can follow it cold from a fresh account.
 
 ---
 
 ## Suggested order
 
 T-01 ✓ → T-02a ✓ → T-03 ✓ → T-02b ✓ → T-09 ✓ → T-04 ✓ → T-05 ✓ → T-10 ✓ → T-06 (start condition + ambient) ✓ → T-08 ✓ → merged to `main` and pushed. The other T-06 candidates and T-07 stay unscheduled.
+
+**Queued 2026-09-19 (order not yet decided):** T-11 mobile optimization, T-12 app version and release notes, T-13 espresso profile style, T-14 how-to. A suggestion, not a decision: T-11 first (the missing viewport tag is a one-line fix that helps every page), T-12 next (small, and gives later items somewhere to be announced), then T-13, and T-14 last because it documents the final screens.
