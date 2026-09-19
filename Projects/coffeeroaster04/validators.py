@@ -71,6 +71,14 @@ def validate_profile_name(name):
     return name
 
 
+def validate_roaster_id(value_str, roasters):
+    if not value_str:
+        return None
+    if value_str not in roasters:
+        raise ValueError("Choose a roaster from the list, or leave blank.")
+    return value_str
+
+
 def validate_target_first_crack(value_str):
     if not value_str:
         return None

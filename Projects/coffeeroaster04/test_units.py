@@ -17,6 +17,7 @@ from data_persistence import (
     count_roasts,
     load_roast_profiles,
     load_roast_records,
+    load_roasters,
     save_roast_profiles,
     save_roast_records,
 )
@@ -28,6 +29,7 @@ from validators import (
     validate_green_weight,
     validate_profile_name,
     validate_roast_time,
+    validate_roaster_id,
     validate_temperature,
 )
 
@@ -158,6 +160,66 @@ class TestRoastProfilesPersistence(unittest.TestCase):
             file.write("{not valid json")
         with self.assertRaises(SystemExit):
             load_roast_profiles()
+
+
+class TestRoastersPersistence(unittest.TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.patcher = mock.patch.object(
+            data_persistence,
+            "ROASTERS_PATH",
+            Path(self.temp_dir.name) / "roasters.json",
+        )
+        self.patcher.start()
+
+    def tearDown(self):
+        self.patcher.stop()
+        self.temp_dir.cleanup()
+
+    def test_load_roasters_missing_file(self):
+        self.assertEqual(load_roasters(), {})
+
+    def test_load_roasters_reads_file(self):
+        with open(data_persistence.ROASTERS_PATH, "w") as file:
+            file.write('{"acme-1": {"name": "Acme 1", "values": {}}}')
+        self.assertEqual(load_roasters()["acme-1"]["name"], "Acme 1")
+
+    def test_load_roasters_corrupted_file_exits(self):
+        with open(data_persistence.ROASTERS_PATH, "w") as file:
+            file.write("{not valid json")
+        with self.assertRaises(SystemExit):
+            load_roasters()
+
+
+class TestShippedRoastersFile(unittest.TestCase):
+    """Guards the real data/roasters.json, which (unlike the other data
+    files) is tracked in git and ships with the app."""
+
+    def test_every_roaster_has_a_name_and_a_values_dict(self):
+        roasters = load_roasters()
+        self.assertGreater(len(roasters), 0)
+        for roaster_id, roaster in roasters.items():
+            self.assertTrue(roaster["name"], roaster_id)
+            self.assertIsInstance(roaster["values"], dict, roaster_id)
+
+    def test_roaster_names_are_unique(self):
+        names = [roaster["name"] for roaster in load_roasters().values()]
+        self.assertEqual(len(names), len(set(names)))
+
+
+class TestValidateRoasterId(unittest.TestCase):
+    def setUp(self):
+        self.roasters = {"acme-1": {"name": "Acme 1", "values": {}}}
+
+    def test_blank_means_no_roaster(self):
+        self.assertIsNone(validate_roaster_id("", self.roasters))
+
+    def test_known_id_is_returned(self):
+        self.assertEqual(validate_roaster_id("acme-1", self.roasters), "acme-1")
+
+    def test_unknown_id_is_rejected(self):
+        with self.assertRaises(ValueError):
+            validate_roaster_id("nope", self.roasters)
 
 
 class TestValidators(unittest.TestCase):

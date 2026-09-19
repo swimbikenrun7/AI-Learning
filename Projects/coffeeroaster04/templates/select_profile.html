@@ -61,7 +61,10 @@
             onkeydown="if (event.key === 'Enter') window.location='/roasts/new/{{ profile_id }}'"
           >
             <span class="profile-card__icon" aria-hidden="true">&#9749;</span>
-            <span class="profile-card__name">{{ profile.name }}</span>
+            <span class="profile-card__name">
+              {{ profile.name }}
+              {% if roaster_name(profile) %}<br><span class="roaster-tag">{{ roaster_name(profile) }}</span>{% endif %}
+            </span>
             <form
               class="profile-card__star-form"
               method="post"
@@ -92,7 +95,10 @@
             onkeydown="if (event.key === 'Enter') window.location='/roasts/new/{{ profile_id }}'"
           >
             <span class="profile-card__icon" aria-hidden="true">&#9749;</span>
-            <span class="profile-card__name">{{ profile.name }}</span>
+            <span class="profile-card__name">
+              {{ profile.name }}
+              {% if roaster_name(profile) %}<br><span class="roaster-tag">{{ roaster_name(profile) }}</span>{% endif %}
+            </span>
             <form
               class="profile-card__star-form"
               method="post"

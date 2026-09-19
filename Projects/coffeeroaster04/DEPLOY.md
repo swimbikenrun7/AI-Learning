@@ -107,7 +107,9 @@ git pull
 
 `data/roast_records.json`, `data/roast_profiles.json`, and `data/users.json` live inside the cloned repo on PythonAnywhere's own persistent filesystem. They are gitignored (not tracked in git), so `git pull` will never touch, merge, or overwrite them, no matter what changes upstream — this is a guarantee, not a matter of remembering not to commit changes to them. They survive reloads and future pulls indefinitely.
 
-Because these files are gitignored, a fresh clone (a new deployment, or a fresh checkout for local dev) starts with no `data/` files at all. Per `SPEC.md`, the app treats a missing data file as an empty dataset and creates it on first write — so a new deployment simply starts empty rather than inheriting another deployment's seed/demo data. If you want to seed a specific deployment with sample data (e.g. for a demo), copy JSON files into `data/` by hand after cloning; that's a one-time local action, never something `git` does for you.
+`data/roasters.json` is the exception: it is reference data (the list of selectable roasters), not user data, so it **is** tracked in git and updates arrive with `git pull`. Don't add it to `.gitignore`.
+
+Because the three files above are gitignored, a fresh clone (a new deployment, or a fresh checkout for local dev) starts with no `data/` files at all. Per `SPEC.md`, the app treats a missing data file as an empty dataset and creates it on first write — so a new deployment simply starts empty rather than inheriting another deployment's seed/demo data. If you want to seed a specific deployment with sample data (e.g. for a demo), copy JSON files into `data/` by hand after cloning; that's a one-time local action, never something `git` does for you.
 
 ## Accounts
 

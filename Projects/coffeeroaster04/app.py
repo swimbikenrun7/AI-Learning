@@ -22,6 +22,7 @@ import calculations as calc
 from data_persistence import (
     load_roast_profiles,
     load_roast_records,
+    load_roasters,
     load_users,
     save_roast_profiles,
     save_roast_records,
@@ -38,6 +39,7 @@ from validators import (
     validate_password,
     validate_profile_name,
     validate_roast_time,
+    validate_roaster_id,
     validate_target_development_time,
     validate_target_first_crack,
     validate_temperature,
@@ -71,7 +73,17 @@ def format_optional_mm_ss(total_seconds):
 
 roast_records = load_roast_records()
 roast_profiles = load_roast_profiles()
+roasters = load_roasters()
 users = load_users()
+
+
+def sorted_roasters():
+    return sorted(roasters.items(), key=lambda item: item[1]["name"].lower())
+
+
+def roaster_name(profile):
+    roaster = roasters.get(profile.get("roaster_id"))
+    return roaster["name"] if roaster else None
 
 
 def sorted_profiles():
@@ -116,6 +128,11 @@ def _find_user_by_valid_token(token_field, expires_field, token):
 def inject_current_user():
     email = session.get("user_email")
     return {"current_user": users.get(email) if email else None}
+
+
+@app.context_processor
+def inject_roaster_name():
+    return {"roaster_name": roaster_name}
 
 
 @app.route("/signup", methods=["GET", "POST"])
@@ -598,6 +615,7 @@ def add_edit_profile(profile_id=None):
     existing_temps = existing_profile["temps"] if existing_profile else [None] * 12
     values = {
         "name": existing_profile["name"] if existing_profile else "",
+        "roaster_id": (existing_profile.get("roaster_id") or "") if existing_profile else "",
         "temps": ["" if temp is None else str(temp) for temp in existing_temps],
         "target_first_crack": format_optional_mm_ss(
             existing_profile.get("target_first_crack") if existing_profile else None
@@ -612,6 +630,7 @@ def add_edit_profile(profile_id=None):
 
     if request.method == "POST":
         values["name"] = request.form.get("name", "")
+        values["roaster_id"] = request.form.get("roaster_id", "")
         values["temps"] = [
             request.form.get(f"temp_{minute}", "") for minute in minutes
         ]
@@ -622,6 +641,7 @@ def add_edit_profile(profile_id=None):
 
         try:
             name = validate_profile_name(values["name"])
+            roaster_id = validate_roaster_id(values["roaster_id"], roasters)
             temps = [validate_temperature(value) for value in values["temps"]]
             target_first_crack = validate_target_first_crack(
                 values["target_first_crack"]
@@ -637,6 +657,7 @@ def add_edit_profile(profile_id=None):
             owner = existing_profile["owner"] if existing_profile else session["user_email"]
             roast_profiles[saved_profile_id] = {
                 "name": name,
+                "roaster_id": roaster_id,
                 "temps": temps,
                 "target_first_crack": target_first_crack,
                 "target_development_time": target_development_time,
@@ -649,6 +670,7 @@ def add_edit_profile(profile_id=None):
     return render_template(
         "profile_form.html",
         profile_id=profile_id,
+        roaster_options=sorted_roasters(),
         minutes=minutes,
         values=values,
         error=error,
