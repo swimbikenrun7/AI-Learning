@@ -74,7 +74,7 @@ Kept deliberately modest: the live WSGI file does `from app import app` and `dat
 
 ---
 
-## T-02 [IN PROGRESS] Populate `data/roasters.json` with per-roaster values — T-02a complete, T-02b planned
+## T-02 [COMPLETE] Populate `data/roasters.json` with per-roaster values
 
 **Depends on:** none (data + research only; can run alongside T-03 prep).
 **Goal:** every one of the 46 entries carries a full, explicit set of values (Settled #5). Split into two passes so research effort follows need.
@@ -113,39 +113,24 @@ Low-confidence entries are flagged in their `notes`: Huky 500T, Presto PopLite, 
 
 Finished weight needs no per-roaster field: the domain rule is `0 < finished < green` (replacing the global ≥ 100 g floor, which rejects a full SR540 batch and any IKAWA roast).
 
-### T-02b — Tier 2 fields (needed by T-04/T-05/T-06)
-- [ ] Fill for all 46 entries:
+### T-02b — Tier 2 fields (needed by T-04/T-05/T-06) — [COMPLETE]
 
-| Field | Meaning |
-|---|---|
-| `start_model` | `ramp` / `preheat_charge` / `programmed` / `none` — what the live chart's opening looks like |
-| `chart_start_temp`, `chart_inflection_min`, `chart_inflection_temp` | Live-chart anchors (SR: 145 °F, 0.5 min, 270 °F) — **done early in T-03** (SR540/SR700/SR800; `null` elsewhere = no synthetic ramp) |
-| `preheat_temp`, `charge_temp` | Drum roasters; null otherwise |
-| `controls` | List of `{name, min, max}` (e.g. Fan 1–9, Heat 1–9) |
-| `cooling` | `internal` / `external_tray` / `manual` |
-| `cooling_coast_seconds` | How much the roast keeps developing after cooling starts |
-| `min_gap_between_roasts_min` | e.g. SR540 manual: 30 |
-| `wizard` | `{time_to_first_crack_s: {low, medium, high}, natural_time_adjust_s, dtr_by_level: {six tiers}, profile_start_temp, default_first_crack_temp}` |
+Completed 2026-09-19 · **not yet committed** — awaiting your review. Suite: 293 passing (was 284).
+- [x] Schema and rules written into `SPEC.md` ("Roaster data (Tier 2)").
+- [x] All 46 entries filled: `start_model`, `preheat_temp`, `charge_temp`, `controls`, `cooling`, `cooling_coast_seconds`, `min_gap_between_roasts_min`, `wizard` (the three chart-anchor fields were done in T-03). Wizard sub-fields are listed in `inferred` by dotted name (e.g. `wizard.dtr_by_level`).
+- [x] Tier 2 tests added to `tests/test_roasters_data.py` (start model vs readout and anchors, preheat/charge within range, control shape, cooling, gap, wizard shape and consistency, SR-only table, and a drift guard that fails if the SR800's wizard data differs from the constants actually in `profile_wizard.js`). Each guard was checked against 14 deliberately broken copies of the data.
 
-**SR800 — what is already known** (illustrative; each value is confirmed before it is written):
+**What is stated and what is inferred**
+- **SR800:** fully stated (the owner's calibrated wizard values; retailer controls and cooling). Its only inferred fields are the temperature range and the 30-minute gap.
+- **Stated by a source:** cooling and controls for the Fresh Roast SR series, Gene Cafe (setpoint and time ranges), Behmor (1-hour gap, P1–P5 power), Hottop (167 °F preheat beep, ranges, cooling tray), Quest (150 °C preheat, back-to-back, 205 °C first crack), Aillio (power/fan/drum 0–9, preheat 230 °C, 1–2 min between batches), Kaffelogic (roast level 0.1–5.9, no gap, 205 °C first crack, the 7:30 example), Sandbox (percent controls), and the SR540's 30-minute gap. First-crack *times* are stated for Kaffelogic, Hottop, Kaldi, and Sandbox R1.
+- **Inferred (flagged):** all other first-crack times (typical Full City time × 0.79), the published DTR table for every non-SR roaster, the start model for Gene Cafe and Behmor, and everything for Kaleido, Roest, and Huky beyond their cooling trays.
+- **Left `null` on purpose:** `cooling_coast_seconds` for all 46 (no source gives a number); `wizard.profile_start_temp` for everyone but the SR family; `default_first_crack_temp` except where stated (SR family, Hottop B-2K/P-2K, Kaffelogic, Quest, Sandbox); `preheat_temp`/`charge_temp` unless stated. The 12 no-readout roasters have `wizard: null` and `start_model: "none"`.
 
-| Field | Value | Basis |
-|---|---|---|
-| `profile_grid_minutes` | 12 | Your statement (10 min longest roast + buffer) |
-| `calibrated` | true | One real logged roast (medium/washed: 6:15 first crack, 1:10 development, Full City) |
-| `temp_unit` | F | SR540 manual: display is °F; SR800 is the same family — confirm |
-| `chart_*` | 145 / 0.5 / 270 | Existing `static/js/add_roast_live.js` constants |
-| `wizard.time_to_first_crack_s` | 375 / 375 / 405 | Existing `static/js/profile_wizard.js` (`MAILLARD_TIME_SECONDS`) |
-| `wizard.natural_time_adjust_s` | 20 | Existing `static/js/profile_wizard.js` |
-| `wizard.dtr_by_level` | 0.12 / 0.13 / 0.16 / 0.18 / 0.20 / 0.23 | Existing `static/js/profile_wizard.js` (`ROAST_LEVEL_DTR`) |
-| `wizard.profile_start_temp`, `default_first_crack_temp` | 315, 400 | Existing `static/js/profile_wizard.js` |
-| `green_weight_min_g`, `green_weight_max_g` | 113, 227 | **Resolved in T-02a:** retailer's stated minimum roast (4 oz) and washed maximum (8 oz) |
-| `roast_time_min_s`, `first_crack_min_s` | null | **Resolved in T-02a:** left `null` (today's 240 s); no source suggests SR800 roasts shorter than that |
+**Decision for T-04.** For every roaster except the SR family, the wizard has first-crack and development-time estimates but **no start or first-crack temperature**, so it cannot draw a temperature curve without borrowing numbers from another machine. T-04 should offer those roasters a times-only wizard (target first crack and development time) with the "estimated, not calibrated" notice, and the temperature curve only where the data supports it. Say if you'd rather I infer temperatures too.
 
-**Files touched:** `data/roasters.json`, `SPEC.md`, `tests/test_roasters_data.py` (T-02a); T-02b will edit `data/roasters.json` and `SPEC.md` again.
-**Tests:** T-02a's validation tests are done (see above). T-02b adds checks for the Tier 2 fields.
+**Files touched:** `data/roasters.json`, `SPEC.md`, `tests/test_roasters_data.py`.
 **Ops note:** `roasters.json` is loaded once at startup, so on PythonAnywhere an edit needs `git pull` and a web-app reload.
-**Done when:** T-02a ✓ (46 entries validate, provenance recorded, `null` only where no basis exists); T-02b fills the Tier 2 fields the same way.
+**Done when:** met — 46 entries validate, provenance is recorded, and `null` is used wherever no source gives a value.
 
 ---
 
@@ -185,7 +170,7 @@ Completed 2026-09-19 · commit `e01d917` on branch `roaster-selection` (not yet 
 
 ## T-04 [PLANNED] Data-driven profile wizard
 
-**Depends on:** T-02b, T-03 ✓. **Starting point after T-03:** the wizard is offered only for a `calibrated` roaster (the SR800); this item removes that gate.
+**Depends on:** T-02b ✓, T-03 ✓. **Starting point after T-02b:** every readout roaster has a `wizard` block; only the SR family has start and first-crack temperatures (see the T-02b decision above). **Starting point after T-03:** the wizard is offered only for a `calibrated` roaster (the SR800); this item removes that gate.
 **Goal:** the wizard's hard-coded constants (`MAILLARD_TIME_SECONDS`, `NATURAL_TIME_ADJUST_SECONDS`, `ROAST_LEVEL_DTR`, `PROFILE_START_TEMP`, default first-crack temp, the 12-row loop in `static/js/profile_wizard.js`) come from the roaster's `wizard` values and grid length.
 
 **Tasks**
@@ -201,7 +186,7 @@ Completed 2026-09-19 · commit `e01d917` on branch `roaster-selection` (not yet 
 
 ## T-05 [PLANNED] Data-driven Add Roast live panel
 
-**Depends on:** T-02b, T-03.
+**Depends on:** T-02b ✓, T-03 ✓. **Starting point after T-02b:** `start_model` is set for every roaster (`ramp` only for the SR machines and the Gene Cafe/Behmor guesses; `preheat_charge` and `programmed` elsewhere), `preheat_temp`/`charge_temp` exist only where stated, and `cooling_coast_seconds` is `null` everywhere, so the pull countdown should treat `null` as zero.
 **Goal:** the live chart, timer, and pull countdown follow the roaster.
 
 **Tasks**
@@ -253,4 +238,4 @@ The scratch prototype from T-01/T-03 became `tests/browser/`, committed as an au
 
 ## Suggested order
 
-T-01 ✓ → T-02a ✓ → T-03 ✓ → T-02b → T-09 ✓ → T-04 and T-05 → T-06 as warranted → T-08 once data exists. T-07 stays deferred.
+T-01 ✓ → T-02a ✓ → T-03 ✓ → T-02b ✓ → T-09 ✓ → T-04 and T-05 → T-06 as warranted → T-08 once data exists. T-07 stays deferred.

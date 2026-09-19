@@ -196,6 +196,27 @@ Each roaster's `values` object holds exactly these fields. They are the data the
 - *Batch size conflicts* between sources take the larger figure, so a valid roast is never rejected; the conflict is recorded in `notes`.
 - A roaster with no source at all for a value gets a low-confidence inferred value with that stated in `notes`; it is never presented as measured.
 
+### Roaster data (Tier 2)
+Also in each roaster's `values`; the wizard and live-panel work (`to-do.md`, T-04/T-05) will read them. Nothing in the app reads these yet except the chart anchors above.
+
+| Field | Meaning |
+|---|---|
+| `start_model` | How a roast begins on the live chart: `ramp` (beans and roaster heat up together from cold — the SR machines), `preheat_charge` (the roaster is preheated, the beans are dropped in, and the bean temperature dips to a turning point), `programmed` (the machine follows a stored recipe from the first second), or `none` (no temperature readout, so no temperature curve). `none` exactly when `has_temp_readout` is false; chart anchors are set only for `ramp` |
+| `preheat_temp`, `charge_temp` | Temperature the roaster is preheated to / the beans are charged at, in the roaster's own unit; `null` unless stated (`preheat_charge` roasters only) |
+| `controls` | What the user can adjust: a list of `{name, min, max, unit}`. `min`/`max` are `null` where a control exists but its range isn't stated; `unit` is a short label (`level`, `%`, `min`, `A`, `preset`, `temp` = the roaster's own temperature unit, or `variable`/`null`). An empty list means a recipe-driven or fixed-heat machine with no dials |
+| `cooling` | `internal` (the roaster cools the beans in its own chamber), `external_tray` (they are ejected or moved to a separate tray), or `manual` |
+| `cooling_coast_seconds` | How long a roast keeps developing after cooling starts; `null` until a source gives a number (none has yet) |
+| `min_gap_between_roasts_min` | The stated minimum time between roasts: `0` means back-to-back is fine; `null` means no stated requirement |
+| `wizard` | `null` when there is no temperature readout, else `{time_to_first_crack_s: {low, medium, high}, natural_time_adjust_s, dtr_by_level, profile_start_temp, default_first_crack_temp}` |
+
+**Wizard values.** `time_to_first_crack_s.medium` is the first-crack time for a medium-density washed coffee at about Full City. `low` equals `medium` and `high` is `medium` plus a density adjustment, which only the SR family has (+30 s, the owner's rule); everyone else has `high = medium` because no source describes an effect. `natural_time_adjust_s` is the change for a natural/honey process (SR: +20 s, the owner's rule; Gene Cafe: −30 s, from Sweet Maria's "up to a minute off"), `null` where no source says. `dtr_by_level` maps the six roast-level names used by `classify_roast` (City Roast … Italian Roast) to a development-time ratio. `profile_start_temp` (the temperature at minute 1) and `default_first_crack_temp` are in the roaster's unit and are `null` unless a source states them — no SR-machine number is ever borrowed for another roaster, so a wizard for such a roaster can offer times but not a temperature curve.
+
+**Rules for Tier 2 values** (in addition to the Tier 1 rules; anything not directly stated by a source is listed in `inferred`, wizard sub-fields by dotted name such as `wizard.dtr_by_level`):
+- *First-crack time* is stated where a source gives one (Kaffelogic's worked example, Hottop's worked example, Kaldi reviews, Sandbox, and the owner's SR800 result); otherwise it is the typical Full City roast time × (1 − 0.21), rounded to 5 s.
+- *DTR table*: the SR family uses the table rescaled off the owner's SR800 result (12–23%); every other roaster uses the original published table the app started with (City 16%, City Plus 18%, Full City 21%, Full City Plus 24%, Vienna 27%, Italian 31%), which agrees with Kaffelogic's cited 20–25%.
+- *`start_model`* is `none` without a readout; `preheat_charge` where a source describes preheating and charging; `programmed` for recipe-driven machines; otherwise `ramp`, inferred.
+- Only the SR800 is calibrated; every other wizard value is an estimate to be refined from logged roasts.
+
 **Not sourced from the retailer blog.** A retailer's "best home roasters" blog post (CoffeeRoast Co.) contradicted that retailer's own product pages (it described the Kaffa Wide POP as a 150 g electric air roaster; the product page says a 300 g gas drum roaster) and was not used as a source for any value. "Bohemia 250 (ceramic stovetop)" appeared only in that post, could not be found anywhere else, and was removed from the list (46 roasters).
 
 ## Calculations

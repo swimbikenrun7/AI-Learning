@@ -6,7 +6,9 @@ a typo in one roaster's entry would otherwise only show up for the user who owns
 
 import re
 import unittest
+from pathlib import Path
 
+from calculations import classify_roast
 from data_persistence import load_roasters
 
 VALUE_FIELDS = [
@@ -29,7 +31,29 @@ VALUE_FIELDS = [
     "chart_start_temp",
     "chart_inflection_min",
     "chart_inflection_temp",
+    "start_model",
+    "preheat_temp",
+    "charge_temp",
+    "controls",
+    "cooling",
+    "cooling_coast_seconds",
+    "min_gap_between_roasts_min",
+    "wizard",
 ]
+WIZARD_FIELDS = [
+    "time_to_first_crack_s",
+    "natural_time_adjust_s",
+    "dtr_by_level",
+    "profile_start_temp",
+    "default_first_crack_temp",
+]
+START_MODELS = {"ramp", "preheat_charge", "programmed", "none"}
+COOLING = {"internal", "external_tray", "manual"}
+# The six roast-level names, exactly as the app's own classification calls them.
+TIERS = [classify_roast(loss) for loss in (12, 14, 15, 16, 17, 19)]
+WIZARD_JS = (
+    Path(__file__).resolve().parent.parent / "static" / "js" / "profile_wizard.js"
+)
 # Fields whose value may be "inferred" (everything except the descriptive/provenance fields).
 DATA_FIELDS = VALUE_FIELDS[5:]
 TEMP_SOURCES = {"bean_probe", "inlet_air", "chamber_air", "unspecified", "none"}
@@ -85,6 +109,12 @@ class TestRoastersData(unittest.TestCase):
         def check(roaster_id, roaster, values):
             self.assertEqual(len(values["inferred"]), len(set(values["inferred"])))
             for field in values["inferred"]:
+                if field.startswith("wizard."):
+                    sub = field.split(".", 1)[1]
+                    self.assertIn(sub, WIZARD_FIELDS)
+                    self.assertIsNotNone(values["wizard"])
+                    self.assertIsNotNone(values["wizard"][sub], f"{field} is null")
+                    continue
                 self.assertIn(field, DATA_FIELDS)
                 self.assertIsNotNone(
                     values[field], f"{field} is listed as inferred but is null"
@@ -194,6 +224,173 @@ class TestRoastersData(unittest.TestCase):
                 self.assertGreaterEqual(values["temp_max"], 290)
 
         self.for_each_roaster(check)
+
+
+class TestRoastersTier2(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.roasters = load_roasters()
+
+    def for_each_roaster(self, check):
+        for roaster_id, roaster in self.roasters.items():
+            with self.subTest(roaster=roaster_id):
+                check(roaster_id, roaster["values"])
+
+    def test_start_model_follows_the_readout_and_the_chart_anchors(self):
+        def check(roaster_id, values):
+            self.assertIn(values["start_model"], START_MODELS)
+            # No temperature readout means no temperature curve, so no start model.
+            self.assertEqual(
+                values["start_model"] == "none", not values["has_temp_readout"]
+            )
+            if values["chart_start_temp"] is not None:
+                self.assertEqual(values["start_model"], "ramp")
+
+        self.for_each_roaster(check)
+
+    def test_preheat_and_charge_temperatures_fit_the_roasters_range(self):
+        def check(roaster_id, values):
+            for field in ("preheat_temp", "charge_temp"):
+                if values[field] is None:
+                    continue
+                self.assertTrue(values["has_temp_readout"])
+                self.assertEqual(values["start_model"], "preheat_charge")
+                self.assertTrue(
+                    values["temp_min"] <= values[field] <= values["temp_max"]
+                )
+
+        self.for_each_roaster(check)
+
+    def test_controls_are_well_formed(self):
+        def check(roaster_id, values):
+            names = [control["name"] for control in values["controls"]]
+            self.assertEqual(len(names), len(set(names)))
+            for control in values["controls"]:
+                self.assertEqual(set(control), {"name", "min", "max", "unit"})
+                self.assertTrue(control["name"].strip())
+                if control["min"] is not None and control["max"] is not None:
+                    self.assertLess(control["min"], control["max"])
+
+        self.for_each_roaster(check)
+
+    def test_cooling_and_the_optional_numbers(self):
+        def check(roaster_id, values):
+            self.assertIn(values["cooling"], COOLING)
+            for field in ("cooling_coast_seconds", "min_gap_between_roasts_min"):
+                if values[field] is not None:
+                    self.assertIsInstance(values[field], int)
+                    self.assertGreaterEqual(values[field], 0)
+
+        self.for_each_roaster(check)
+
+    def test_a_wizard_exists_exactly_when_there_is_a_temperature_readout(self):
+        def check(roaster_id, values):
+            self.assertEqual(values["wizard"] is not None, values["has_temp_readout"])
+
+        self.for_each_roaster(check)
+
+    def test_wizard_values_are_consistent(self):
+        def check(roaster_id, values):
+            wizard = values["wizard"]
+            if wizard is None:
+                return
+            self.assertEqual(set(wizard), set(WIZARD_FIELDS))
+            times = wizard["time_to_first_crack_s"]
+            self.assertEqual(set(times), {"low", "medium", "high"})
+            self.assertTrue(times["low"] <= times["medium"] <= times["high"])
+            limit = values["profile_grid_minutes"] * 60
+            self.assertTrue(0 < times["high"] < limit)
+            dtr = wizard["dtr_by_level"]
+            self.assertEqual(list(dtr), TIERS)
+            ratios = list(dtr.values())
+            self.assertEqual(ratios, sorted(ratios))
+            self.assertTrue(all(0 < ratio < 0.5 for ratio in ratios))
+            adjust = wizard["natural_time_adjust_s"]
+            if adjust is not None:
+                self.assertIsInstance(adjust, int)
+                self.assertLess(abs(adjust), times["medium"])
+            for field in ("profile_start_temp", "default_first_crack_temp"):
+                if wizard[field] is not None:
+                    self.assertTrue(
+                        values["temp_min"] <= wizard[field] <= values["temp_max"]
+                    )
+            if None not in (
+                wizard["profile_start_temp"],
+                wizard["default_first_crack_temp"],
+            ):
+                self.assertLess(
+                    wizard["profile_start_temp"], wizard["default_first_crack_temp"]
+                )
+
+        self.for_each_roaster(check)
+
+    def test_the_sr_series_share_the_calibrated_wizard_table_and_no_one_else_does(self):
+        sr800 = self.roasters["fresh-roast-sr800"]["values"]["wizard"]["dtr_by_level"]
+        for roaster_id, roaster in self.roasters.items():
+            wizard = roaster["values"]["wizard"]
+            if wizard is None:
+                continue
+            with self.subTest(roaster=roaster_id):
+                self.assertEqual(
+                    wizard["dtr_by_level"] == sr800,
+                    roaster_id.startswith("fresh-roast-sr"),
+                )
+
+    def test_the_sr800_wizard_data_matches_the_constants_the_wizard_script_uses(self):
+        # Until the wizard reads this data (T-04), the two copies must not drift apart.
+        # T-04 removes the constants from the script and should replace this test.
+        script = WIZARD_JS.read_text()
+        wizard = self.roasters["fresh-roast-sr800"]["values"]["wizard"]
+
+        def number(name):
+            return float(re.search(rf"const {name} = ([\d.]+);", script).group(1))
+
+        times = re.search(
+            r"MAILLARD_TIME_SECONDS = \{ low: (\d+), medium: (\d+), high: (\d+) \}",
+            script,
+        )
+        self.assertEqual(
+            [int(t) for t in times.groups()],
+            [wizard["time_to_first_crack_s"][k] for k in ("low", "medium", "high")],
+        )
+        self.assertEqual(
+            number("NATURAL_TIME_ADJUST_SECONDS"), wizard["natural_time_adjust_s"]
+        )
+        self.assertEqual(number("PROFILE_START_TEMP"), wizard["profile_start_temp"])
+        table = dict(
+            re.findall(
+                r'"([A-Za-z ]+)": ([\d.]+),',
+                script.split("ROAST_LEVEL_DTR")[1].split("};")[0],
+            )
+        )
+        self.assertEqual(
+            {k: float(v) for k, v in table.items()}, wizard["dtr_by_level"]
+        )
+
+    def test_only_the_sr800_has_a_stated_wizard(self):
+        for roaster_id, roaster in self.roasters.items():
+            values = roaster["values"]
+            if values["wizard"] is None:
+                continue
+            stated = [
+                f"wizard.{sub}"
+                for sub in WIZARD_FIELDS
+                if values["wizard"][sub] is not None
+                and f"wizard.{sub}" not in values["inferred"]
+            ]
+            with self.subTest(roaster=roaster_id):
+                if roaster_id == "fresh-roast-sr800":
+                    self.assertEqual(len(stated), len(WIZARD_FIELDS))
+                # Only Kaffelogic, Hottop, Kaldi and Sandbox state a first-crack time or temperature.
+                elif (
+                    "wizard.time_to_first_crack_s" in stated
+                    or "wizard.default_first_crack_temp" in stated
+                ):
+                    self.assertTrue(
+                        roaster_id.startswith(
+                            ("kaffelogic", "hottop", "kaldi", "quest", "sandbox")
+                        )
+                    )
 
 
 if __name__ == "__main__":

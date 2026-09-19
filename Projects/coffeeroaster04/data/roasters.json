@@ -12,9 +12,12 @@
                 "profile_grid_minutes",
                 "temp_unit",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "min_gap_between_roasts_min",
+                "wizard.time_to_first_crack_s",
+                "wizard.dtr_by_level"
             ],
-            "notes": "Original model; older units have a bean probe only (no IBTS). Manual/site: capacity 200-1000 g, 1 kg reaches first crack in about 10-12 min, bean temperature by IR sensor (IBTS) and/or bean probe, display selectable C/F (C assumed), maximum bean temperature 245 C.",
+            "notes": "Original model; older units have a bean probe only (no IBTS). Manual/site: capacity 200-1000 g, 1 kg reaches first crack in about 10-12 min, bean temperature by IR sensor (IBTS) and/or bean probe, display selectable C/F (C assumed), maximum bean temperature 245 C. Tier 2: manual: power P0-P9, fan and drum speed in ten steps each (0-9); preheat, then the roaster detects the charge; the cooling tray. First crack 11:00 is the middle of the stated 10-12 minutes for a 1 kg batch; no first-crack temperature is stated. ~1-2 minutes between batches (product page). Original (V1) preheat is 160 C (manual).",
             "green_weight_min_g": 200,
             "green_weight_max_g": 1000,
             "green_weight_recommended_g": null,
@@ -28,7 +31,51 @@
             "temp_max": 260,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "preheat_charge",
+            "preheat_temp": 160,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Power",
+                    "min": 0,
+                    "max": 9,
+                    "unit": "level"
+                },
+                {
+                    "name": "Fan",
+                    "min": 0,
+                    "max": 9,
+                    "unit": "level"
+                },
+                {
+                    "name": "Drum speed",
+                    "min": 0,
+                    "max": 9,
+                    "unit": "level"
+                }
+            ],
+            "cooling": "external_tray",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": 2,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 660,
+                    "medium": 660,
+                    "high": 660
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": null
+            }
         }
     },
     "aillio-bullet-r1-v2": {
@@ -44,9 +91,11 @@
                 "profile_grid_minutes",
                 "temp_unit",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "wizard.time_to_first_crack_s",
+                "wizard.dtr_by_level"
             ],
-            "notes": "Manual/site: capacity 200-1000 g, 1 kg reaches first crack in about 10-12 min, bean temperature by IR sensor (IBTS) and/or bean probe, display selectable C/F (C assumed), maximum bean temperature 245 C.",
+            "notes": "Manual/site: capacity 200-1000 g, 1 kg reaches first crack in about 10-12 min, bean temperature by IR sensor (IBTS) and/or bean probe, display selectable C/F (C assumed), maximum bean temperature 245 C. Tier 2: manual: power P0-P9, fan and drum speed in ten steps each (0-9); preheat, then the roaster detects the charge; the cooling tray. First crack 11:00 is the middle of the stated 10-12 minutes for a 1 kg batch; no first-crack temperature is stated. ~1-2 minutes between batches (product page). IBTS-model preheat is 230 C (manual).",
             "green_weight_min_g": 200,
             "green_weight_max_g": 1000,
             "green_weight_recommended_g": null,
@@ -60,7 +109,51 @@
             "temp_max": 260,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "preheat_charge",
+            "preheat_temp": 230,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Power",
+                    "min": 0,
+                    "max": 9,
+                    "unit": "level"
+                },
+                {
+                    "name": "Fan",
+                    "min": 0,
+                    "max": 9,
+                    "unit": "level"
+                },
+                {
+                    "name": "Drum speed",
+                    "min": 0,
+                    "max": 9,
+                    "unit": "level"
+                }
+            ],
+            "cooling": "external_tray",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": 2,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 660,
+                    "medium": 660,
+                    "high": 660
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": null
+            }
         }
     },
     "aillio-bullet-r2": {
@@ -80,9 +173,16 @@
                 "temp_source",
                 "has_temp_readout",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "start_model",
+                "preheat_temp",
+                "controls",
+                "cooling",
+                "min_gap_between_roasts_min",
+                "wizard.time_to_first_crack_s",
+                "wizard.dtr_by_level"
             ],
-            "notes": "The R2 page gives no capacity or temperature specs; all values assumed the same as the R1 V2. Manual/site: capacity 200-1000 g, 1 kg reaches first crack in about 10-12 min, bean temperature by IR sensor (IBTS) and/or bean probe, display selectable C/F (C assumed), maximum bean temperature 245 C.",
+            "notes": "The R2 page gives no capacity or temperature specs; all values assumed the same as the R1 V2. Manual/site: capacity 200-1000 g, 1 kg reaches first crack in about 10-12 min, bean temperature by IR sensor (IBTS) and/or bean probe, display selectable C/F (C assumed), maximum bean temperature 245 C. Tier 2: manual: power P0-P9, fan and drum speed in ten steps each (0-9); preheat, then the roaster detects the charge; the cooling tray. First crack 11:00 is the middle of the stated 10-12 minutes for a 1 kg batch; no first-crack temperature is stated. ~1-2 minutes between batches (product page). Assumed the R1 V2's (IBTS) preheat and everything else.",
             "green_weight_min_g": 200,
             "green_weight_max_g": 1000,
             "green_weight_recommended_g": null,
@@ -96,7 +196,51 @@
             "temp_max": 260,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "preheat_charge",
+            "preheat_temp": 230,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Power",
+                    "min": 0,
+                    "max": 9,
+                    "unit": "level"
+                },
+                {
+                    "name": "Fan",
+                    "min": 0,
+                    "max": 9,
+                    "unit": "level"
+                },
+                {
+                    "name": "Drum speed",
+                    "min": 0,
+                    "max": 9,
+                    "unit": "level"
+                }
+            ],
+            "cooling": "external_tray",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": 2,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 660,
+                    "medium": 660,
+                    "high": 660
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": null
+            }
         }
     },
     "aillio-bullet-r2-pro": {
@@ -116,9 +260,16 @@
                 "temp_source",
                 "has_temp_readout",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "start_model",
+                "preheat_temp",
+                "controls",
+                "cooling",
+                "min_gap_between_roasts_min",
+                "wizard.time_to_first_crack_s",
+                "wizard.dtr_by_level"
             ],
-            "notes": "The 1.2 kg maximum comes from a search-result summary of a retailer FAQ (about 2.65 lb), not read on a page; other values assumed the same as the R1 V2. Manual/site: capacity 200-1000 g, 1 kg reaches first crack in about 10-12 min, bean temperature by IR sensor (IBTS) and/or bean probe, display selectable C/F (C assumed), maximum bean temperature 245 C.",
+            "notes": "The 1.2 kg maximum comes from a search-result summary of a retailer FAQ (about 2.65 lb), not read on a page; other values assumed the same as the R1 V2. Manual/site: capacity 200-1000 g, 1 kg reaches first crack in about 10-12 min, bean temperature by IR sensor (IBTS) and/or bean probe, display selectable C/F (C assumed), maximum bean temperature 245 C. Tier 2: manual: power P0-P9, fan and drum speed in ten steps each (0-9); preheat, then the roaster detects the charge; the cooling tray. First crack 11:00 is the middle of the stated 10-12 minutes for a 1 kg batch; no first-crack temperature is stated. ~1-2 minutes between batches (product page). Assumed the R1 V2's (IBTS) preheat and everything else.",
             "green_weight_min_g": 200,
             "green_weight_max_g": 1200,
             "green_weight_recommended_g": null,
@@ -132,7 +283,51 @@
             "temp_max": 260,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "preheat_charge",
+            "preheat_temp": 230,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Power",
+                    "min": 0,
+                    "max": 9,
+                    "unit": "level"
+                },
+                {
+                    "name": "Fan",
+                    "min": 0,
+                    "max": 9,
+                    "unit": "level"
+                },
+                {
+                    "name": "Drum speed",
+                    "min": 0,
+                    "max": 9,
+                    "unit": "level"
+                }
+            ],
+            "cooling": "external_tray",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": 2,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 660,
+                    "medium": 660,
+                    "high": 660
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": null
+            }
         }
     },
     "behmor-1600-plus": {
@@ -148,9 +343,12 @@
                 "green_weight_min_g",
                 "profile_grid_minutes",
                 "temp_source",
-                "has_temp_readout"
+                "has_temp_readout",
+                "start_model",
+                "controls",
+                "min_gap_between_roasts_min"
             ],
-            "notes": "Predecessor of the AB models (replaced 2019); the manual read is for the 1600AB Plus. Thermistor readouts are an AB feature, so no readout is assumed here. Manufacturer maximum roast times run up to 25:30 (1 lb, profile P5); defaults 8:30 / 12:00 / 18:00 for 1/4, 1/2, 1 lb; Full City+ roasts: reduce to 1/2 lb. Smallest official batch is 1/4 lb (113 g), so the minimum is set just below it.",
+            "notes": "Predecessor of the AB models (replaced 2019); the manual read is for the 1600AB Plus. Thermistor readouts are an AB feature, so no readout is assumed here. Manufacturer maximum roast times run up to 25:30 (1 lb, profile P5); defaults 8:30 / 12:00 / 18:00 for 1/4, 1/2, 1 lb; Full City+ roasts: reduce to 1/2 lb. Smallest official batch is 1/4 lb (113 g), so the minimum is set just below it. Tier 2: no readout, so no start model or wizard. Preset profiles only (the manual read is for the AB Plus); 1-hour gap assumed from that manual.",
             "green_weight_min_g": 100,
             "green_weight_max_g": 454,
             "green_weight_recommended_g": null,
@@ -164,7 +362,22 @@
             "temp_max": null,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "none",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Roast profile",
+                    "min": 1,
+                    "max": 5,
+                    "unit": "preset"
+                }
+            ],
+            "cooling": "internal",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": 60,
+            "wizard": null
         }
     },
     "behmor-1600ab": {
@@ -182,9 +395,12 @@
                 "temp_unit",
                 "has_temp_readout",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "start_model",
+                "wizard.time_to_first_crack_s",
+                "wizard.dtr_by_level"
             ],
-            "notes": "Values from the 1600AB Plus manual. Readout is on demand from two thermistors (exhaust channel, chamber wall) - not bean temperature. Unit assumed F (US model). Manufacturer maximum roast times run up to 25:30 (1 lb, profile P5); defaults 8:30 / 12:00 / 18:00 for 1/4, 1/2, 1 lb; Full City+ roasts: reduce to 1/2 lb. Smallest official batch is 1/4 lb (113 g), so the minimum is set just below it.",
+            "notes": "Values from the 1600AB Plus manual. Readout is on demand from two thermistors (exhaust channel, chamber wall) - not bean temperature. Unit assumed F (US model). Manufacturer maximum roast times run up to 25:30 (1 lb, profile P5); defaults 8:30 / 12:00 / 18:00 for 1/4, 1/2, 1 lb; Full City+ roasts: reduce to 1/2 lb. Smallest official batch is 1/4 lb (113 g), so the minimum is set just below it. Tier 2: start model assumed (optional 1:30 warm-up, then beans are loaded). Manual: 'allow 1 hour between roasts'; Power P1-P5 (0/25/50/75/100%) in manual mode, drum speed by the D button, five preset profiles. First crack (14:15) inferred: the 1 lb default is 18:00, times (1 - 0.21). No start or first-crack temperature is stated.",
             "green_weight_min_g": 100,
             "green_weight_max_g": 454,
             "green_weight_recommended_g": null,
@@ -198,7 +414,51 @@
             "temp_max": 500,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "ramp",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Roast profile",
+                    "min": 1,
+                    "max": 5,
+                    "unit": "preset"
+                },
+                {
+                    "name": "Power (manual mode)",
+                    "min": 0,
+                    "max": 100,
+                    "unit": "%"
+                },
+                {
+                    "name": "Drum speed (manual mode)",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                }
+            ],
+            "cooling": "internal",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": 60,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 855,
+                    "medium": 855,
+                    "high": 855
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": null
+            }
         }
     },
     "behmor-2000ab-plus": {
@@ -217,9 +477,13 @@
                 "temp_unit",
                 "has_temp_readout",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "start_model",
+                "min_gap_between_roasts_min",
+                "wizard.time_to_first_crack_s",
+                "wizard.dtr_by_level"
             ],
-            "notes": "The 2000AB Plus manual was not readable; values assumed same as the 1600AB Plus manual (same 1/4-1/2-1 lb batches and P1-P5 profiles). Manufacturer maximum roast times run up to 25:30 (1 lb, profile P5); defaults 8:30 / 12:00 / 18:00 for 1/4, 1/2, 1 lb; Full City+ roasts: reduce to 1/2 lb. Smallest official batch is 1/4 lb (113 g), so the minimum is set just below it.",
+            "notes": "The 2000AB Plus manual was not readable; values assumed same as the 1600AB Plus manual (same 1/4-1/2-1 lb batches and P1-P5 profiles). Manufacturer maximum roast times run up to 25:30 (1 lb, profile P5); defaults 8:30 / 12:00 / 18:00 for 1/4, 1/2, 1 lb; Full City+ roasts: reduce to 1/2 lb. Smallest official batch is 1/4 lb (113 g), so the minimum is set just below it. Tier 2: start model assumed (optional 1:30 warm-up, then beans are loaded). Manual: 'allow 1 hour between roasts'; Power P1-P5 (0/25/50/75/100%) in manual mode, drum speed by the D button, five preset profiles. First crack (14:15) inferred: the 1 lb default is 18:00, times (1 - 0.21). No start or first-crack temperature is stated. Values assumed from the 1600AB Plus manual.",
             "green_weight_min_g": 100,
             "green_weight_max_g": 454,
             "green_weight_recommended_g": null,
@@ -233,7 +497,51 @@
             "temp_max": 500,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "ramp",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Roast profile",
+                    "min": 1,
+                    "max": 5,
+                    "unit": "preset"
+                },
+                {
+                    "name": "Power (manual mode)",
+                    "min": 0,
+                    "max": 100,
+                    "unit": "%"
+                },
+                {
+                    "name": "Drum speed (manual mode)",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                }
+            ],
+            "cooling": "internal",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": 60,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 855,
+                    "medium": 855,
+                    "high": 855
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": null
+            }
         }
     },
     "fresh-roast-sr300": {
@@ -247,9 +555,11 @@
             "inferred": [
                 "green_weight_min_g",
                 "temp_source",
-                "has_temp_readout"
+                "has_temp_readout",
+                "start_model",
+                "min_gap_between_roasts_min"
             ],
-            "notes": "SR300: 4 scoops of 43 cc = 120 g; timer max 9.9 min. Sources describe fixed heat settings (390/455/490 F targets) and no temperature readout, so no readout is assumed; an owner-added probe is not supported by this entry. Discontinued/legacy model. Row count 12 is the owner's rule for the whole Fresh Roast SR series (10 min is about the longest anyone roasts on it, +2 buffer).",
+            "notes": "SR300: 4 scoops of 43 cc = 120 g; timer max 9.9 min. Sources describe fixed heat settings (390/455/490 F targets) and no temperature readout, so no readout is assumed; an owner-added probe is not supported by this entry. Discontinued/legacy model. Row count 12 is the owner's rule for the whole Fresh Roast SR series (10 min is about the longest anyone roasts on it, +2 buffer). Tier 2: SR300 has no temperature readout, so no start model or wizard. Retailer: variable fan, three fixed heat settings, timer to 9.9 min, a 3-minute cooling cycle. The 30-minute gap is the SR540 manual's rule, assumed for the family.",
             "green_weight_min_g": 40,
             "green_weight_max_g": 120,
             "green_weight_recommended_g": 120,
@@ -263,7 +573,34 @@
             "temp_max": null,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "none",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Fan speed",
+                    "min": null,
+                    "max": null,
+                    "unit": "variable"
+                },
+                {
+                    "name": "Heat",
+                    "min": 1,
+                    "max": 3,
+                    "unit": "level"
+                },
+                {
+                    "name": "Timer",
+                    "min": 0.1,
+                    "max": 9.9,
+                    "unit": "min"
+                }
+            ],
+            "cooling": "internal",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": 30,
+            "wizard": null
         }
     },
     "fresh-roast-sr340": {
@@ -277,9 +614,11 @@
             "inferred": [
                 "green_weight_min_g",
                 "temp_source",
-                "has_temp_readout"
+                "has_temp_readout",
+                "start_model",
+                "min_gap_between_roasts_min"
             ],
-            "notes": "SR340: 4 scoops of 43 cc = 120 g; timer max 9.9 min. Sources describe fixed heat settings (390/455/490 F targets) and no temperature readout, so no readout is assumed; an owner-added probe is not supported by this entry. Discontinued/legacy model. Row count 12 is the owner's rule for the whole Fresh Roast SR series (10 min is about the longest anyone roasts on it, +2 buffer).",
+            "notes": "SR340: 4 scoops of 43 cc = 120 g; timer max 9.9 min. Sources describe fixed heat settings (390/455/490 F targets) and no temperature readout, so no readout is assumed; an owner-added probe is not supported by this entry. Discontinued/legacy model. Row count 12 is the owner's rule for the whole Fresh Roast SR series (10 min is about the longest anyone roasts on it, +2 buffer). Tier 2: SR340 has no temperature readout, so no start model or wizard. Retailer: variable fan, three fixed heat settings, timer to 9.9 min, a 3-minute cooling cycle. The 30-minute gap is the SR540 manual's rule, assumed for the family.",
             "green_weight_min_g": 40,
             "green_weight_max_g": 120,
             "green_weight_recommended_g": 120,
@@ -293,7 +632,34 @@
             "temp_max": null,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "none",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Fan speed",
+                    "min": null,
+                    "max": null,
+                    "unit": "variable"
+                },
+                {
+                    "name": "Heat",
+                    "min": 1,
+                    "max": 3,
+                    "unit": "level"
+                },
+                {
+                    "name": "Timer",
+                    "min": 0.1,
+                    "max": 9.9,
+                    "unit": "min"
+                }
+            ],
+            "cooling": "internal",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": 30,
+            "wizard": null
         }
     },
     "fresh-roast-sr500": {
@@ -307,9 +673,11 @@
             "inferred": [
                 "green_weight_min_g",
                 "temp_source",
-                "has_temp_readout"
+                "has_temp_readout",
+                "start_model",
+                "min_gap_between_roasts_min"
             ],
-            "notes": "SR500: 4 scoops of 43 cc = 120 g; timer max 9.9 min. Sources describe fixed heat settings (390/455/490 F targets) and no temperature readout, so no readout is assumed; an owner-added probe is not supported by this entry. Discontinued/legacy model. Row count 12 is the owner's rule for the whole Fresh Roast SR series (10 min is about the longest anyone roasts on it, +2 buffer).",
+            "notes": "SR500: 4 scoops of 43 cc = 120 g; timer max 9.9 min. Sources describe fixed heat settings (390/455/490 F targets) and no temperature readout, so no readout is assumed; an owner-added probe is not supported by this entry. Discontinued/legacy model. Row count 12 is the owner's rule for the whole Fresh Roast SR series (10 min is about the longest anyone roasts on it, +2 buffer). Tier 2: SR500 has no temperature readout, so no start model or wizard. Retailer: variable fan, three fixed heat settings, timer to 9.9 min, a 3-minute cooling cycle. The 30-minute gap is the SR540 manual's rule, assumed for the family.",
             "green_weight_min_g": 40,
             "green_weight_max_g": 120,
             "green_weight_recommended_g": 120,
@@ -323,7 +691,34 @@
             "temp_max": null,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "none",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Fan speed",
+                    "min": null,
+                    "max": null,
+                    "unit": "variable"
+                },
+                {
+                    "name": "Heat",
+                    "min": 1,
+                    "max": 3,
+                    "unit": "level"
+                },
+                {
+                    "name": "Timer",
+                    "min": 0.1,
+                    "max": 9.9,
+                    "unit": "min"
+                }
+            ],
+            "cooling": "internal",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": 30,
+            "wizard": null
         }
     },
     "fresh-roast-sr540": {
@@ -341,9 +736,15 @@
                 "temp_max",
                 "chart_start_temp",
                 "chart_inflection_min",
-                "chart_inflection_temp"
+                "chart_inflection_temp",
+                "start_model",
+                "wizard.time_to_first_crack_s",
+                "wizard.natural_time_adjust_s",
+                "wizard.dtr_by_level",
+                "wizard.profile_start_temp",
+                "wizard.default_first_crack_temp"
             ],
-            "notes": "Manual: about 4 oz / 114 g; retailer: 120 g. Real-time temperature shown on request, in F; the sources do not say what the sensor measures. Manual: allow 30 min between roasts. Row count 12 is the owner's rule for the whole Fresh Roast SR series (10 min is about the longest anyone roasts on it, +2 buffer). Chart anchors (145 F start, 270 F at 30 s) are the app's original live-chart constants, tuned on the SR800; assumed the same for this SR model.",
+            "notes": "Manual: about 4 oz / 114 g; retailer: 120 g. Real-time temperature shown on request, in F; the sources do not say what the sensor measures. Manual: allow 30 min between roasts. Row count 12 is the owner's rule for the whole Fresh Roast SR series (10 min is about the longest anyone roasts on it, +2 buffer). Chart anchors (145 F start, 270 F at 30 s) are the app's original live-chart constants, tuned on the SR800; assumed the same for this SR model. Tier 2: manual: FAN/HEAT/TIMER knob, COOL mode, and 'do not roast back to back - allow a minimum of 30 minutes'. Start model assumed the SR800's. Wizard values are the app's own SR800 constants (calibrated on the owner's logged roast); assumed for this SR model.",
             "green_weight_min_g": 40,
             "green_weight_max_g": 120,
             "green_weight_recommended_g": 114,
@@ -357,7 +758,51 @@
             "temp_max": 500,
             "chart_start_temp": 145,
             "chart_inflection_min": 0.5,
-            "chart_inflection_temp": 270
+            "chart_inflection_temp": 270,
+            "start_model": "ramp",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Fan speed",
+                    "min": 1,
+                    "max": 9,
+                    "unit": "level"
+                },
+                {
+                    "name": "Heat",
+                    "min": 1,
+                    "max": 9,
+                    "unit": "level"
+                },
+                {
+                    "name": "Timer",
+                    "min": 0.1,
+                    "max": 9.9,
+                    "unit": "min"
+                }
+            ],
+            "cooling": "internal",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": 30,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 375,
+                    "medium": 375,
+                    "high": 405
+                },
+                "natural_time_adjust_s": 20,
+                "dtr_by_level": {
+                    "City Roast": 0.12,
+                    "City Plus": 0.13,
+                    "Full City": 0.16,
+                    "Full City Plus": 0.18,
+                    "Vienna Roast": 0.2,
+                    "Italian Roast": 0.23
+                },
+                "profile_start_temp": 315,
+                "default_first_crack_temp": 400
+            }
         }
     },
     "fresh-roast-sr700": {
@@ -376,9 +821,16 @@
                 "temp_max",
                 "chart_start_temp",
                 "chart_inflection_min",
-                "chart_inflection_temp"
+                "chart_inflection_temp",
+                "start_model",
+                "min_gap_between_roasts_min",
+                "wizard.time_to_first_crack_s",
+                "wizard.natural_time_adjust_s",
+                "wizard.dtr_by_level",
+                "wizard.profile_start_temp",
+                "wizard.default_first_crack_temp"
             ],
-            "notes": "About 4.5 oz / 130 g (3 scoops may roast better). Shows real-time temperature on the computer dashboard; heat settings listed in degrees (F assumed). Discontinued Oct 2019. Row count 12 is the owner's rule for the whole Fresh Roast SR series (10 min is about the longest anyone roasts on it, +2 buffer). Chart anchors (145 F start, 270 F at 30 s) are the app's original live-chart constants, tuned on the SR800; assumed the same for this SR model.",
+            "notes": "About 4.5 oz / 130 g (3 scoops may roast better). Shows real-time temperature on the computer dashboard; heat settings listed in degrees (F assumed). Discontinued Oct 2019. Row count 12 is the owner's rule for the whole Fresh Roast SR series (10 min is about the longest anyone roasts on it, +2 buffer). Chart anchors (145 F start, 270 F at 30 s) are the app's original live-chart constants, tuned on the SR800; assumed the same for this SR model. Tier 2: SR700 manual: fan, H/M/L heat, timer, C3/C2/C1 cool stages. 30-minute gap assumed from the SR540 manual. Start model assumed the SR800's. Wizard values are the app's own SR800 constants (calibrated on the owner's logged roast); assumed for this SR model.",
             "green_weight_min_g": 45,
             "green_weight_max_g": 130,
             "green_weight_recommended_g": 130,
@@ -392,7 +844,51 @@
             "temp_max": 500,
             "chart_start_temp": 145,
             "chart_inflection_min": 0.5,
-            "chart_inflection_temp": 270
+            "chart_inflection_temp": 270,
+            "start_model": "ramp",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Fan speed",
+                    "min": null,
+                    "max": null,
+                    "unit": "variable"
+                },
+                {
+                    "name": "Heat",
+                    "min": 1,
+                    "max": 3,
+                    "unit": "level"
+                },
+                {
+                    "name": "Timer",
+                    "min": 0.1,
+                    "max": 9.9,
+                    "unit": "min"
+                }
+            ],
+            "cooling": "internal",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": 30,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 375,
+                    "medium": 375,
+                    "high": 405
+                },
+                "natural_time_adjust_s": 20,
+                "dtr_by_level": {
+                    "City Roast": 0.12,
+                    "City Plus": 0.13,
+                    "Full City": 0.16,
+                    "Full City Plus": 0.18,
+                    "Vienna Roast": 0.2,
+                    "Italian Roast": 0.23
+                },
+                "profile_start_temp": 315,
+                "default_first_crack_temp": 400
+            }
         }
     },
     "fresh-roast-sr800": {
@@ -406,9 +902,10 @@
             ],
             "inferred": [
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "min_gap_between_roasts_min"
             ],
-            "notes": "The one CALIBRATED roaster (owner's logged roasts, in F). Retailer: washed 8 oz / 227 g, natural 6 oz / 170 g, minimum roast 4 oz / 113 g; real-time temperature readout, sensor type unstated. Retailer text says total roast 8-18 min and timer to 20 min, but the owner's experience is 10 min at most, so 12 rows per the owner's rule. Chart anchors (145 F start, 270 F at 30 s) are the app's original live-chart constants, tuned on the SR800.",
+            "notes": "The one CALIBRATED roaster (owner's logged roasts, in F). Retailer: washed 8 oz / 227 g, natural 6 oz / 170 g, minimum roast 4 oz / 113 g; real-time temperature readout, sensor type unstated. Retailer text says total roast 8-18 min and timer to 20 min, but the owner's experience is 10 min at most, so 12 rows per the owner's rule. Chart anchors (145 F start, 270 F at 30 s) are the app's original live-chart constants, tuned on the SR800. Tier 2: the calibrated roaster. Wizard values are the app's own constants from the owner's logged roast (medium density, washed: 6:15 first crack, 1:10 development, Full City); high density +30 s and natural +20 s are the owner's rules. Retailer: 9 heat and 9 fan levels, timer 0.1-20 min, cool stages C.3-C.1. The 30-minute gap is assumed from the SR540 manual, not stated for the SR800.",
             "green_weight_min_g": 113,
             "green_weight_max_g": 227,
             "green_weight_recommended_g": 227,
@@ -422,7 +919,51 @@
             "temp_max": 500,
             "chart_start_temp": 145,
             "chart_inflection_min": 0.5,
-            "chart_inflection_temp": 270
+            "chart_inflection_temp": 270,
+            "start_model": "ramp",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Fan speed",
+                    "min": 1,
+                    "max": 9,
+                    "unit": "level"
+                },
+                {
+                    "name": "Heat",
+                    "min": 1,
+                    "max": 9,
+                    "unit": "level"
+                },
+                {
+                    "name": "Timer",
+                    "min": 0.1,
+                    "max": 20,
+                    "unit": "min"
+                }
+            ],
+            "cooling": "internal",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": 30,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 375,
+                    "medium": 375,
+                    "high": 405
+                },
+                "natural_time_adjust_s": 20,
+                "dtr_by_level": {
+                    "City Roast": 0.12,
+                    "City Plus": 0.13,
+                    "Full City": 0.16,
+                    "Full City Plus": 0.18,
+                    "Vienna Roast": 0.2,
+                    "Italian Roast": 0.23
+                },
+                "profile_start_temp": 315,
+                "default_first_crack_temp": 400
+            }
         }
     },
     "gene-cafe-cbr-101": {
@@ -440,9 +981,13 @@
                 "profile_grid_minutes",
                 "temp_source",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "start_model",
+                "wizard.time_to_first_crack_s",
+                "wizard.natural_time_adjust_s",
+                "wizard.dtr_by_level"
             ],
-            "notes": "250 g (200 g for natural process, per Sweet Maria's). Manufacturer's roast chart runs 12 min (Light) to 23 min (Italian); timer 1-23 min; setpoint 374-482 F. Display alternates target and actual temperature; heating is indirect air under a thermostat, so chamber air is assumed (sources do not say what 'actual' measures).",
+            "notes": "250 g (200 g for natural process, per Sweet Maria's). Manufacturer's roast chart runs 12 min (Light) to 23 min (Italian); timer 1-23 min; setpoint 374-482 F. Display alternates target and actual temperature; heating is indirect air under a thermostat, so chamber air is assumed (sources do not say what 'actual' measures). Tier 2: start model assumed (heats from a cold start toward the setpoint). First crack (15:00) inferred: Full City is 19 min on the manufacturer's roast chart, times (1 - 0.21). Natural-process adjustment (-30 s) inferred from Sweet Maria's tip sheet ('up to a minute off' the roast time). No first-crack temperature or start temperature is stated, so those are null. Retailer: setpoint 374-482 F, time 1-23 min, forced-air cooling about 10 minutes.",
             "green_weight_min_g": 85,
             "green_weight_max_g": 250,
             "green_weight_recommended_g": 250,
@@ -456,7 +1001,45 @@
             "temp_max": 500,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "ramp",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Temperature setpoint",
+                    "min": 374,
+                    "max": 482,
+                    "unit": "temp"
+                },
+                {
+                    "name": "Time",
+                    "min": 1,
+                    "max": 23,
+                    "unit": "min"
+                }
+            ],
+            "cooling": "internal",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": null,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 900,
+                    "medium": 900,
+                    "high": 900
+                },
+                "natural_time_adjust_s": -30,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": null
+            }
         }
     },
     "gene-cafe-cbr-301": {
@@ -473,9 +1056,14 @@
                 "profile_grid_minutes",
                 "temp_source",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "start_model",
+                "controls",
+                "wizard.time_to_first_crack_s",
+                "wizard.natural_time_adjust_s",
+                "wizard.dtr_by_level"
             ],
-            "notes": "300 g; temperature range 140-500 F; Bluetooth/app, variable drum and fan speed. Roast-time chart is the CBR-101's (12-23 min), assumed to apply.",
+            "notes": "300 g; temperature range 140-500 F; Bluetooth/app, variable drum and fan speed. Roast-time chart is the CBR-101's (12-23 min), assumed to apply. Tier 2: start model assumed (heats from a cold start toward the setpoint). First crack (15:00) inferred: Full City is 19 min on the manufacturer's roast chart, times (1 - 0.21). Natural-process adjustment (-30 s) inferred from Sweet Maria's tip sheet ('up to a minute off' the roast time). No first-crack temperature or start temperature is stated, so those are null. Retailer: 140-500 F, app-controlled fan and drum speed (ranges not stated); the time range is assumed the CBR-101's.",
             "green_weight_min_g": 100,
             "green_weight_max_g": 300,
             "green_weight_recommended_g": 300,
@@ -489,7 +1077,57 @@
             "temp_max": 500,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "ramp",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Temperature setpoint",
+                    "min": 140,
+                    "max": 500,
+                    "unit": "temp"
+                },
+                {
+                    "name": "Time",
+                    "min": 1,
+                    "max": 23,
+                    "unit": "min"
+                },
+                {
+                    "name": "Fan speed",
+                    "min": null,
+                    "max": null,
+                    "unit": "variable"
+                },
+                {
+                    "name": "Drum speed",
+                    "min": null,
+                    "max": null,
+                    "unit": "variable"
+                }
+            ],
+            "cooling": "internal",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": null,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 900,
+                    "medium": 900,
+                    "high": 900
+                },
+                "natural_time_adjust_s": -30,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": null
+            }
         }
     },
     "hottop-kn-8828b-2k": {
@@ -505,9 +1143,11 @@
                 "green_weight_min_g",
                 "profile_grid_minutes",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "wizard.time_to_first_crack_s",
+                "wizard.dtr_by_level"
             ],
-            "notes": "One thermocouple; manual says the display shows roasting-chamber temperature, which reads well above actual bean temperature. Time 10:00-25:00, target temperature 167-428 F, display switchable F/C. External cooling tray.",
+            "notes": "One thermocouple; manual says the display shows roasting-chamber temperature, which reads well above actual bean temperature. Time 10:00-25:00, target temperature 167-428 F, display switchable F/C. External cooling tray. Tier 2: Manual: preheat until it beeps at 167 F, then add the beans; heater 0-100%, fan in five 25% steps, cooling tray. The machine cools itself if restarted too hot, so no fixed gap. First crack 12:30 comes from the manual's worked example (about 5:00 remaining in a 17:30 roast). The example was for the P-2K, assumed for this model. First-crack display temperature 385 F (the manual's colour chart: beans about 400 F at a display of about 385 F).",
             "green_weight_min_g": 85,
             "green_weight_max_g": 250,
             "green_weight_recommended_g": 250,
@@ -521,7 +1161,57 @@
             "temp_max": 500,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "preheat_charge",
+            "preheat_temp": null,
+            "charge_temp": 167,
+            "controls": [
+                {
+                    "name": "Target temperature",
+                    "min": 167,
+                    "max": 428,
+                    "unit": "temp"
+                },
+                {
+                    "name": "Heater power",
+                    "min": 0,
+                    "max": 100,
+                    "unit": "%"
+                },
+                {
+                    "name": "Fan speed",
+                    "min": 0,
+                    "max": 100,
+                    "unit": "%"
+                },
+                {
+                    "name": "Target time",
+                    "min": 10,
+                    "max": 25,
+                    "unit": "min"
+                }
+            ],
+            "cooling": "external_tray",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": null,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 750,
+                    "medium": 750,
+                    "high": 750
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": 385
+            }
         }
     },
     "hottop-kn-8828b-2k-plus": {
@@ -538,9 +1228,11 @@
                 "green_weight_min_g",
                 "profile_grid_minutes",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "wizard.time_to_first_crack_s",
+                "wizard.dtr_by_level"
             ],
-            "notes": "Two K-type thermocouples (bean and environment); the roast target is bean temperature. Retailer: roasts up to 300 g (250 g on other current models). Time 10:00-25:00, target temperature 167-428 F, display switchable F/C.",
+            "notes": "Two K-type thermocouples (bean and environment); the roast target is bean temperature. Retailer: roasts up to 300 g (250 g on other current models). Time 10:00-25:00, target temperature 167-428 F, display switchable F/C. Tier 2: Manual: preheat until it beeps at 167 F, then add the beans; heater 0-100%, fan in five 25% steps, cooling tray. The machine cools itself if restarted too hot, so no fixed gap. First crack 12:30 comes from the manual's worked example (about 5:00 remaining in a 17:30 roast). The worked example is assumed for this model. No first-crack temperature: the manual says beans reach about 400 F at first crack but the addendum's bean-temperature alert is 356 F, so it is left null.",
             "green_weight_min_g": 100,
             "green_weight_max_g": 300,
             "green_weight_recommended_g": 250,
@@ -554,7 +1246,57 @@
             "temp_max": 500,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "preheat_charge",
+            "preheat_temp": null,
+            "charge_temp": 167,
+            "controls": [
+                {
+                    "name": "Target temperature",
+                    "min": 167,
+                    "max": 412,
+                    "unit": "temp"
+                },
+                {
+                    "name": "Heater power",
+                    "min": 0,
+                    "max": 100,
+                    "unit": "%"
+                },
+                {
+                    "name": "Fan speed",
+                    "min": 0,
+                    "max": 100,
+                    "unit": "%"
+                },
+                {
+                    "name": "Target time",
+                    "min": 10,
+                    "max": 25,
+                    "unit": "min"
+                }
+            ],
+            "cooling": "external_tray",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": null,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 750,
+                    "medium": 750,
+                    "high": 750
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": null
+            }
         }
     },
     "hottop-kn-8828p-2k": {
@@ -569,9 +1311,10 @@
                 "green_weight_min_g",
                 "profile_grid_minutes",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "wizard.dtr_by_level"
             ],
-            "notes": "Programmable model: 8 segments of up to 3 min, maximum program 22:00 (plus automatic warm-up). Display shows roasting-chamber temperature. Discontinued in the US.",
+            "notes": "Programmable model: 8 segments of up to 3 min, maximum program 22:00 (plus automatic warm-up). Display shows roasting-chamber temperature. Discontinued in the US. Tier 2: Manual: preheat until it beeps at 167 F, then add the beans; heater 0-100%, fan in five 25% steps, cooling tray. The machine cools itself if restarted too hot, so no fixed gap. First crack 12:30 comes from the manual's worked example (about 5:00 remaining in a 17:30 roast). Programmable: 8 segments of up to 3 minutes each. First-crack display temperature 385 F from the manual's colour chart.",
             "green_weight_min_g": 85,
             "green_weight_max_g": 250,
             "green_weight_recommended_g": 250,
@@ -585,7 +1328,57 @@
             "temp_max": 500,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "preheat_charge",
+            "preheat_temp": null,
+            "charge_temp": 167,
+            "controls": [
+                {
+                    "name": "Target temperature",
+                    "min": 167,
+                    "max": 428,
+                    "unit": "temp"
+                },
+                {
+                    "name": "Heater power",
+                    "min": 0,
+                    "max": 100,
+                    "unit": "%"
+                },
+                {
+                    "name": "Fan speed",
+                    "min": 0,
+                    "max": 100,
+                    "unit": "%"
+                },
+                {
+                    "name": "Segment time",
+                    "min": 0,
+                    "max": 3,
+                    "unit": "min"
+                }
+            ],
+            "cooling": "external_tray",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": null,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 750,
+                    "medium": 750,
+                    "high": 750
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": 385
+            }
         }
     },
     "huky-500t": {
@@ -602,9 +1395,13 @@
                 "temp_unit",
                 "temp_source",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "start_model",
+                "controls",
+                "wizard.time_to_first_crack_s",
+                "wizard.dtr_by_level"
             ],
-            "notes": "LOW CONFIDENCE: only one review was read. It reports a 500 g maximum, 330 g as the ideal batch, and two thermometers (analog on the drum plus a digital probe). The 150 g minimum and 8-15 min roast time come from a search-result summary only. Unit and probe role assumed.",
+            "notes": "LOW CONFIDENCE: only one review was read. It reports a 500 g maximum, 330 g as the ideal batch, and two thermometers (analog on the drum plus a digital probe). The 150 g minimum and 8-15 min roast time come from a search-result summary only. Unit and probe role assumed. Tier 2: LOW CONFIDENCE. The review says the fan and a mesh strainer act as both airflow and cooling tray. Control names, the preheat-and-charge start, and a first crack of 9:05 (11.5 min typical x (1 - 0.21)) are inferred.",
             "green_weight_min_g": 150,
             "green_weight_max_g": 500,
             "green_weight_recommended_g": 330,
@@ -618,7 +1415,45 @@
             "temp_max": 260,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "preheat_charge",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Gas burner",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                },
+                {
+                    "name": "Airflow",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                }
+            ],
+            "cooling": "external_tray",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": null,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 545,
+                    "medium": 545,
+                    "high": 545
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": null
+            }
         }
     },
     "ikawa-home": {
@@ -635,9 +1470,11 @@
                 "green_weight_min_g",
                 "profile_grid_minutes",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "wizard.time_to_first_crack_s",
+                "wizard.dtr_by_level"
             ],
-            "notes": "100 g green (about 90 g roasted); refurbished units 50 g. Recipes typically 6-10 min, hard maximum 12 min. Measures INLET air temperature after the heater (not bean temperature); inlet temperature can reach 290 C (554 F), so the temperature cap is raised to 300 C.",
+            "notes": "100 g green (about 90 g roasted); refurbished units 50 g. Recipes typically 6-10 min, hard maximum 12 min. Measures INLET air temperature after the heater (not bean temperature); inlet temperature can reach 290 C (554 F), so the temperature cap is raised to 300 C. Tier 2: Programmed: the roaster follows the recipe from the start, so there are no dial controls (Graph Editor edits inlet-temperature and airflow points beforehand). First crack inferred (typical roast x (1 - 0.21)); no start or first-crack temperature (the reading is inlet air). FAQ: designed for back-to-back roasting; bean cooling up to 3 min; recipes typically 6-10 min (first crack 6:20 at an 8-minute roast).",
             "green_weight_min_g": 35,
             "green_weight_max_g": 100,
             "green_weight_recommended_g": 100,
@@ -651,7 +1488,32 @@
             "temp_max": 300,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "programmed",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [],
+            "cooling": "internal",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": 0,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 380,
+                    "medium": 380,
+                    "high": 380
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": null
+            }
         }
     },
     "ikawa-pro50": {
@@ -668,9 +1530,13 @@
                 "first_crack_min_s",
                 "profile_grid_minutes",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "cooling",
+                "min_gap_between_roasts_min",
+                "wizard.time_to_first_crack_s",
+                "wizard.dtr_by_level"
             ],
-            "notes": "Brochure: 60 g capacity, roast time 0-20 min, samples typically 5-10 min, two sensors (inlet and exhaust). Short roasts are normal, so the roast-time and first-crack floors are lowered. Row count sized to typical roasts, not the 20-min machine limit. Measures INLET air temperature after the heater (not bean temperature); inlet temperature can reach 290 C (554 F), so the temperature cap is raised to 300 C.",
+            "notes": "Brochure: 60 g capacity, roast time 0-20 min, samples typically 5-10 min, two sensors (inlet and exhaust). Short roasts are normal, so the roast-time and first-crack floors are lowered. Row count sized to typical roasts, not the 20-min machine limit. Measures INLET air temperature after the heater (not bean temperature); inlet temperature can reach 290 C (554 F), so the temperature cap is raised to 300 C. Tier 2: Programmed: the roaster follows the recipe from the start, so there are no dial controls (Graph Editor edits inlet-temperature and airflow points beforehand). First crack inferred (typical roast x (1 - 0.21)); no start or first-crack temperature (the reading is inlet air). Brochure: samples typically 5-10 min (first crack 5:55 at 7.5 minutes). Cooling and back-to-back use assumed the Home's.",
             "green_weight_min_g": 20,
             "green_weight_max_g": 60,
             "green_weight_recommended_g": 60,
@@ -684,7 +1550,32 @@
             "temp_max": 300,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "programmed",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [],
+            "cooling": "internal",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": 0,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 355,
+                    "medium": 355,
+                    "high": 355
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": null
+            }
         }
     },
     "ikawa-pro100": {
@@ -701,9 +1592,13 @@
                 "first_crack_min_s",
                 "profile_grid_minutes",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "cooling",
+                "min_gap_between_roasts_min",
+                "wizard.time_to_first_crack_s",
+                "wizard.dtr_by_level"
             ],
-            "notes": "Brochure: 120 g capacity, roast time 0-20 min, samples typically 5-10 min, two sensors (inlet and exhaust). Row count sized to typical roasts, not the 20-min machine limit. Measures INLET air temperature after the heater (not bean temperature); inlet temperature can reach 290 C (554 F), so the temperature cap is raised to 300 C.",
+            "notes": "Brochure: 120 g capacity, roast time 0-20 min, samples typically 5-10 min, two sensors (inlet and exhaust). Row count sized to typical roasts, not the 20-min machine limit. Measures INLET air temperature after the heater (not bean temperature); inlet temperature can reach 290 C (554 F), so the temperature cap is raised to 300 C. Tier 2: Programmed: the roaster follows the recipe from the start, so there are no dial controls (Graph Editor edits inlet-temperature and airflow points beforehand). First crack inferred (typical roast x (1 - 0.21)); no start or first-crack temperature (the reading is inlet air). Brochure: samples typically 5-10 min (first crack 5:55 at 7.5 minutes). Cooling and back-to-back use assumed the Home's.",
             "green_weight_min_g": 40,
             "green_weight_max_g": 120,
             "green_weight_recommended_g": 120,
@@ -717,7 +1612,32 @@
             "temp_max": 300,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "programmed",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [],
+            "cooling": "internal",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": 0,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 355,
+                    "medium": 355,
+                    "high": 355
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": null
+            }
         }
     },
     "kaffelogic-nano-7": {
@@ -732,9 +1652,10 @@
             "inferred": [
                 "profile_grid_minutes",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "wizard.dtr_by_level"
             ],
-            "notes": "Nano 7: 120 g standard batch; 50-200 g with the optional Boost kit (the maximum allows for it). Roast Companion: probe touches the beans (reads 5-10 C above true bean-surface temperature); first crack about 205 C; roast usually ended 220-230 C; profile = temperature curve plus fan curve, ended by a 'roast level'. Typical roast under 10 min; cool-down 2-3 min.",
+            "notes": "Nano 7: 120 g standard batch; 50-200 g with the optional Boost kit (the maximum allows for it). Roast Companion: probe touches the beans (reads 5-10 C above true bean-surface temperature); first crack about 205 C; roast usually ended 220-230 C; profile = temperature curve plus fan curve, ended by a 'roast level'. Typical roast under 10 min; cool-down 2-3 min. Tier 2: Roaster's Companion: no true preheat (the curve starts about 110 C at 60 s); roast level 0.1-5.9 ends the roast; first crack about 205 C; worked example: a 10-minute roast with first crack at 7:30 (development 20-25% of the roast, per Scott Rao); cool-down 2-3 min; roast again as soon as cool-down ends. The six-tier DTR table is the app's published one, inferred.",
             "green_weight_min_g": 50,
             "green_weight_max_g": 200,
             "green_weight_recommended_g": 120,
@@ -748,7 +1669,39 @@
             "temp_max": 260,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "programmed",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Roast level",
+                    "min": 0.1,
+                    "max": 5.9,
+                    "unit": "level"
+                }
+            ],
+            "cooling": "internal",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": 0,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 450,
+                    "medium": 450,
+                    "high": 450
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": 205
+            }
         }
     },
     "kaffelogic-nano-7e": {
@@ -763,9 +1716,10 @@
             "inferred": [
                 "profile_grid_minutes",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "wizard.dtr_by_level"
             ],
-            "notes": "Nano 7e: 120 g standard batch; 50-200 g with the optional Boost kit (the maximum allows for it). Roast Companion: probe touches the beans (reads 5-10 C above true bean-surface temperature); first crack about 205 C; roast usually ended 220-230 C; profile = temperature curve plus fan curve, ended by a 'roast level'. Typical roast under 10 min; cool-down 2-3 min.",
+            "notes": "Nano 7e: 120 g standard batch; 50-200 g with the optional Boost kit (the maximum allows for it). Roast Companion: probe touches the beans (reads 5-10 C above true bean-surface temperature); first crack about 205 C; roast usually ended 220-230 C; profile = temperature curve plus fan curve, ended by a 'roast level'. Typical roast under 10 min; cool-down 2-3 min. Tier 2: Roaster's Companion: no true preheat (the curve starts about 110 C at 60 s); roast level 0.1-5.9 ends the roast; first crack about 205 C; worked example: a 10-minute roast with first crack at 7:30 (development 20-25% of the roast, per Scott Rao); cool-down 2-3 min; roast again as soon as cool-down ends. The six-tier DTR table is the app's published one, inferred.",
             "green_weight_min_g": 50,
             "green_weight_max_g": 200,
             "green_weight_recommended_g": 120,
@@ -779,7 +1733,39 @@
             "temp_max": 260,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "programmed",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Roast level",
+                    "min": 0.1,
+                    "max": 5.9,
+                    "unit": "level"
+                }
+            ],
+            "cooling": "internal",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": 0,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 450,
+                    "medium": 450,
+                    "high": 450
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": 205
+            }
         }
     },
     "kaldi-mini": {
@@ -797,9 +1783,11 @@
                 "profile_grid_minutes",
                 "temp_source",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "cooling",
+                "wizard.dtr_by_level"
             ],
-            "notes": "Retailer: capacity 200 g, max 250 g. Gas burner required. Ships with a Celsius analog thermometer in the drum (digital probe optional); reviewers report 8-15 min roasts with first crack around 7-8 min. Where the thermometer sits relative to the beans is not stated, so chamber air is assumed.",
+            "notes": "Retailer: capacity 200 g, max 250 g. Gas burner required. Ships with a Celsius analog thermometer in the drum (digital probe optional); reviewers report 8-15 min roasts with first crack around 7-8 min. Where the thermometer sits relative to the beans is not stated, so chamber air is assumed. Tier 2: gas burner only (fixed drum speed); reviewers preheat the drum, charge, and hear first crack at about 7-8 min (7:30 used). Manual cooling (dump the beans) is assumed. Preheat and charge temperatures are not reliably stated (one review's figures contradict its own units), so they are null.",
             "green_weight_min_g": 85,
             "green_weight_max_g": 250,
             "green_weight_recommended_g": 200,
@@ -813,7 +1801,39 @@
             "temp_max": 260,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "preheat_charge",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Gas burner",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                }
+            ],
+            "cooling": "manual",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": null,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 450,
+                    "medium": 450,
+                    "high": 450
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": null
+            }
         }
     },
     "kaldi-wide": {
@@ -831,9 +1851,11 @@
                 "profile_grid_minutes",
                 "temp_source",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "cooling",
+                "wizard.dtr_by_level"
             ],
-            "notes": "Capacity 300 g (reviewers commonly roast 200-250 g). Gas burner required. Ships with a Celsius analog thermometer in the drum (digital probe optional); reviewers report 8-15 min roasts with first crack around 7-8 min. Where the thermometer sits relative to the beans is not stated, so chamber air is assumed.",
+            "notes": "Capacity 300 g (reviewers commonly roast 200-250 g). Gas burner required. Ships with a Celsius analog thermometer in the drum (digital probe optional); reviewers report 8-15 min roasts with first crack around 7-8 min. Where the thermometer sits relative to the beans is not stated, so chamber air is assumed. Tier 2: gas burner only (fixed drum speed); reviewers preheat the drum, charge, and hear first crack at about 7-8 min (7:30 used). Manual cooling (dump the beans) is assumed. Preheat and charge temperatures are not reliably stated (one review's figures contradict its own units), so they are null.",
             "green_weight_min_g": 100,
             "green_weight_max_g": 300,
             "green_weight_recommended_g": 300,
@@ -847,7 +1869,39 @@
             "temp_max": 260,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "preheat_charge",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Gas burner",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                }
+            ],
+            "cooling": "manual",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": null,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 450,
+                    "medium": 450,
+                    "high": 450
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": null
+            }
         }
     },
     "kaleido-sniper-m1": {
@@ -865,9 +1919,14 @@
                 "profile_grid_minutes",
                 "temp_unit",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "start_model",
+                "controls",
+                "cooling",
+                "wizard.time_to_first_crack_s",
+                "wizard.dtr_by_level"
             ],
-            "notes": "Retailers list 200 g. Two probes (bean and environment). Manufacturer M2 page lists roasting time 4-15 min; row count assumed the same across the M-series. Unit assumed C.",
+            "notes": "Retailers list 200 g. Two probes (bean and environment). Manufacturer M2 page lists roasting time 4-15 min; row count assumed the same across the M-series. Unit assumed C. Tier 2: LOW CONFIDENCE. No page read describes the controls, start, or cooling; all are assumed for an electric drum roaster with a touchscreen. First crack 7:55 inferred: about 10 minutes typical (the M2 page lists 4-15) x (1 - 0.21).",
             "green_weight_min_g": 65,
             "green_weight_max_g": 200,
             "green_weight_recommended_g": null,
@@ -881,7 +1940,51 @@
             "temp_max": 260,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "preheat_charge",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Power",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                },
+                {
+                    "name": "Airflow",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                },
+                {
+                    "name": "Drum speed",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                }
+            ],
+            "cooling": "external_tray",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": null,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 475,
+                    "medium": 475,
+                    "high": 475
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": null
+            }
         }
     },
     "kaleido-sniper-m2": {
@@ -899,9 +2002,14 @@
                 "profile_grid_minutes",
                 "temp_unit",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "start_model",
+                "controls",
+                "cooling",
+                "wizard.time_to_first_crack_s",
+                "wizard.dtr_by_level"
             ],
-            "notes": "Two US retailers list 500 g; a third lists 400 g, so the larger is used to avoid rejecting valid roasts. One search result gave a 50 g minimum (not read on the page). Two probes (bean and environment). Manufacturer M2 page lists roasting time 4-15 min; row count assumed the same across the M-series. Unit assumed C.",
+            "notes": "Two US retailers list 500 g; a third lists 400 g, so the larger is used to avoid rejecting valid roasts. One search result gave a 50 g minimum (not read on the page). Two probes (bean and environment). Manufacturer M2 page lists roasting time 4-15 min; row count assumed the same across the M-series. Unit assumed C. Tier 2: LOW CONFIDENCE. No page read describes the controls, start, or cooling; all are assumed for an electric drum roaster with a touchscreen. First crack 7:55 inferred: about 10 minutes typical (the M2 page lists 4-15) x (1 - 0.21).",
             "green_weight_min_g": 50,
             "green_weight_max_g": 500,
             "green_weight_recommended_g": null,
@@ -915,7 +2023,51 @@
             "temp_max": 260,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "preheat_charge",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Power",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                },
+                {
+                    "name": "Airflow",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                },
+                {
+                    "name": "Drum speed",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                }
+            ],
+            "cooling": "external_tray",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": null,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 475,
+                    "medium": 475,
+                    "high": 475
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": null
+            }
         }
     },
     "kaleido-sniper-m6": {
@@ -933,9 +2085,14 @@
                 "profile_grid_minutes",
                 "temp_unit",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "start_model",
+                "controls",
+                "cooling",
+                "wizard.time_to_first_crack_s",
+                "wizard.dtr_by_level"
             ],
-            "notes": "Retailers list 700 g. Two probes (bean and environment). Manufacturer M2 page lists roasting time 4-15 min; row count assumed the same across the M-series. Unit assumed C.",
+            "notes": "Retailers list 700 g. Two probes (bean and environment). Manufacturer M2 page lists roasting time 4-15 min; row count assumed the same across the M-series. Unit assumed C. Tier 2: LOW CONFIDENCE. No page read describes the controls, start, or cooling; all are assumed for an electric drum roaster with a touchscreen. First crack 7:55 inferred: about 10 minutes typical (the M2 page lists 4-15) x (1 - 0.21).",
             "green_weight_min_g": 235,
             "green_weight_max_g": 700,
             "green_weight_recommended_g": null,
@@ -949,7 +2106,51 @@
             "temp_max": 260,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "preheat_charge",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Power",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                },
+                {
+                    "name": "Airflow",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                },
+                {
+                    "name": "Drum speed",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                }
+            ],
+            "cooling": "external_tray",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": null,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 475,
+                    "medium": 475,
+                    "high": 475
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": null
+            }
         }
     },
     "kaleido-sniper-m10": {
@@ -967,9 +2168,14 @@
                 "profile_grid_minutes",
                 "temp_unit",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "start_model",
+                "controls",
+                "cooling",
+                "wizard.time_to_first_crack_s",
+                "wizard.dtr_by_level"
             ],
-            "notes": "Retailers list 1.2 kg; one product title gives 500-1200 g (minimum from a title only, not read on the page). Two probes (bean and environment). Manufacturer M2 page lists roasting time 4-15 min; row count assumed the same across the M-series. Unit assumed C.",
+            "notes": "Retailers list 1.2 kg; one product title gives 500-1200 g (minimum from a title only, not read on the page). Two probes (bean and environment). Manufacturer M2 page lists roasting time 4-15 min; row count assumed the same across the M-series. Unit assumed C. Tier 2: LOW CONFIDENCE. No page read describes the controls, start, or cooling; all are assumed for an electric drum roaster with a touchscreen. First crack 7:55 inferred: about 10 minutes typical (the M2 page lists 4-15) x (1 - 0.21).",
             "green_weight_min_g": 500,
             "green_weight_max_g": 1200,
             "green_weight_recommended_g": null,
@@ -983,7 +2189,51 @@
             "temp_max": 260,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "preheat_charge",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Power",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                },
+                {
+                    "name": "Airflow",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                },
+                {
+                    "name": "Drum speed",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                }
+            ],
+            "cooling": "external_tray",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": null,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 475,
+                    "medium": 475,
+                    "high": 475
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": null
+            }
         }
     },
     "nesco-cr-1010-pr": {
@@ -999,9 +2249,11 @@
                 "green_weight_min_g",
                 "profile_grid_minutes",
                 "temp_source",
-                "has_temp_readout"
+                "has_temp_readout",
+                "start_model",
+                "controls"
             ],
-            "notes": "Retailer guide: capacity 5 oz (142 g), 4 oz (113 g) recommended for evenness. Roast time is set in minutes and cooling starts automatically 5 min before the end; a retailer blurb (search result) says 20-30 min. Timer only; no temperature readout described.",
+            "notes": "Retailer guide: capacity 5 oz (142 g), 4 oz (113 g) recommended for evenness. Roast time is set in minutes and cooling starts automatically 5 min before the end; a retailer blurb (search result) says 20-30 min. Timer only; no temperature readout described. Tier 2: no readout, so no start model or wizard. Retailer guide: the roast time is set in minutes with up/down arrows and cooling starts automatically 5 minutes before the end.",
             "green_weight_min_g": 45,
             "green_weight_max_g": 142,
             "green_weight_recommended_g": 113,
@@ -1015,7 +2267,22 @@
             "temp_max": null,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "none",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Roast time",
+                    "min": null,
+                    "max": null,
+                    "unit": "min"
+                }
+            ],
+            "cooling": "internal",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": null,
+            "wizard": null
         }
     },
     "nostalgia-electric-popcorn-popper": {
@@ -1032,9 +2299,12 @@
                 "green_weight_recommended_g",
                 "profile_grid_minutes",
                 "temp_source",
-                "has_temp_readout"
+                "has_temp_readout",
+                "start_model",
+                "controls",
+                "cooling"
             ],
-            "notes": "Article lists a Nostalgia with a solid 4.5 in chamber and a very strong fan (needs a chimney extender to keep beans in). Hot-air popcorn popper (no thermometer). Sources rate chamber depth: a 4.5 in chamber roasts about 90 g; 3.5 in chambers less. Typical 5-10 min (search-result snippet). Batch limits derived from the chamber-depth guideline.",
+            "notes": "Article lists a Nostalgia with a solid 4.5 in chamber and a very strong fan (needs a chimney extender to keep beans in). Hot-air popcorn popper (no thermometer). Sources rate chamber depth: a 4.5 in chamber roasts about 90 g; 3.5 in chambers less. Typical 5-10 min (search-result snippet). Batch limits derived from the chamber-depth guideline. Tier 2: no readout, so no start model or wizard. Fixed heat and no dials; the beans are poured into a colander to cool.",
             "green_weight_min_g": 30,
             "green_weight_max_g": 100,
             "green_weight_recommended_g": 90,
@@ -1048,7 +2318,15 @@
             "temp_max": null,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "none",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [],
+            "cooling": "manual",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": null,
+            "wizard": null
         }
     },
     "nuvo-eco-ceramic-stovetop": {
@@ -1063,9 +2341,11 @@
                 "green_weight_recommended_g",
                 "profile_grid_minutes",
                 "temp_source",
-                "has_temp_readout"
+                "has_temp_readout",
+                "start_model",
+                "controls"
             ],
-            "notes": "Handheld ceramic roaster: 30-70 g per batch, 50-60 g recommended (another retailer says 30 g). Roast time 3-10 min from a search snippet. No thermometer.",
+            "notes": "Handheld ceramic roaster: 30-70 g per batch, 50-60 g recommended (another retailer says 30 g). Roast time 3-10 min from a search snippet. No thermometer. Tier 2: no readout, so no start model or wizard. Review: dump the beans onto something that conducts heat to stop the roast.",
             "green_weight_min_g": 30,
             "green_weight_max_g": 70,
             "green_weight_recommended_g": 55,
@@ -1079,7 +2359,15 @@
             "temp_max": null,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "none",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [],
+            "cooling": "manual",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": null,
+            "wizard": null
         }
     },
     "presto-poplite-popcorn-popper": {
@@ -1096,9 +2384,12 @@
                 "green_weight_recommended_g",
                 "profile_grid_minutes",
                 "temp_source",
-                "has_temp_readout"
+                "has_temp_readout",
+                "start_model",
+                "controls",
+                "cooling"
             ],
-            "notes": "LOW CONFIDENCE: the article covers other Presto models (a 3.5 in chamber), not the PopLite. Batch limits assumed for a small-chamber popper; Presto poppers tend to roast fast and can blow beans out.",
+            "notes": "LOW CONFIDENCE: the article covers other Presto models (a 3.5 in chamber), not the PopLite. Batch limits assumed for a small-chamber popper; Presto poppers tend to roast fast and can blow beans out. Tier 2: no readout, so no start model or wizard. Fixed heat and no dials; the beans are poured into a colander to cool.",
             "green_weight_min_g": 25,
             "green_weight_max_g": 80,
             "green_weight_recommended_g": 70,
@@ -1112,7 +2403,15 @@
             "temp_max": null,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "none",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [],
+            "cooling": "manual",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": null,
+            "wizard": null
         }
     },
     "quest-m3": {
@@ -1128,9 +2427,11 @@
                 "green_weight_min_g",
                 "profile_grid_minutes",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "wizard.time_to_first_crack_s",
+                "wizard.dtr_by_level"
             ],
-            "notes": "M3: handbook batch 250-300 g (cooling bin handles about 300 g or less). Handbook: temperatures are in Celsius; ships with one analog thermometer, ports for bean (BT) and environment (ET) probes; BT reading varies with probe placement and batch size; overall roast 11-22 min; first crack about 205 C. Royal Coffee reports 225 g as a full M3s load.",
+            "notes": "M3: handbook batch 250-300 g (cooling bin handles about 300 g or less). Handbook: temperatures are in Celsius; ships with one analog thermometer, ports for bean (BT) and environment (ET) probes; BT reading varies with probe placement and batch size; overall roast 11-22 min; first crack about 205 C. Royal Coffee reports 225 g as a full M3s load. Tier 2: Handbook: heater current and blower are stepless dials (0.5 A per meter mark); back-to-back roasting needs no cooling cycle; the beginner profile preheats until the drum idles at 150 C; first crack about 205 C; the collector bin cools in a cooling chamber. First crack 12:00 inferred as the middle of the handbook's 8-16 minute drying-plus-ramp range.",
             "green_weight_min_g": 100,
             "green_weight_max_g": 300,
             "green_weight_recommended_g": 250,
@@ -1144,7 +2445,45 @@
             "temp_max": 260,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "preheat_charge",
+            "preheat_temp": 150,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Heater current",
+                    "min": null,
+                    "max": null,
+                    "unit": "A"
+                },
+                {
+                    "name": "Blower level",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                }
+            ],
+            "cooling": "external_tray",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": 0,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 720,
+                    "medium": 720,
+                    "high": 720
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": 205
+            }
         }
     },
     "quest-m3s": {
@@ -1160,9 +2499,11 @@
                 "green_weight_min_g",
                 "profile_grid_minutes",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "wizard.time_to_first_crack_s",
+                "wizard.dtr_by_level"
             ],
-            "notes": "M3s: handbook batch 250-300 g (cooling bin handles about 300 g or less). Handbook: temperatures are in Celsius; ships with one analog thermometer, ports for bean (BT) and environment (ET) probes; BT reading varies with probe placement and batch size; overall roast 11-22 min; first crack about 205 C. Royal Coffee reports 225 g as a full M3s load.",
+            "notes": "M3s: handbook batch 250-300 g (cooling bin handles about 300 g or less). Handbook: temperatures are in Celsius; ships with one analog thermometer, ports for bean (BT) and environment (ET) probes; BT reading varies with probe placement and batch size; overall roast 11-22 min; first crack about 205 C. Royal Coffee reports 225 g as a full M3s load. Tier 2: Handbook: heater current and blower are stepless dials (0.5 A per meter mark); back-to-back roasting needs no cooling cycle; the beginner profile preheats until the drum idles at 150 C; first crack about 205 C; the collector bin cools in a cooling chamber. First crack 12:00 inferred as the middle of the handbook's 8-16 minute drying-plus-ramp range.",
             "green_weight_min_g": 100,
             "green_weight_max_g": 300,
             "green_weight_recommended_g": 250,
@@ -1176,7 +2517,45 @@
             "temp_max": 260,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "preheat_charge",
+            "preheat_temp": 150,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Heater current",
+                    "min": null,
+                    "max": null,
+                    "unit": "A"
+                },
+                {
+                    "name": "Blower level",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                }
+            ],
+            "cooling": "external_tray",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": 0,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 720,
+                    "medium": 720,
+                    "high": 720
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": 205
+            }
         }
     },
     "roest-l100-ultra": {
@@ -1192,9 +2571,13 @@
                 "profile_grid_minutes",
                 "temp_unit",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "start_model",
+                "controls",
+                "wizard.time_to_first_crack_s",
+                "wizard.dtr_by_level"
             ],
-            "notes": "Previous-generation flagship; its page repeats the L200 spec text. Dual/single bean-temperature probe; 50-200 g per batch; 4-7 min per 200 g batch. Row count and unit assumed.",
+            "notes": "Previous-generation flagship; its page repeats the L200 spec text. Dual/single bean-temperature probe; 50-200 g per batch; 4-7 min per 200 g batch. Row count and unit assumed. Tier 2: names of the controls and the preheat-and-charge start are assumed; the cooling tray is stated (the next batch starts while the previous one cools). First crack inferred (typical roast x (1 - 0.21)). 7 minutes typical: 5:30.",
             "green_weight_min_g": 50,
             "green_weight_max_g": 200,
             "green_weight_recommended_g": null,
@@ -1208,7 +2591,51 @@
             "temp_max": 260,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "preheat_charge",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Power",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                },
+                {
+                    "name": "Airflow",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                },
+                {
+                    "name": "Drum speed",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                }
+            ],
+            "cooling": "external_tray",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": null,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 330,
+                    "medium": 330,
+                    "high": 330
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": null
+            }
         }
     },
     "roest-l200-plus": {
@@ -1223,9 +2650,13 @@
                 "profile_grid_minutes",
                 "temp_unit",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "start_model",
+                "controls",
+                "wizard.time_to_first_crack_s",
+                "wizard.dtr_by_level"
             ],
-            "notes": "7 min per 200 g batch. Dual/single bean-temperature probe; 50-200 g per batch; 4-7 min per 200 g batch. Row count and unit assumed.",
+            "notes": "7 min per 200 g batch. Dual/single bean-temperature probe; 50-200 g per batch; 4-7 min per 200 g batch. Row count and unit assumed. Tier 2: names of the controls and the preheat-and-charge start are assumed; the cooling tray is stated (the next batch starts while the previous one cools). First crack inferred (typical roast x (1 - 0.21)). 7 minutes per batch: 5:30.",
             "green_weight_min_g": 50,
             "green_weight_max_g": 200,
             "green_weight_recommended_g": null,
@@ -1239,7 +2670,51 @@
             "temp_max": 260,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "preheat_charge",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Power",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                },
+                {
+                    "name": "Airflow",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                },
+                {
+                    "name": "Drum speed",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                }
+            ],
+            "cooling": "external_tray",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": null,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 330,
+                    "medium": 330,
+                    "high": 330
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": null
+            }
         }
     },
     "roest-l200-ultra": {
@@ -1256,9 +2731,13 @@
                 "profile_grid_minutes",
                 "temp_unit",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "start_model",
+                "controls",
+                "wizard.time_to_first_crack_s",
+                "wizard.dtr_by_level"
             ],
-            "notes": "Counterflow mode: roasts in as little as 5 min per batch (4 min per 200 g batch), so the roast-time and first-crack floors are lowered. Dual/single bean-temperature probe; 50-200 g per batch; 4-7 min per 200 g batch. Row count and unit assumed.",
+            "notes": "Counterflow mode: roasts in as little as 5 min per batch (4 min per 200 g batch), so the roast-time and first-crack floors are lowered. Dual/single bean-temperature probe; 50-200 g per batch; 4-7 min per 200 g batch. Row count and unit assumed. Tier 2: names of the controls and the preheat-and-charge start are assumed; the cooling tray is stated (the next batch starts while the previous one cools). First crack inferred (typical roast x (1 - 0.21)). Counterflow mode, about 5 minutes: 3:55.",
             "green_weight_min_g": 50,
             "green_weight_max_g": 200,
             "green_weight_recommended_g": null,
@@ -1272,7 +2751,51 @@
             "temp_max": 260,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "preheat_charge",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Power",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                },
+                {
+                    "name": "Airflow",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                },
+                {
+                    "name": "Drum speed",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                }
+            ],
+            "cooling": "external_tray",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": null,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 235,
+                    "medium": 235,
+                    "high": 235
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": null
+            }
         }
     },
     "roest-s200": {
@@ -1287,9 +2810,13 @@
                 "profile_grid_minutes",
                 "temp_unit",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "start_model",
+                "controls",
+                "wizard.time_to_first_crack_s",
+                "wizard.dtr_by_level"
             ],
-            "notes": "7 min per 200 g batch. Dual/single bean-temperature probe; 50-200 g per batch; 4-7 min per 200 g batch. Row count and unit assumed.",
+            "notes": "7 min per 200 g batch. Dual/single bean-temperature probe; 50-200 g per batch; 4-7 min per 200 g batch. Row count and unit assumed. Tier 2: names of the controls and the preheat-and-charge start are assumed; the cooling tray is stated (the next batch starts while the previous one cools). First crack inferred (typical roast x (1 - 0.21)). 7 minutes per batch: 5:30.",
             "green_weight_min_g": 50,
             "green_weight_max_g": 200,
             "green_weight_recommended_g": null,
@@ -1303,7 +2830,51 @@
             "temp_max": 260,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "preheat_charge",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Power",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                },
+                {
+                    "name": "Airflow",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                },
+                {
+                    "name": "Drum speed",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                }
+            ],
+            "cooling": "external_tray",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": null,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 330,
+                    "medium": 330,
+                    "high": 330
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": null
+            }
         }
     },
     "sandbox-smart-r1": {
@@ -1319,9 +2890,12 @@
                 "green_weight_min_g",
                 "profile_grid_minutes",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "preheat_temp",
+                "wizard.dtr_by_level",
+                "wizard.default_first_crack_temp"
             ],
-            "notes": "FAQ: recommended 100 g +/- 20 g; page: 100-150 g takes 10-16 min; preheat 8-10 min at 180-220 C; first crack about 10 min after start; auto-stops after 20 min; maximum 220 C. Bean temperature (BT) shown in the app.",
+            "notes": "FAQ: recommended 100 g +/- 20 g; page: 100-150 g takes 10-16 min; preheat 8-10 min at 180-220 C; first crack about 10 min after start; auto-stops after 20 min; maximum 220 C. Bean temperature (BT) shown in the app. Tier 2: FAQ: preheat 8-10 min at a suggested 180-220 C (200 used, the middle), then charge; firepower, fan, and drum speed are percentages. Manual cooling tray: 'place the hot roasted beans in the cooling tray'. First crack about 10 minutes after the start (FAQ); first-crack temperature 180 C assumed from the R2 FAQ (175-185).",
             "green_weight_min_g": 80,
             "green_weight_max_g": 150,
             "green_weight_recommended_g": 100,
@@ -1335,7 +2909,51 @@
             "temp_max": 260,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "preheat_charge",
+            "preheat_temp": 200,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Firepower",
+                    "min": 0,
+                    "max": 100,
+                    "unit": "%"
+                },
+                {
+                    "name": "Fan",
+                    "min": 0,
+                    "max": 100,
+                    "unit": "%"
+                },
+                {
+                    "name": "Drum speed",
+                    "min": 0,
+                    "max": 100,
+                    "unit": "%"
+                }
+            ],
+            "cooling": "external_tray",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": null,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 600,
+                    "medium": 600,
+                    "high": 600
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": 180
+            }
         }
     },
     "sandbox-smart-r2": {
@@ -1351,9 +2969,13 @@
                 "green_weight_min_g",
                 "profile_grid_minutes",
                 "temp_min",
-                "temp_max"
+                "temp_max",
+                "preheat_temp",
+                "cooling",
+                "wizard.time_to_first_crack_s",
+                "wizard.dtr_by_level"
             ],
-            "notes": "FAQ: recommended 200-550 g +/- 20 g; first crack at 175-185 C; preheat 8-10 min at 180-220 C; auto-stops after 20 min. Row count assumed larger than the R1 for bigger batches.",
+            "notes": "FAQ: recommended 200-550 g +/- 20 g; first crack at 175-185 C; preheat 8-10 min at 180-220 C; auto-stops after 20 min. Row count assumed larger than the R1 for bigger batches. Tier 2: FAQ: preheat 8-10 min at a suggested 180-220 C (200 used, the middle), then charge; firepower, fan, and drum speed are percentages. Manual cooling tray: 'place the hot roasted beans in the cooling tray'. First crack 175-185 C (FAQ; 180 used); first-crack time assumed the R1's 10 minutes.",
             "green_weight_min_g": 180,
             "green_weight_max_g": 550,
             "green_weight_recommended_g": null,
@@ -1367,7 +2989,51 @@
             "temp_max": 260,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "preheat_charge",
+            "preheat_temp": 200,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Firepower",
+                    "min": 0,
+                    "max": 100,
+                    "unit": "%"
+                },
+                {
+                    "name": "Fan",
+                    "min": 0,
+                    "max": 100,
+                    "unit": "%"
+                },
+                {
+                    "name": "Drum speed",
+                    "min": 0,
+                    "max": 100,
+                    "unit": "%"
+                }
+            ],
+            "cooling": "external_tray",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": null,
+            "wizard": {
+                "time_to_first_crack_s": {
+                    "low": 600,
+                    "medium": 600,
+                    "high": 600
+                },
+                "natural_time_adjust_s": null,
+                "dtr_by_level": {
+                    "City Roast": 0.16,
+                    "City Plus": 0.18,
+                    "Full City": 0.21,
+                    "Full City Plus": 0.24,
+                    "Vienna Roast": 0.27,
+                    "Italian Roast": 0.31
+                },
+                "profile_start_temp": null,
+                "default_first_crack_temp": 180
+            }
         }
     },
     "west-bend-poppery-popcorn-popper": {
@@ -1384,9 +3050,11 @@
                 "green_weight_recommended_g",
                 "profile_grid_minutes",
                 "temp_source",
-                "has_temp_readout"
+                "has_temp_readout",
+                "start_model",
+                "controls"
             ],
-            "notes": "The original 1500 W model. Article: 100-150 g depending on roast level (150 g is the top of his table; he once roasted 160 g). Hot-air popper, no thermometer.",
+            "notes": "The original 1500 W model. Article: 100-150 g depending on roast level (150 g is the top of his table; he once roasted 160 g). Hot-air popper, no thermometer. Tier 2: no readout, so no start model or wizard. Fixed heat and no dials; the beans are poured into a colander to cool. The article pours the beans into two metal colanders.",
             "green_weight_min_g": 50,
             "green_weight_max_g": 150,
             "green_weight_recommended_g": 125,
@@ -1400,7 +3068,15 @@
             "temp_max": null,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "none",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [],
+            "cooling": "manual",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": null,
+            "wizard": null
         }
     },
     "west-bend-poppery-ii-popcorn-popper": {
@@ -1418,9 +3094,12 @@
                 "green_weight_recommended_g",
                 "profile_grid_minutes",
                 "temp_source",
-                "has_temp_readout"
+                "has_temp_readout",
+                "start_model",
+                "controls",
+                "cooling"
             ],
-            "notes": "Smaller and lower-wattage (1200 W) than the original Poppery, with a 4.5 in chamber. Hot-air popcorn popper (no thermometer). Sources rate chamber depth: a 4.5 in chamber roasts about 90 g; 3.5 in chambers less. Typical 5-10 min (search-result snippet).",
+            "notes": "Smaller and lower-wattage (1200 W) than the original Poppery, with a 4.5 in chamber. Hot-air popcorn popper (no thermometer). Sources rate chamber depth: a 4.5 in chamber roasts about 90 g; 3.5 in chambers less. Typical 5-10 min (search-result snippet). Tier 2: no readout, so no start model or wizard. Fixed heat and no dials; the beans are poured into a colander to cool.",
             "green_weight_min_g": 30,
             "green_weight_max_g": 100,
             "green_weight_recommended_g": 90,
@@ -1434,7 +3113,15 @@
             "temp_max": null,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "none",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [],
+            "cooling": "manual",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": null,
+            "wizard": null
         }
     },
     "whirley-pop-stovetop-popcorn-popper": {
@@ -1450,9 +3137,12 @@
                 "green_weight_min_g",
                 "profile_grid_minutes",
                 "temp_source",
-                "has_temp_readout"
+                "has_temp_readout",
+                "start_model",
+                "controls",
+                "cooling"
             ],
-            "notes": "Stovetop popper with a hand crank. Source: 8 oz batch, about 10 min total, first crack at 5-7 min. No thermometer unless the owner adds one (source used a probe and an IR thermometer); not supported by this entry.",
+            "notes": "Stovetop popper with a hand crank. Source: 8 oz batch, about 10 min total, first crack at 5-7 min. No thermometer unless the owner adds one (source used a probe and an IR thermometer); not supported by this entry. Tier 2: no readout, so no start model or wizard. Heat is the stove; the crank stirs. Manual cooling assumed.",
             "green_weight_min_g": 75,
             "green_weight_max_g": 227,
             "green_weight_recommended_g": 227,
@@ -1466,7 +3156,22 @@
             "temp_max": null,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "none",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [
+                {
+                    "name": "Stove heat",
+                    "min": null,
+                    "max": null,
+                    "unit": null
+                }
+            ],
+            "cooling": "manual",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": null,
+            "wizard": null
         }
     },
     "zenroast-ceramic-stovetop": {
@@ -1484,9 +3189,12 @@
                 "green_weight_recommended_g",
                 "profile_grid_minutes",
                 "temp_source",
-                "has_temp_readout"
+                "has_temp_readout",
+                "start_model",
+                "controls",
+                "cooling"
             ],
-            "notes": "LOW CONFIDENCE: the pages read give no specs. Search results said 50-70 g per batch (one source: 100 g maximum), 5-10 min; the larger maximum is used to avoid false rejections. No thermometer.",
+            "notes": "LOW CONFIDENCE: the pages read give no specs. Search results said 50-70 g per batch (one source: 100 g maximum), 5-10 min; the larger maximum is used to avoid false rejections. No thermometer. Tier 2: no readout, so no start model or wizard. Manual cooling assumed.",
             "green_weight_min_g": 30,
             "green_weight_max_g": 100,
             "green_weight_recommended_g": 60,
@@ -1500,7 +3208,15 @@
             "temp_max": null,
             "chart_start_temp": null,
             "chart_inflection_min": null,
-            "chart_inflection_temp": null
+            "chart_inflection_temp": null,
+            "start_model": "none",
+            "preheat_temp": null,
+            "charge_temp": null,
+            "controls": [],
+            "cooling": "manual",
+            "cooling_coast_seconds": null,
+            "min_gap_between_roasts_min": null,
+            "wizard": null
         }
     }
 }
