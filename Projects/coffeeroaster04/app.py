@@ -30,7 +30,13 @@ from data_persistence import (
     save_users,
 )
 from email_sender import GMAIL_ADDRESS, send_email
-from roasters import LEGACY_SETTINGS, TEMP_UNITS, migrate_roaster_ids, settings_for
+from roasters import (
+    LEGACY_SETTINGS,
+    TEMP_UNITS,
+    chart_opening,
+    migrate_roaster_ids,
+    settings_for,
+)
 from validators import (
     validate_bean_name,
     validate_date,
@@ -633,19 +639,14 @@ def add_roast(profile_id):
     target_development_time = format_optional_mm_ss(
         profile.get("target_development_time")
     )
-    anchors = None
-    if settings["chart_start_temp"] is not None:
-        anchors = {
-            "startTemp": settings["chart_start_temp"],
-            "inflectionMin": settings["chart_inflection_min"],
-            "inflectionTemp": settings["chart_inflection_temp"],
-        }
     roast_config = {
         "profileTemps": profile_temps,
         "targetDevelopmentSeconds": profile.get("target_development_time"),
         "rows": rows,
         "units": settings["units"],
-        "anchors": anchors,
+        "anchors": chart_opening(settings),
+        # How long a roast keeps developing once cooling starts; unknown counts as 0.
+        "coastSeconds": settings["cooling_coast_seconds"] or 0,
     }
 
     return render_template(

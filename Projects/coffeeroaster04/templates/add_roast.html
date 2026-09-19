@@ -134,6 +134,12 @@
           </small>
         </p>
       {% endif %}
+      {% if settings.min_gap_stated and settings.min_gap_between_roasts_min %}
+        <p class="roast-note"><small>Reminder: this roaster needs at least {{ settings.min_gap_between_roasts_min }} minutes between roasts.</small></p>
+      {% endif %}
+      {% if settings.cooling_coast_seconds %}
+        <p class="roast-note"><small>The pull countdown allows {{ settings.cooling_coast_seconds }} s for the roast to keep developing while it cools.</small></p>
+      {% endif %}
       <button type="button" id="mark-first-crack-btn" class="btn btn--primary mark-first-crack-btn">First Crack Now!</button>
       <p id="pull-countdown" class="pull-countdown" hidden></p>
     </div>

@@ -190,18 +190,26 @@ Completed 2026-09-19 · commit `c6a279b` on branch `roaster-selection`. Suite: 3
 
 ---
 
-## T-05 [PLANNED] Data-driven Add Roast live panel
+## T-05 [COMPLETE] Data-driven Add Roast live panel
 
-**Depends on:** T-02b ✓, T-03 ✓. **Starting point after T-02b:** `start_model` is set for every roaster (`ramp` only for the SR machines and the Gene Cafe/Behmor guesses; `preheat_charge` and `programmed` elsewhere), `preheat_temp`/`charge_temp` exist only where stated, and `cooling_coast_seconds` is `null` everywhere, so the pull countdown should treat `null` as zero.
-**Goal:** the live chart, timer, and pull countdown follow the roaster.
+Completed 2026-09-19 · **not yet committed** — awaiting your review. Suite: 334 passing (was 310); the browser check is now 18 tests (was 15).
 
-**Tasks**
-- [ ] Chart anchors and opening shape follow `start_model` and the `chart_*` values (today's 145 °F / 270 °F-at-30 s ramp becomes the `ramp` case; `preheat_charge` starts at the charge temperature and dips to a turning point; `programmed` and `none` draw no synthetic ramp).
-- [ ] Axis unit label, RoR unit, y-axis bounds/step, and x-axis length follow the roaster (via `TEMP_UNITS`, Settled #12).
-- [ ] Pull countdown subtracts `cooling_coast_seconds`.
-- [ ] Optional back-to-back warning from `min_gap_between_roasts_min` (informational only).
+**What now works**
+- **Chart opening follows the roaster's data** (`roasters.chart_opening`, sent to the page as `anchors`): the SR540/700/800 keep today's synthetic ramp (145 / 0.5 min / 270); a `preheat_charge` roaster with a stated `charge_temp` (else `preheat_temp`) starts the curve at that temperature and heads for the first target — Hottop 167, Aillio R1 160 / R1 V2 230, Quest 150, Sandbox 200; every other roaster's curve begins at the profile's first target, with no invented ramp, lead-in, or turning point (no source describes one). The T-03 flat lead-in, which caused a rate-of-rise spike, is gone.
+- **Rate of rise** shows an en dash before a curve that begins later than minute 0 has a slope, and its first samples use the curve's real slope (my first version halved them; a browser assertion now guards it). The SR800's numbers are unchanged.
+- **Pull countdown** subtracts the roaster's `cooling_coast_seconds` (unknown counts as 0). No roaster has coast data yet, so today it changes nothing; the page states the allowance when one is set.
+- **Back-to-back reminder**, informational only: "this roaster needs at least N minutes between roasts", shown only for a *stated* gap greater than zero (SR540 30, Behmor 60, Aillio R1 V2 2). The SR800's 30 minutes is only assumed, so it shows nothing — its page is unchanged. The app stores only a roast's date, not a time, so it could not enforce a gap anyway.
+- **Axis units, y-axis and x-axis length:** already done in T-03 — labels and readouts come from the roaster's unit, the x-axis runs to its row count, and the y-axes auto-scale to whatever unit the data is in, so no separate bounds are needed.
 
-**Done when:** the SR800 panel behaves identically to today's; another roaster's panel reflects its own values.
+**Tests.** 24 new unit and browser tests (opening for every kind of roaster and the real data, charge vs preheat, only stated gaps, coast reaching the page and the countdown, the notes). Six deliberate breakages (opening unused, preheat preferred to charge, curve always from minute 0, coast ignored, an inferred gap shown, the server sending coast 0) and the reverted rate-of-rise fix were each caught. **Existing tests changed** (both mine, from T-09, both pinning the behavior this item replaces): the Celsius test's "starts flat" is now "starts at its first target", and the 25-row curve has 240 points, not 250, because it begins at minute 1. I also looked at the Kaffelogic and Hottop charts.
+
+**Known limits**
+- No turning point: the data has none, so a charge-then-dip curve is approximated by heading from the charge temperature to the profile's first target.
+- `cooling_coast_seconds` is `null` for all 46 roasters, so the coast allowance is untested against real data (the browser check gives the Quest an in-memory value to exercise it).
+- The rate-of-rise *dot* at exactly t = 0 shows half the true slope on ramp and charge curves because the slope estimate reaches back before 0. That is how the SR800 has always behaved, so I left it to keep the SR800 identical; the fix is one line if you want it.
+- `controls` and `cooling` are still unread (T-06).
+
+**Files:** `roasters.py` (`chart_opening`, more settings), `app.py`, `static/js/add_roast_live.js`, `static/css/add_roast.css`, `templates/add_roast.html`, `SPEC.md`, `tests/test_roasters.py`, `tests/test_roaster_roasts.py`, `tests/browser/{driver.mjs,serve.py,test_browser.py}`.
 
 ---
 
@@ -244,4 +252,4 @@ The scratch prototype from T-01/T-03 became `tests/browser/`, committed as an au
 
 ## Suggested order
 
-T-01 ✓ → T-02a ✓ → T-03 ✓ → T-02b ✓ → T-09 ✓ → T-04 ✓ → T-05 → T-06 as warranted → T-08 once data exists. T-07 stays deferred.
+T-01 ✓ → T-02a ✓ → T-03 ✓ → T-02b ✓ → T-09 ✓ → T-04 ✓ → T-05 ✓ → T-06 as warranted → T-08 once data exists. T-07 stays deferred.

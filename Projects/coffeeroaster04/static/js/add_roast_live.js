@@ -5,10 +5,17 @@ const targetDevelopmentSeconds = roastConfig.targetDevelopmentSeconds;
 const rowCount = roastConfig.rows;
 // The roaster's own unit ({symbol, ror}); no temperature is ever converted.
 const units = roastConfig.units;
-// The chart's opening for this roaster: {startTemp, inflectionMin, inflectionTemp}
-// (start temp is the roaster's starting/preheat temp, not ambient room temp; the
-// inflection is expressed in minutes to match the x-axis), or null for no synthetic ramp.
+// The chart's opening for this roaster, or null to begin at the profile's first target:
+//   {startTemp, inflectionMin, inflectionTemp}  a synthetic ramp (the SR machines), where
+//       startTemp is the roaster's starting temp and the inflection is in minutes to
+//       match the x-axis; or
+//   {startTemp, inflectionMin: null, inflectionTemp: null}  a preheat-and-charge roaster's
+//       stated charge (or preheat) temperature, from which the curve heads for the first
+//       target. Nothing else is invented - no source describes a turning point.
 const anchors = roastConfig.anchors;
+// How long a roast keeps developing once cooling starts (0 if unknown); the pull
+// countdown allows for it.
+const coastSeconds = roastConfig.coastSeconds || 0;
 
 // Monotone cubic Hermite interpolation (Fritsch-Butland/PCHIP): unlike a
 // natural spline this never overshoots between knots, so the curve stays
@@ -103,6 +110,11 @@ function buildMonotoneSpline(knots) {
   };
 }
 
+// A rate of rise, or an en dash where the curve hasn't begun and there is none to show.
+function formatRor(value) {
+  return value === null ? "\u2013" : Math.round(value) + units.ror;
+}
+
 const enteredPoints = profileTemps
   .map((temp, index) => ({ x: index + 1, y: temp }))
   .filter((point) => point.y !== null);
@@ -113,22 +125,25 @@ let chart = null;
 
 if (enteredPoints.length > 0) {
   const lastEntered = enteredPoints[enteredPoints.length - 1];
-  const spline = buildMonotoneSpline(
-    anchors
-      ? [
-          { x: 0, y: anchors.startTemp },
-          { x: anchors.inflectionMin, y: anchors.inflectionTemp },
-          ...enteredPoints,
-        ]
-      : // No known opening for this roaster: start flat at the first target temperature.
-        [{ x: 0, y: enteredPoints[0].y }, ...enteredPoints]
-  );
+  const knots = [];
+  if (anchors) {
+    knots.push({ x: 0, y: anchors.startTemp });
+    if (anchors.inflectionMin !== null) {
+      knots.push({ x: anchors.inflectionMin, y: anchors.inflectionTemp });
+    }
+  }
+  knots.push(...enteredPoints);
+  // The curve begins at its first knot: x = 0 with an opening, otherwise the first target.
+  const curveStartX = knots[0].x;
+  const spline = knots.length >= 2 ? buildMonotoneSpline(knots) : () => knots[0].y;
 
   targetTempAt = function (minutesElapsed) {
     const x = Math.max(0, minutesElapsed);
     // Hold flat once the roast runs past the last minute with an entered
     // target, per the profile's carry-forward domain rule (SPEC.md).
     if (x >= lastEntered.x) return lastEntered.y;
+    // Before the curve begins, hold its first value.
+    if (x <= curveStartX) return knots[0].y;
     return spline(x);
   };
 
@@ -138,14 +153,22 @@ if (enteredPoints.length > 0) {
   const RATE_OF_RISE_STEP = 0.01;
   targetRorAt = function (minutesElapsed) {
     const x = Math.max(0, minutesElapsed);
-    const before = targetTempAt(Math.max(0, x - RATE_OF_RISE_STEP));
-    const after = targetTempAt(x + RATE_OF_RISE_STEP);
-    return (after - before) / (2 * RATE_OF_RISE_STEP);
+    // No slope to report before the curve begins (there is no synthetic ramp to slope).
+    if (x < curveStartX) return null;
+    let from = Math.max(0, x - RATE_OF_RISE_STEP);
+    let span = 2 * RATE_OF_RISE_STEP;
+    if (curveStartX > 0) {
+      // A curve that begins after minute 0: don't reach back before it (that would
+      // hold flat and halve the slope at its first samples) - use the real span.
+      from = Math.max(from, curveStartX);
+      span = x + RATE_OF_RISE_STEP - from;
+    }
+    return (targetTempAt(x + RATE_OF_RISE_STEP) - targetTempAt(from)) / span;
   };
 
   const curve = [];
   const rorCurve = [];
-  for (let x = 0; x <= rowCount; x += 0.1) {
+  for (let x = curveStartX; x <= rowCount; x += 0.1) {
     curve.push({ x, y: targetTempAt(x) });
     rorCurve.push({ x, y: targetRorAt(x) });
   }
@@ -183,7 +206,7 @@ if (enteredPoints.length > 0) {
         },
         {
           label: "RoR now",
-          data: [{ x: 0, y: targetRorAt(0) }],
+          data: targetRorAt(0) === null ? [] : [{ x: 0, y: targetRorAt(0) }],
           showLine: false,
           pointRadius: 7,
           pointBackgroundColor: "#d95f02",
@@ -228,8 +251,7 @@ if (enteredPoints.length > 0) {
 
   document.getElementById("target-temp-readout").textContent =
     Math.round(targetTempAt(0)) + units.symbol;
-  document.getElementById("ror-readout").textContent =
-    Math.round(targetRorAt(0)) + units.ror;
+  document.getElementById("ror-readout").textContent = formatRor(targetRorAt(0));
 } else {
   document.getElementById("live-chart").hidden = true;
   document.getElementById("no-profile-data").hidden = false;
@@ -300,7 +322,8 @@ function updatePullCountdown(elapsedSeconds) {
   }
 
   pullCountdownEl.hidden = false;
-  const remaining = firstCrackSeconds + targetDevelopmentSeconds - elapsedSeconds;
+  const remaining =
+    firstCrackSeconds + targetDevelopmentSeconds - coastSeconds - elapsedSeconds;
   if (remaining > 0) {
     pullCountdownEl.textContent = "Pull in " + formatClock(remaining);
   } else {
@@ -331,9 +354,9 @@ function updateLiveDisplay() {
     const temp = targetTempAt(elapsedMinutes);
     const ror = targetRorAt(elapsedMinutes);
     targetReadout.textContent = Math.round(temp) + units.symbol;
-    rorReadout.textContent = Math.round(ror) + units.ror;
+    rorReadout.textContent = formatRor(ror);
     chart.data.datasets[1].data = [{ x: clampedMinutes, y: temp }];
-    chart.data.datasets[3].data = [{ x: clampedMinutes, y: ror }];
+    chart.data.datasets[3].data = ror === null ? [] : [{ x: clampedMinutes, y: ror }];
     chart.update("none");
   }
 }

@@ -123,7 +123,12 @@ def record(profile_id, roaster_id, unit, temps, **overrides):
 SR800_TEMPS = [320, 365, 400, 430, 445, 455, 460] + [None] * 5
 KAFFELOGIC_TEMPS = [150, 175, 190, 200, 205] + [None] * 7
 GENE_CAFE_TEMPS = [300, 350, 400, 430, 450] + [None] * 20
+HOTTOP_TEMPS = [250, 300, 340, 370, 385] + [None] * 22
+QUEST_TEMPS = [150, 170, 185, 195, 205] + [None] * 19
 PROFILES = {
+    "p-hottop": profile("Hottop", "hottop-kn-8828b-2k", HOTTOP_TEMPS, 750, 120),
+    "p-quest": profile("Quest", "quest-m3", QUEST_TEMPS, 720, 100),
+    "p-sr540": profile("SR540", "fresh-roast-sr540", SR800_TEMPS, 375, 75),
     "p-sr800": profile("SR800 medium", "fresh-roast-sr800", SR800_TEMPS, 375, 75),
     "p-kaffelogic": profile(
         "Kaffelogic", "kaffelogic-nano-7", KAFFELOGIC_TEMPS, 400, 100
@@ -250,6 +255,7 @@ class TestBrowser(unittest.TestCase):
             self.assertAlmostEqual(point["x"], x, places=6)
             self.assertAlmostEqual(point["y"], y, places=5)
         self.assertEqual(page["targetReadout"], "145°F")
+        self.assertRegex(page["rorReadoutInitial"], r"^-?\d+°F/min$")
 
     def test_sr800_page_text_and_units(self):
         page = self.scenario("addRoastSr800")
@@ -262,6 +268,8 @@ class TestBrowser(unittest.TestCase):
         )
         self.assertTrue(any("Allowed 113–227 g" in hint for hint in page["hints"]))
         self.assertFalse(page["hasCelsius"])
+        # The SR800's 30-minute gap is only inferred, so it is not shown as a reminder.
+        self.assertEqual(page["notes"], [])
 
     def test_sr800_timer_first_crack_and_pull_countdown(self):
         page = self.scenario("addRoastSr800")
@@ -277,19 +285,31 @@ class TestBrowser(unittest.TestCase):
         self.assertEqual(page["afterStop"], "Start")
         self.assertEqual(page["afterReset"], "0:00")
 
-    def test_celsius_roaster_uses_celsius_everywhere_and_starts_flat(self):
+    def test_celsius_roaster_uses_celsius_everywhere_and_starts_at_its_first_target(
+        self,
+    ):
         page = self.scenario("addRoastCelsius")
         chart = page["chart"]
         self.assertEqual(chart["yTitle"], "Temperature (°C)")
         self.assertEqual(chart["y1Title"], "Rate of rise (°C/min)")
         self.assertEqual(chart["xMax"], 12)
-        # No chart opening for this roaster: the curve starts flat at its first target.
-        for point in chart["curveStart"][:3]:
-            self.assertAlmostEqual(point["y"], 150, places=3)
+        # No known opening for this roaster: the curve begins at its first target (minute 1),
+        # not with an invented ramp or a flat lead-in, and then heads for the next target.
+        start = chart["curveStart"]
+        self.assertAlmostEqual(start[0]["x"], 1, places=6)
+        self.assertAlmostEqual(start[0]["y"], 150, places=3)
+        self.assertGreater(start[3]["y"], 150)
+        # The rate-of-rise line starts at the curve's real slope, not half of it.
+        ror = chart["rorStart"]
+        self.assertAlmostEqual(ror[0]["x"], 1, places=6)
+        self.assertGreater(ror[0]["y"], 0.9 * ror[1]["y"])
         self.assertEqual(page["targetReadout"], "150°C")
+        # There is no slope to report before the curve begins.
+        self.assertEqual(page["rorReadoutInitial"], "\u2013")
         self.assertIn("Actual (°C)", page["tableHeaders"])
         self.assertRegex(page["running"]["targetReadout"], r"^\d+°C$")
-        self.assertRegex(page["running"]["rorReadout"], r"^-?\d+°C/min$")
+        # A couple of seconds in, this roaster's curve (which begins at minute 1) has no slope yet.
+        self.assertEqual(page["running"]["rorReadout"], "\u2013")
         self.assertTrue(page["hasCelsius"])
         self.assertFalse(page["hasFahrenheit"])
         self.assertRegex(page["pullCountdown"], r"^Pull in \d:\d\d$")
@@ -298,10 +318,45 @@ class TestBrowser(unittest.TestCase):
         page = self.scenario("addRoastGeneCafe")
         self.assertEqual(page["actualTempInputs"], 25)
         self.assertEqual(page["chart"]["xMax"], 25)
-        # One point per 0.1 minute; floating-point accumulation may stop one short of 251.
-        self.assertIn(page["chart"]["curvePoints"], (250, 251))
+        # One point per 0.1 minute from the first target (minute 1) to minute 25; floating-point
+        # accumulation may stop one short of 241.
+        self.assertIn(page["chart"]["curvePoints"], (240, 241))
         self.assertEqual(page["chart"]["yTitle"], "Temperature (°F)")
         self.assertTrue(any("Up to 25:00" in hint for hint in page["hints"]))
+
+    def test_a_preheat_and_charge_roaster_starts_its_curve_at_its_stated_charge_temperature(
+        self,
+    ):
+        page = self.scenario("addRoastPreheatCharge")
+        chart = page["chart"]
+        # Hottop: beans go in at the 167 F preheat beep; the curve heads from there to the first target.
+        self.assertAlmostEqual(chart["curveStart"][0]["x"], 0, places=6)
+        self.assertAlmostEqual(chart["curveStart"][0]["y"], 167, places=6)
+        self.assertGreater(chart["curveStart"][3]["y"], 167)
+        self.assertEqual(page["targetReadout"], "167°F")
+        self.assertEqual(chart["xMax"], 27)
+        self.assertEqual(chart["yTitle"], "Temperature (°F)")
+
+    def test_the_pull_countdown_allows_for_the_roasters_coast_time(self):
+        page = self.scenario("addRoastCoast")
+        # Target development 1:40 minus 20 s of coast: about 1:20 left just after first crack.
+        self.assertRegex(page["pullCountdown"], r"^Pull in 1:[12]\d$")
+        self.assertTrue(any("allows 20 s" in note for note in page["notes"]))
+        # The same countdown on a roaster with no coast time (Celsius fixture: 1:40 -> about 1:39).
+        self.assertRegex(
+            self.scenario("addRoastCelsius")["pullCountdown"], r"^Pull in 1:[34]\d$"
+        )
+
+    def test_a_stated_gap_between_roasts_is_shown_as_a_reminder(self):
+        page = self.scenario("addRoastSr540")
+        self.assertEqual(
+            page["notes"],
+            ["Reminder: this roaster needs at least 30 minutes between roasts."],
+        )
+        # A stated gap of zero (back-to-back is fine) shows nothing.
+        self.assertFalse(
+            any("Reminder" in note for note in self.scenario("addRoastCoast")["notes"])
+        )
 
     def test_roaster_without_a_readout_hides_the_chart_but_keeps_the_timer(self):
         page = self.scenario("addRoastNoReadout")

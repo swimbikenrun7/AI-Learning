@@ -1,7 +1,13 @@
 import unittest
 
 from data_persistence import load_roasters
-from roasters import LEGACY_SETTINGS, TEMP_UNITS, migrate_roaster_ids, settings_for
+from roasters import (
+    LEGACY_SETTINGS,
+    TEMP_UNITS,
+    chart_opening,
+    migrate_roaster_ids,
+    settings_for,
+)
 
 SR800 = "fresh-roast-sr800"
 
@@ -152,6 +158,160 @@ class TestSettingsForRealData(unittest.TestCase):
             if settings["temp_unit"] == "C":
                 with self.subTest(roaster=roaster_id):
                     self.assertIsNone(settings["chart_start_temp"])
+
+
+class TestChartOpening(unittest.TestCase):
+    def opening(self, **values):
+        base = {"has_temp_readout": True, "temp_unit": "F"}
+        return chart_opening(settings_for({"x": roaster(**base, **values)}, "x"))
+
+    def test_chart_anchors_give_the_synthetic_ramp(self):
+        anchors = {
+            "chart_start_temp": 145,
+            "chart_inflection_min": 0.5,
+            "chart_inflection_temp": 270,
+        }
+        self.assertEqual(
+            self.opening(start_model="ramp", **anchors),
+            {"startTemp": 145, "inflectionMin": 0.5, "inflectionTemp": 270},
+        )
+
+    def test_a_profile_with_no_roaster_keeps_the_original_ramp(self):
+        self.assertEqual(
+            chart_opening(settings_for({}, None)),
+            {"startTemp": 145, "inflectionMin": 0.5, "inflectionTemp": 270},
+        )
+
+    def test_a_preheat_and_charge_roaster_starts_at_its_charge_temperature(self):
+        opening = self.opening(start_model="preheat_charge", charge_temp=167)
+        self.assertEqual(
+            opening, {"startTemp": 167, "inflectionMin": None, "inflectionTemp": None}
+        )
+
+    def test_the_charge_temperature_wins_over_the_preheat_temperature(self):
+        opening = self.opening(
+            start_model="preheat_charge", charge_temp=167, preheat_temp=230
+        )
+        self.assertEqual(opening["startTemp"], 167)
+
+    def test_the_preheat_temperature_is_used_when_there_is_no_charge_temperature(self):
+        opening = self.opening(start_model="preheat_charge", preheat_temp=230)
+        self.assertEqual(opening["startTemp"], 230)
+
+    def test_a_preheat_and_charge_roaster_with_no_temperature_gets_no_opening(self):
+        self.assertIsNone(self.opening(start_model="preheat_charge"))
+
+    def test_only_preheat_and_charge_roasters_use_those_temperatures(self):
+        for model in ("programmed", "ramp", "none", None):
+            with self.subTest(model=model):
+                self.assertIsNone(
+                    self.opening(start_model=model, preheat_temp=230, charge_temp=200)
+                )
+
+    def test_a_roaster_with_no_readout_gets_no_opening(self):
+        settings = settings_for({"x": roaster(has_temp_readout=False)}, "x")
+        self.assertIsNone(chart_opening(settings))
+
+
+class TestCoastAndGapSettings(unittest.TestCase):
+    def settings(self, **values):
+        return settings_for({"x": roaster(**values)}, "x")
+
+    def test_coast_time_defaults_to_unknown(self):
+        self.assertIsNone(self.settings()["cooling_coast_seconds"])
+        self.assertEqual(
+            self.settings(cooling_coast_seconds=20)["cooling_coast_seconds"], 20
+        )
+
+    def test_a_gap_is_stated_only_if_a_source_gave_it(self):
+        stated = self.settings(min_gap_between_roasts_min=30, inferred=[])
+        self.assertTrue(stated["min_gap_stated"])
+        inferred = self.settings(
+            min_gap_between_roasts_min=30, inferred=["min_gap_between_roasts_min"]
+        )
+        self.assertFalse(inferred["min_gap_stated"])
+        self.assertEqual(inferred["min_gap_between_roasts_min"], 30)
+
+    def test_no_gap_is_never_stated(self):
+        self.assertFalse(
+            self.settings(min_gap_between_roasts_min=None)["min_gap_stated"]
+        )
+        self.assertFalse(settings_for({}, None)["min_gap_stated"])
+
+
+class TestChartOpeningForTheRealRoasters(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.roasters = load_roasters()
+
+    def opening(self, roaster_id):
+        return chart_opening(settings_for(self.roasters, roaster_id))
+
+    def test_sr_machines_with_a_readout_keep_the_synthetic_ramp(self):
+        for roaster_id in (
+            "fresh-roast-sr540",
+            "fresh-roast-sr700",
+            "fresh-roast-sr800",
+        ):
+            with self.subTest(roaster=roaster_id):
+                self.assertEqual(
+                    self.opening(roaster_id),
+                    {"startTemp": 145, "inflectionMin": 0.5, "inflectionTemp": 270},
+                )
+
+    def test_roasters_with_a_stated_charge_or_preheat_temperature(self):
+        stated = {
+            "hottop-kn-8828b-2k": 167,  # the preheat beep: add the beans
+            "hottop-kn-8828b-2k-plus": 167,
+            "hottop-kn-8828p-2k": 167,
+            "aillio-bullet-r1": 160,  # original model preheat
+            "aillio-bullet-r1-v2": 230,  # IBTS models
+            "quest-m3": 150,  # the handbook's beginner profile
+            "sandbox-smart-r1": 200,
+        }
+        for roaster_id, start in stated.items():
+            with self.subTest(roaster=roaster_id):
+                self.assertEqual(self.opening(roaster_id)["startTemp"], start)
+                self.assertIsNone(self.opening(roaster_id)["inflectionMin"])
+
+    def test_no_temperature_is_borrowed_for_roasters_without_a_source(self):
+        for roaster_id in (
+            "kaffelogic-nano-7",
+            "ikawa-home",
+            "gene-cafe-cbr-101",
+            "behmor-1600ab",
+            "kaldi-mini",
+            "kaleido-sniper-m2",
+            "huky-500t",
+            "roest-s200",
+            "whirley-pop-stovetop-popcorn-popper",
+        ):
+            with self.subTest(roaster=roaster_id):
+                self.assertIsNone(self.opening(roaster_id))
+
+    def test_every_opening_start_temperature_fits_the_roasters_range(self):
+        for roaster_id in self.roasters:
+            settings = settings_for(self.roasters, roaster_id)
+            opening = chart_opening(settings)
+            if opening is not None:
+                with self.subTest(roaster=roaster_id):
+                    self.assertTrue(
+                        settings["temp_min"]
+                        <= opening["startTemp"]
+                        <= settings["temp_max"]
+                    )
+
+    def test_only_stated_gaps_are_reminders(self):
+        def stated(roaster_id):
+            return settings_for(self.roasters, roaster_id)["min_gap_stated"]
+
+        self.assertTrue(stated("fresh-roast-sr540"))  # the manual says 30 minutes
+        self.assertTrue(stated("behmor-1600ab"))  # the manual says 1 hour
+        self.assertTrue(stated("quest-m3"))  # stated as 0: back-to-back is fine
+        self.assertFalse(
+            stated("fresh-roast-sr800")
+        )  # only assumed from the SR540 manual
+        self.assertFalse(stated("gene-cafe-cbr-101"))  # no stated gap at all
 
 
 class TestMigrateRoasterIds(unittest.TestCase):

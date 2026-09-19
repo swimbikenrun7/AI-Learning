@@ -43,6 +43,38 @@ ROASTERS = {
             "chart_inflection_temp": 270,
         },
     },
+    # A preheat-and-charge roaster with a stated charge temperature, a coast time, and a stated gap.
+    "drum": {
+        "name": "Drum F",
+        "values": {
+            "green_weight_min_g": 100,
+            "green_weight_max_g": 300,
+            "profile_grid_minutes": 12,
+            "has_temp_readout": True,
+            "temp_unit": "F",
+            "temp_min": 60,
+            "temp_max": 500,
+            "start_model": "preheat_charge",
+            "charge_temp": 167,
+            "preheat_temp": 200,
+            "cooling_coast_seconds": 30,
+            "min_gap_between_roasts_min": 45,
+            "inferred": [],
+        },
+    },
+    # Same, but the gap is only an inference (as the SR800's is).
+    "assumed": {
+        "name": "Assumed Gap",
+        "values": {
+            "profile_grid_minutes": 12,
+            "has_temp_readout": True,
+            "temp_unit": "F",
+            "temp_min": 60,
+            "temp_max": 500,
+            "min_gap_between_roasts_min": 30,
+            "inferred": ["min_gap_between_roasts_min"],
+        },
+    },
     "dial": {
         "name": "No Readout",
         "values": {
@@ -81,6 +113,19 @@ class RoastTestCase(unittest.TestCase):
                 "name": "SR Profile",
                 "roaster_id": "sr",
                 "temps": [320, 365] + [None] * 10,
+                "owner": OWNER_EMAIL,
+            },
+            "drum-p": {
+                "name": "Drum Profile",
+                "roaster_id": "drum",
+                "temps": [250, 300] + [None] * 10,
+                "target_development_time": 100,
+                "owner": OWNER_EMAIL,
+            },
+            "assumed-p": {
+                "name": "Assumed Profile",
+                "roaster_id": "assumed",
+                "temps": [300] + [None] * 11,
                 "owner": OWNER_EMAIL,
             },
             "dial-p": {
@@ -294,6 +339,36 @@ class TestLiveChartConfig(RoastTestCase):
 
     def test_no_readout_roaster_has_no_units(self):
         self.assertIsNone(self.config("dial-p")["units"])
+
+
+class TestChartOpeningAndNotes(RoastTestCase):
+    def test_a_preheat_and_charge_roaster_gets_its_charge_temperature_as_the_opening(
+        self,
+    ):
+        config = self.config("drum-p")
+        self.assertEqual(
+            config["anchors"],
+            {"startTemp": 167, "inflectionMin": None, "inflectionTemp": None},
+        )
+
+    def test_coast_time_reaches_the_page_and_defaults_to_zero(self):
+        self.assertEqual(self.config("drum-p")["coastSeconds"], 30)
+        self.assertEqual(self.config("small-p")["coastSeconds"], 0)
+        self.assertEqual(self.config("legacy-p")["coastSeconds"], 0)
+
+    def test_a_stated_gap_and_the_coast_are_explained_on_the_page(self):
+        body = self.client.get("/roasts/new/drum-p").get_data(as_text=True)
+        self.assertIn("needs at least 45 minutes between roasts", body)
+        self.assertIn("allows 30 s for the roast to keep developing", body)
+
+    def test_an_inferred_gap_is_not_shown_as_a_reminder(self):
+        body = self.client.get("/roasts/new/assumed-p").get_data(as_text=True)
+        self.assertNotIn("between roasts", body)
+        self.assertNotIn("keep developing", body)
+
+    def test_no_notes_for_a_roaster_with_no_gap_or_coast_data(self):
+        body = self.client.get("/roasts/new/small-p").get_data(as_text=True)
+        self.assertNotIn('class="roast-note"', body)
 
 
 class TestRoastDetailFollowsTheRecord(RoastTestCase):

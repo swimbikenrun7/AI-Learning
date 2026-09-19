@@ -25,6 +25,12 @@ LEGACY_SETTINGS = {
     "chart_start_temp": 145,
     "chart_inflection_min": 0.5,
     "chart_inflection_temp": 270,
+    "start_model": "ramp",
+    "preheat_temp": None,
+    "charge_temp": None,
+    "cooling_coast_seconds": None,
+    "min_gap_between_roasts_min": None,
+    "min_gap_stated": False,  # true only if a source states the gap (not inferred)
 }
 
 # Every temperature for a roaster is stored and shown in that roaster's own unit and is
@@ -72,6 +78,19 @@ def settings_for(roasters, roaster_id, rows=None):
         # A roaster's chart opening is its own data; null means no synthetic ramp.
         for field in _CHART_FIELDS:
             settings[field] = values.get(field)
+        for field in (
+            "start_model",
+            "preheat_temp",
+            "charge_temp",
+            "cooling_coast_seconds",
+            "min_gap_between_roasts_min",
+        ):
+            settings[field] = values.get(field)
+        settings["min_gap_stated"] = values.get(
+            "min_gap_between_roasts_min"
+        ) is not None and "min_gap_between_roasts_min" not in (
+            values.get("inferred") or []
+        )
         if values.get("has_temp_readout") is False:
             # No readout: no unit or range is invented and no temperature grid is shown.
             settings["has_temp_readout"] = False
@@ -87,6 +106,33 @@ def settings_for(roasters, roaster_id, rows=None):
 
     settings["units"] = TEMP_UNITS.get(settings["temp_unit"])
     return settings
+
+
+def chart_opening(settings):
+    """Where the live chart's target curve begins, or None to begin at the first target.
+
+    A roaster with chart anchors (the SR machines) gets their synthetic ramp. A
+    preheat-and-charge roaster with a stated charge (or else preheat) temperature starts
+    the curve there. Nothing else is invented: with no known opening the curve simply
+    starts at the profile's first target, since no source describes a turning point.
+    """
+    if settings["chart_start_temp"] is not None:
+        return {
+            "startTemp": settings["chart_start_temp"],
+            "inflectionMin": settings["chart_inflection_min"],
+            "inflectionTemp": settings["chart_inflection_temp"],
+        }
+    if settings["start_model"] == "preheat_charge":
+        start_temp = settings["charge_temp"]
+        if start_temp is None:
+            start_temp = settings["preheat_temp"]
+        if start_temp is not None:
+            return {
+                "startTemp": start_temp,
+                "inflectionMin": None,
+                "inflectionTemp": None,
+            }
+    return None
 
 
 def migrate_roaster_ids(roasters, profiles, records, default_roaster_id):

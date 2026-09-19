@@ -25,6 +25,10 @@ data_persistence.USERS_PATH = data_dir / "users.json"
 
 import app
 
+# No real roaster has a cooling-coast time yet (the data leaves it null), so give one to the
+# Quest here, in memory only, to exercise the pull countdown's allowance for it.
+app.roasters["quest-m3"]["values"]["cooling_coast_seconds"] = 20
+
 # Skip the login form: every request carries a signed session for the fixtures' owner.
 serializer = app.app.session_interface.get_signing_serializer(app.app)
 cookie = serializer.dumps({"user_email": "owner@example.com"})

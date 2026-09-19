@@ -40,7 +40,7 @@
 #clock-readout { font-variant-numeric: tabular-nums; }
 .ror-readout { font-size: var(--font-size-lg); color: var(--color-text-muted); margin-top: 0.25rem; }
 #ror-readout { color: #1b9e77; font-weight: 700; }
-.target-reference { margin-top: 0.5rem; color: var(--color-text-muted); }
+.target-reference, .roast-note { margin-top: 0.5rem; color: var(--color-text-muted); }
 .mark-first-crack-btn {
   display: block;
   width: 100%;

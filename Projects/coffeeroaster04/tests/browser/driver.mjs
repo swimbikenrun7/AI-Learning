@@ -121,6 +121,8 @@ async function addRoast(path) {
     targetReference: await ev("document.querySelector('.target-reference')?.innerText.replace(/\\s+/g, ' ').trim() ?? null"),
     targetReadoutHidden: await ev("document.getElementById('target-temp-readout').hidden"),
     targetReadout: await text("target-temp-readout"),
+    rorReadoutInitial: await text("ror-readout"),
+    notes: await ev("Array.from(document.querySelectorAll('.roast-note')).map((n) => n.textContent.trim())"),
     clock: await text("clock-readout"),
     pullCountdownHidden: await ev("document.getElementById('pull-countdown').hidden"),
     hasFahrenheit: await ev("document.body.innerText.includes('°F')"),
@@ -132,6 +134,7 @@ async function addRoast(path) {
         datasets: chart.data.datasets.length,
         curvePoints: chart.data.datasets[0].data.length,
         curveStart: chart.data.datasets[0].data.slice(0, 4),
+        rorStart: chart.data.datasets[2].data.slice(0, 3),
         xMax: chart.options.scales.x.max,
         yTitle: chart.options.scales.y.title.text,
         y1Title: chart.options.scales.y1.title.text,
@@ -172,6 +175,9 @@ await scenario("addRoastSr800", () => addRoast("/roasts/new/p-sr800"));
 await scenario("addRoastCelsius", () => addRoast("/roasts/new/p-kaffelogic"));
 await scenario("addRoastGeneCafe", () => addRoast("/roasts/new/p-genecafe"));
 await scenario("addRoastNoReadout", () => addRoast("/roasts/new/p-whirley"));
+await scenario("addRoastPreheatCharge", () => addRoast("/roasts/new/p-hottop"));
+await scenario("addRoastCoast", () => addRoast("/roasts/new/p-quest"));
+await scenario("addRoastSr540", () => addRoast("/roasts/new/p-sr540"));
 
 // ---- Profile wizard (offered for the calibrated SR800 only) ----
 const readWizardOutput = () =>
