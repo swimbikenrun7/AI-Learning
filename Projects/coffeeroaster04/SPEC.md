@@ -144,7 +144,7 @@ This is a rough first pass, not a validated model — only one real logged resul
 ## Roasters **(Phase 11)**
 
 ### Requirements
-`data/roasters.json` shall list known home coffee roasters, keyed by a stable slug id (e.g. `fresh-roast-sr800`), each with a display `name` and a `values` object reserved for roaster-specific settings. `values` is intentionally empty for now — which settings matter (batch size, heat/fan ranges, typical first-crack temperature, etc.) will be decided later, once roaster-specific behavior is built on top of this.
+`data/roasters.json` shall list known home coffee roasters, keyed by a stable slug id (e.g. `fresh-roast-sr800`), each with a display `name` and a `values` object holding that roaster's own data (see "Roaster data" below). Every roaster carries its own complete set of values — nothing is inherited or shared between roasters, so any one entry can be tuned later without touching another. Identical numbers across roasters are allowed where the research supports them, but each is written out on its own entry.
 The add/edit roast profile form shall offer a roaster dropdown (alphabetical, with a blank "No roaster selected" default), placed above the profile wizard so the wizard's inputs can later depend on it. The choice is stored on the profile as `roaster_id`.
 Selecting a roaster is optional. Profiles created before this phase have no `roaster_id` and continue to work unchanged.
 A profile's roaster name shall be displayed, in a faint italic style (`.roaster-tag`) so it reads as a different kind of data than the profile name, on: the View and edit roast profiles list, the Add Roast profile picker, and the Add Roast page heading (i.e. it propagates from the selected profile). It is omitted when the profile has no roaster.
@@ -154,6 +154,34 @@ A profile's roaster name shall be displayed, in a faint italic style (`.roaster-
 A submitted `roaster_id` must be blank or a key of `roasters.json`; anything else is rejected with a validation error.
 A profile stores only the roaster's id, not its name, so renaming a roaster in `roasters.json` is reflected everywhere. If a profile's roaster id is later removed from the file, the profile still works and simply shows no roaster.
 Roast records do not snapshot the roaster (unlike `target_temps`): the Add Roast page reads it from the profile, and the roast detail page is unchanged.
+
+### Roaster data (Tier 1)
+Each roaster's `values` object holds exactly these fields. They are the data the roaster-driven profile work (`to-do.md`, T-03) will read; nothing in the app reads them yet.
+
+| Field | Meaning |
+|---|---|
+| `type` | Descriptive label only (e.g. "fluid bed", "drum") — never used to inherit anything |
+| `calibrated` | `true` only where the owner's own logged roasts back the values (currently only `fresh-roast-sr800`) |
+| `sources` | URLs of the documents each value was taken from (at least one) |
+| `inferred` | Names of the data fields below whose value is **not directly stated by a source** — derived by the rules below or assumed. Any populated data field not listed here was stated by a source. |
+| `notes` | Free text: source conflicts, confidence, model quirks |
+| `green_weight_min_g`, `green_weight_max_g` | Accepted green batch weight range, whole grams |
+| `green_weight_recommended_g` | The manufacturer's normal batch, used for hints; may be `null` |
+| `roast_time_min_s`, `first_crack_min_s` | Shortest plausible total roast time / earliest plausible first crack, in seconds. `null` means "use today's 240 s" — set only for roasters whose normal roasts are shorter |
+| `profile_grid_minutes` | Number of profile rows, one per whole minute; also the maximum roast time in minutes. Required |
+| `temp_unit` | `"F"` or `"C"`: the unit the roaster reports and its profiles/roasts are stored in. `null` when there is no readout |
+| `temp_source` | What the reading measures: `bean_probe`, `inlet_air`, `chamber_air` (a chamber, wall, exhaust, or thermostat sensor that does not touch the beans), `unspecified` (a reading exists but the sources do not say what it measures), or `none` |
+| `has_temp_readout` | Whether the machine itself provides a temperature reading. When `false`, `temp_source` is `none` and `temp_unit`, `temp_min`, `temp_max` are `null` — no unit or range is invented, and the temperature grid is not shown |
+| `temp_min`, `temp_max` | Sanity range for a temperature entry, in the roaster's own unit. Inlet-air roasters need a higher cap than bean-probe roasters (IKAWA inlet air can reach 290 °C) |
+
+**Rules for values.** Values are stated by a source where one exists; otherwise they are inferred by these rules and listed in `inferred`:
+- *Row count* (`profile_grid_minutes`) = the longest roast in the sources' normal range, rounded up to whole minutes, plus 2. Exception: the Fresh Roast SR series is 12 rows, per the owner's experience that about 10 minutes is the longest anyone roasts on it.
+- *Minimum batch* = the stated minimum where a source gives one (e.g. SR800: 4 oz; Aillio: 200 g); otherwise the smallest official batch rounded down; otherwise about one third of the maximum, rounded to 5 g (the same ratio as the app's original 100/300 g limits).
+- *Temperature range* defaults to 60–500 °F or 15–260 °C unless a source shows readings outside it.
+- *Batch size conflicts* between sources take the larger figure, so a valid roast is never rejected; the conflict is recorded in `notes`.
+- A roaster with no source at all for a value gets a low-confidence inferred value with that stated in `notes`; it is never presented as measured.
+
+**Not sourced from the retailer blog.** A retailer's "best home roasters" blog post (CoffeeRoast Co.) contradicted that retailer's own product pages (it described the Kaffa Wide POP as a 150 g electric air roaster; the product page says a 300 g gas drum roaster) and was not used as a source for any value. "Bohemia 250 (ceramic stovetop)" appeared only in that post, could not be found anywhere else, and was removed from the list (46 roasters).
 
 ## Calculations
 

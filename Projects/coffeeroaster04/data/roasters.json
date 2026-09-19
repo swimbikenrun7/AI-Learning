@@ -1,190 +1,1362 @@
 {
     "aillio-bullet-r1": {
         "name": "Aillio Bullet R1",
-        "values": {}
+        "values": {
+            "type": "drum",
+            "calibrated": false,
+            "sources": [
+                "https://www.topcoffee.net/media/coffee/Aillio-Bullet-R1-Manual_EN.pdf",
+                "https://us.aillio.com/products/bullet-r1-v2"
+            ],
+            "inferred": [
+                "profile_grid_minutes",
+                "temp_unit",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "Original model; older units have a bean probe only (no IBTS). Manual/site: capacity 200-1000 g, 1 kg reaches first crack in about 10-12 min, bean temperature by IR sensor (IBTS) and/or bean probe, display selectable C/F (C assumed), maximum bean temperature 245 C.",
+            "green_weight_min_g": 200,
+            "green_weight_max_g": 1000,
+            "green_weight_recommended_g": null,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 18,
+            "temp_unit": "C",
+            "temp_source": "bean_probe",
+            "has_temp_readout": true,
+            "temp_min": 15,
+            "temp_max": 260
+        }
     },
     "aillio-bullet-r1-v2": {
         "name": "Aillio Bullet R1 V2",
-        "values": {}
+        "values": {
+            "type": "drum",
+            "calibrated": false,
+            "sources": [
+                "https://www.topcoffee.net/media/coffee/Aillio-Bullet-R1-Manual_EN.pdf",
+                "https://us.aillio.com/products/bullet-r1-v2"
+            ],
+            "inferred": [
+                "profile_grid_minutes",
+                "temp_unit",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "Manual/site: capacity 200-1000 g, 1 kg reaches first crack in about 10-12 min, bean temperature by IR sensor (IBTS) and/or bean probe, display selectable C/F (C assumed), maximum bean temperature 245 C.",
+            "green_weight_min_g": 200,
+            "green_weight_max_g": 1000,
+            "green_weight_recommended_g": null,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 18,
+            "temp_unit": "C",
+            "temp_source": "bean_probe",
+            "has_temp_readout": true,
+            "temp_min": 15,
+            "temp_max": 260
+        }
     },
     "aillio-bullet-r2": {
         "name": "Aillio Bullet R2",
-        "values": {}
+        "values": {
+            "type": "drum",
+            "calibrated": false,
+            "sources": [
+                "https://us.aillio.com/products/bullet-r2",
+                "https://us.aillio.com/products/bullet-r1-v2"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "green_weight_max_g",
+                "profile_grid_minutes",
+                "temp_unit",
+                "temp_source",
+                "has_temp_readout",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "The R2 page gives no capacity or temperature specs; all values assumed the same as the R1 V2. Manual/site: capacity 200-1000 g, 1 kg reaches first crack in about 10-12 min, bean temperature by IR sensor (IBTS) and/or bean probe, display selectable C/F (C assumed), maximum bean temperature 245 C.",
+            "green_weight_min_g": 200,
+            "green_weight_max_g": 1000,
+            "green_weight_recommended_g": null,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 18,
+            "temp_unit": "C",
+            "temp_source": "bean_probe",
+            "has_temp_readout": true,
+            "temp_min": 15,
+            "temp_max": 260
+        }
     },
     "aillio-bullet-r2-pro": {
         "name": "Aillio Bullet R2 Pro",
-        "values": {}
+        "values": {
+            "type": "drum",
+            "calibrated": false,
+            "sources": [
+                "https://us.aillio.com/products/bullet-r2",
+                "https://us.aillio.com/products/bullet-r1-v2"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "green_weight_max_g",
+                "profile_grid_minutes",
+                "temp_unit",
+                "temp_source",
+                "has_temp_readout",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "The 1.2 kg maximum comes from a search-result summary of a retailer FAQ (about 2.65 lb), not read on a page; other values assumed the same as the R1 V2. Manual/site: capacity 200-1000 g, 1 kg reaches first crack in about 10-12 min, bean temperature by IR sensor (IBTS) and/or bean probe, display selectable C/F (C assumed), maximum bean temperature 245 C.",
+            "green_weight_min_g": 200,
+            "green_weight_max_g": 1200,
+            "green_weight_recommended_g": null,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 18,
+            "temp_unit": "C",
+            "temp_source": "bean_probe",
+            "has_temp_readout": true,
+            "temp_min": 15,
+            "temp_max": 260
+        }
     },
     "behmor-1600-plus": {
         "name": "Behmor 1600 Plus",
-        "values": {}
+        "values": {
+            "type": "drum",
+            "calibrated": false,
+            "sources": [
+                "https://www.roastmasters.com/reference/Behmor%201600AB%20Operation%20Manual%20V17.01%20Plus%20Full.pdf",
+                "https://www.roastmasters.com/behmor.html"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "profile_grid_minutes",
+                "temp_source",
+                "has_temp_readout"
+            ],
+            "notes": "Predecessor of the AB models (replaced 2019); the manual read is for the 1600AB Plus. Thermistor readouts are an AB feature, so no readout is assumed here. Manufacturer maximum roast times run up to 25:30 (1 lb, profile P5); defaults 8:30 / 12:00 / 18:00 for 1/4, 1/2, 1 lb; Full City+ roasts: reduce to 1/2 lb. Smallest official batch is 1/4 lb (113 g), so the minimum is set just below it.",
+            "green_weight_min_g": 100,
+            "green_weight_max_g": 454,
+            "green_weight_recommended_g": null,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 28,
+            "temp_unit": null,
+            "temp_source": "none",
+            "has_temp_readout": false,
+            "temp_min": null,
+            "temp_max": null
+        }
     },
     "behmor-1600ab": {
         "name": "Behmor 1600AB",
-        "values": {}
+        "values": {
+            "type": "drum",
+            "calibrated": false,
+            "sources": [
+                "https://www.roastmasters.com/reference/Behmor%201600AB%20Operation%20Manual%20V17.01%20Plus%20Full.pdf",
+                "https://www.roastmasters.com/behmor.html"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "profile_grid_minutes",
+                "temp_unit",
+                "has_temp_readout",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "Values from the 1600AB Plus manual. Readout is on demand from two thermistors (exhaust channel, chamber wall) - not bean temperature. Unit assumed F (US model). Manufacturer maximum roast times run up to 25:30 (1 lb, profile P5); defaults 8:30 / 12:00 / 18:00 for 1/4, 1/2, 1 lb; Full City+ roasts: reduce to 1/2 lb. Smallest official batch is 1/4 lb (113 g), so the minimum is set just below it.",
+            "green_weight_min_g": 100,
+            "green_weight_max_g": 454,
+            "green_weight_recommended_g": null,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 28,
+            "temp_unit": "F",
+            "temp_source": "chamber_air",
+            "has_temp_readout": true,
+            "temp_min": 60,
+            "temp_max": 500
+        }
     },
     "behmor-2000ab-plus": {
         "name": "Behmor 2000AB Plus",
-        "values": {}
-    },
-    "bohemia-250-ceramic-stovetop": {
-        "name": "Bohemia 250 (ceramic stovetop)",
-        "values": {}
+        "values": {
+            "type": "drum",
+            "calibrated": false,
+            "sources": [
+                "https://www.roastmasters.com/reference/Behmor%201600AB%20Operation%20Manual%20V17.01%20Plus%20Full.pdf",
+                "https://burmancoffee.com/coffee-roasting/home-roasting-tips/behmor-2000ab-plus/",
+                "https://www.roastmasters.com/behmor.html"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "profile_grid_minutes",
+                "temp_unit",
+                "has_temp_readout",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "The 2000AB Plus manual was not readable; values assumed same as the 1600AB Plus manual (same 1/4-1/2-1 lb batches and P1-P5 profiles). Manufacturer maximum roast times run up to 25:30 (1 lb, profile P5); defaults 8:30 / 12:00 / 18:00 for 1/4, 1/2, 1 lb; Full City+ roasts: reduce to 1/2 lb. Smallest official batch is 1/4 lb (113 g), so the minimum is set just below it.",
+            "green_weight_min_g": 100,
+            "green_weight_max_g": 454,
+            "green_weight_recommended_g": null,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 28,
+            "temp_unit": "F",
+            "temp_source": "chamber_air",
+            "has_temp_readout": true,
+            "temp_min": 60,
+            "temp_max": 500
+        }
     },
     "fresh-roast-sr300": {
         "name": "Fresh Roast SR300",
-        "values": {}
+        "values": {
+            "type": "fluid bed",
+            "calibrated": false,
+            "sources": [
+                "https://www.roastmasters.com/freshsr300.html"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "temp_source",
+                "has_temp_readout"
+            ],
+            "notes": "SR300: 4 scoops of 43 cc = 120 g; timer max 9.9 min. Sources describe fixed heat settings (390/455/490 F targets) and no temperature readout, so no readout is assumed; an owner-added probe is not supported by this entry. Discontinued/legacy model. Row count 12 is the owner's rule for the whole Fresh Roast SR series (10 min is about the longest anyone roasts on it, +2 buffer).",
+            "green_weight_min_g": 40,
+            "green_weight_max_g": 120,
+            "green_weight_recommended_g": 120,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 12,
+            "temp_unit": null,
+            "temp_source": "none",
+            "has_temp_readout": false,
+            "temp_min": null,
+            "temp_max": null
+        }
     },
     "fresh-roast-sr340": {
         "name": "Fresh Roast SR340",
-        "values": {}
+        "values": {
+            "type": "fluid bed",
+            "calibrated": false,
+            "sources": [
+                "https://www.roastmasters.com/freshroast-sr340.html"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "temp_source",
+                "has_temp_readout"
+            ],
+            "notes": "SR340: 4 scoops of 43 cc = 120 g; timer max 9.9 min. Sources describe fixed heat settings (390/455/490 F targets) and no temperature readout, so no readout is assumed; an owner-added probe is not supported by this entry. Discontinued/legacy model. Row count 12 is the owner's rule for the whole Fresh Roast SR series (10 min is about the longest anyone roasts on it, +2 buffer).",
+            "green_weight_min_g": 40,
+            "green_weight_max_g": 120,
+            "green_weight_recommended_g": 120,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 12,
+            "temp_unit": null,
+            "temp_source": "none",
+            "has_temp_readout": false,
+            "temp_min": null,
+            "temp_max": null
+        }
     },
     "fresh-roast-sr500": {
         "name": "Fresh Roast SR500",
-        "values": {}
+        "values": {
+            "type": "fluid bed",
+            "calibrated": false,
+            "sources": [
+                "https://www.roastmasters.com/fresh_roast.html"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "temp_source",
+                "has_temp_readout"
+            ],
+            "notes": "SR500: 4 scoops of 43 cc = 120 g; timer max 9.9 min. Sources describe fixed heat settings (390/455/490 F targets) and no temperature readout, so no readout is assumed; an owner-added probe is not supported by this entry. Discontinued/legacy model. Row count 12 is the owner's rule for the whole Fresh Roast SR series (10 min is about the longest anyone roasts on it, +2 buffer).",
+            "green_weight_min_g": 40,
+            "green_weight_max_g": 120,
+            "green_weight_recommended_g": 120,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 12,
+            "temp_unit": null,
+            "temp_source": "none",
+            "has_temp_readout": false,
+            "temp_min": null,
+            "temp_max": null
+        }
     },
     "fresh-roast-sr540": {
         "name": "Fresh Roast SR540",
-        "values": {}
+        "values": {
+            "type": "fluid bed",
+            "calibrated": false,
+            "sources": [
+                "https://www.roastmasters.com/reference/SR540-Instructions.pdf",
+                "https://www.roastmasters.com/fresh_roast_SR540.html"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "Manual: about 4 oz / 114 g; retailer: 120 g. Real-time temperature shown on request, in F; the sources do not say what the sensor measures. Manual: allow 30 min between roasts. Row count 12 is the owner's rule for the whole Fresh Roast SR series (10 min is about the longest anyone roasts on it, +2 buffer).",
+            "green_weight_min_g": 40,
+            "green_weight_max_g": 120,
+            "green_weight_recommended_g": 114,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 12,
+            "temp_unit": "F",
+            "temp_source": "unspecified",
+            "has_temp_readout": true,
+            "temp_min": 60,
+            "temp_max": 500
+        }
     },
     "fresh-roast-sr700": {
         "name": "Fresh Roast SR700",
-        "values": {}
+        "values": {
+            "type": "fluid bed",
+            "calibrated": false,
+            "sources": [
+                "https://www.roastmasters.com/sr700.html",
+                "https://www.roastmasters.com/reference/SR-700-Operating-Manual.pdf"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "temp_unit",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "About 4.5 oz / 130 g (3 scoops may roast better). Shows real-time temperature on the computer dashboard; heat settings listed in degrees (F assumed). Discontinued Oct 2019. Row count 12 is the owner's rule for the whole Fresh Roast SR series (10 min is about the longest anyone roasts on it, +2 buffer).",
+            "green_weight_min_g": 45,
+            "green_weight_max_g": 130,
+            "green_weight_recommended_g": 130,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 12,
+            "temp_unit": "F",
+            "temp_source": "unspecified",
+            "has_temp_readout": true,
+            "temp_min": 60,
+            "temp_max": 500
+        }
     },
     "fresh-roast-sr800": {
         "name": "Fresh Roast SR800",
-        "values": {}
+        "values": {
+            "type": "fluid bed",
+            "calibrated": true,
+            "sources": [
+                "https://www.roastmasters.com/SR800.html",
+                "https://burmancoffee.com/product/all-home-coffee-roasters/fresh-roast-sr-800-home-coffee-roaster/"
+            ],
+            "inferred": [
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "The one CALIBRATED roaster (owner's logged roasts, in F). Retailer: washed 8 oz / 227 g, natural 6 oz / 170 g, minimum roast 4 oz / 113 g; real-time temperature readout, sensor type unstated. Retailer text says total roast 8-18 min and timer to 20 min, but the owner's experience is 10 min at most, so 12 rows per the owner's rule.",
+            "green_weight_min_g": 113,
+            "green_weight_max_g": 227,
+            "green_weight_recommended_g": 227,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 12,
+            "temp_unit": "F",
+            "temp_source": "unspecified",
+            "has_temp_readout": true,
+            "temp_min": 60,
+            "temp_max": 500
+        }
     },
     "gene-cafe-cbr-101": {
         "name": "Gene Cafe CBR-101",
-        "values": {}
+        "values": {
+            "type": "hybrid drum/air",
+            "calibrated": false,
+            "sources": [
+                "https://www.roastmasters.com/genecafe.html",
+                "https://genecafeusa.com/pages/cbr-101-roasting-guide",
+                "https://library.sweetmarias.com/wp-content/uploads/2020/08/Gene-Cafe-Coffee-Roaster-Tip-Sheet.pdf"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "profile_grid_minutes",
+                "temp_source",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "250 g (200 g for natural process, per Sweet Maria's). Manufacturer's roast chart runs 12 min (Light) to 23 min (Italian); timer 1-23 min; setpoint 374-482 F. Display alternates target and actual temperature; heating is indirect air under a thermostat, so chamber air is assumed (sources do not say what 'actual' measures).",
+            "green_weight_min_g": 85,
+            "green_weight_max_g": 250,
+            "green_weight_recommended_g": 250,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 25,
+            "temp_unit": "F",
+            "temp_source": "chamber_air",
+            "has_temp_readout": true,
+            "temp_min": 60,
+            "temp_max": 500
+        }
     },
     "gene-cafe-cbr-301": {
         "name": "Gene Cafe CBR-301",
-        "values": {}
+        "values": {
+            "type": "hybrid drum/air",
+            "calibrated": false,
+            "sources": [
+                "https://www.roastmasters.com/genecafe-cbr-301.html",
+                "https://genecafeusa.com/pages/cbr-101-roasting-guide"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "profile_grid_minutes",
+                "temp_source",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "300 g; temperature range 140-500 F; Bluetooth/app, variable drum and fan speed. Roast-time chart is the CBR-101's (12-23 min), assumed to apply.",
+            "green_weight_min_g": 100,
+            "green_weight_max_g": 300,
+            "green_weight_recommended_g": 300,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 25,
+            "temp_unit": "F",
+            "temp_source": "chamber_air",
+            "has_temp_readout": true,
+            "temp_min": 60,
+            "temp_max": 500
+        }
     },
     "hottop-kn-8828b-2k": {
         "name": "Hottop KN-8828B-2K",
-        "values": {}
+        "values": {
+            "type": "drum",
+            "calibrated": false,
+            "sources": [
+                "https://www.hottopamericas.com/Manual_BP-2K_v1-4web.pdf",
+                "https://www.roastmasters.com/hottop.html"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "profile_grid_minutes",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "One thermocouple; manual says the display shows roasting-chamber temperature, which reads well above actual bean temperature. Time 10:00-25:00, target temperature 167-428 F, display switchable F/C. External cooling tray.",
+            "green_weight_min_g": 85,
+            "green_weight_max_g": 250,
+            "green_weight_recommended_g": 250,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 27,
+            "temp_unit": "F",
+            "temp_source": "chamber_air",
+            "has_temp_readout": true,
+            "temp_min": 60,
+            "temp_max": 500
+        }
     },
     "hottop-kn-8828b-2k-plus": {
         "name": "Hottop KN-8828B-2K+",
-        "values": {}
+        "values": {
+            "type": "drum",
+            "calibrated": false,
+            "sources": [
+                "https://www.hottopamericas.com/KN-8828B-2K+%20Addendum%20Manual_0_1g.pdf",
+                "https://www.roastmasters.com/hottop2Kplus.html",
+                "https://www.hottopamericas.com/Manual_BP-2K_v1-4web.pdf"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "profile_grid_minutes",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "Two K-type thermocouples (bean and environment); the roast target is bean temperature. Retailer: roasts up to 300 g (250 g on other current models). Time 10:00-25:00, target temperature 167-428 F, display switchable F/C.",
+            "green_weight_min_g": 100,
+            "green_weight_max_g": 300,
+            "green_weight_recommended_g": 250,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 27,
+            "temp_unit": "F",
+            "temp_source": "bean_probe",
+            "has_temp_readout": true,
+            "temp_min": 60,
+            "temp_max": 500
+        }
     },
     "hottop-kn-8828p-2k": {
         "name": "Hottop KN-8828P-2K",
-        "values": {}
+        "values": {
+            "type": "drum",
+            "calibrated": false,
+            "sources": [
+                "https://www.hottopamericas.com/Manual_BP-2K_v1-4web.pdf"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "profile_grid_minutes",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "Programmable model: 8 segments of up to 3 min, maximum program 22:00 (plus automatic warm-up). Display shows roasting-chamber temperature. Discontinued in the US.",
+            "green_weight_min_g": 85,
+            "green_weight_max_g": 250,
+            "green_weight_recommended_g": 250,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 24,
+            "temp_unit": "F",
+            "temp_source": "chamber_air",
+            "has_temp_readout": true,
+            "temp_min": 60,
+            "temp_max": 500
+        }
     },
     "huky-500t": {
         "name": "Huky 500T",
-        "values": {}
+        "values": {
+            "type": "drum",
+            "calibrated": false,
+            "sources": [
+                "https://www.thecoffeecompass.com/gear-review-huky-500-coffee-roaster/"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "profile_grid_minutes",
+                "temp_unit",
+                "temp_source",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "LOW CONFIDENCE: only one review was read. It reports a 500 g maximum, 330 g as the ideal batch, and two thermometers (analog on the drum plus a digital probe). The 150 g minimum and 8-15 min roast time come from a search-result summary only. Unit and probe role assumed.",
+            "green_weight_min_g": 150,
+            "green_weight_max_g": 500,
+            "green_weight_recommended_g": 330,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 17,
+            "temp_unit": "C",
+            "temp_source": "bean_probe",
+            "has_temp_readout": true,
+            "temp_min": 15,
+            "temp_max": 260
+        }
     },
     "ikawa-home": {
         "name": "IKAWA Home",
-        "values": {}
+        "values": {
+            "type": "fluid bed",
+            "calibrated": false,
+            "sources": [
+                "https://ikawahome.com/pages/faq_updated",
+                "https://ikawahome.com/blogs/home/diving-deeper-creating-your-own-roast-recipes-using-graph-editor",
+                "https://ikawahome.com/blogs/home/how-does-the-ikawa-home-roasting-system-work"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "profile_grid_minutes",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "100 g green (about 90 g roasted); refurbished units 50 g. Recipes typically 6-10 min, hard maximum 12 min. Measures INLET air temperature after the heater (not bean temperature); inlet temperature can reach 290 C (554 F), so the temperature cap is raised to 300 C.",
+            "green_weight_min_g": 35,
+            "green_weight_max_g": 100,
+            "green_weight_recommended_g": 100,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 14,
+            "temp_unit": "C",
+            "temp_source": "inlet_air",
+            "has_temp_readout": true,
+            "temp_min": 15,
+            "temp_max": 300
+        }
     },
     "ikawa-pro50": {
         "name": "IKAWA Pro50",
-        "values": {}
+        "values": {
+            "type": "fluid bed",
+            "calibrated": false,
+            "sources": [
+                "https://www.ikawacoffee.com/wp-content/uploads/2023/10/IKAWA_Pro_Trade_Brochure_2023-1.pdf"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "roast_time_min_s",
+                "first_crack_min_s",
+                "profile_grid_minutes",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "Brochure: 60 g capacity, roast time 0-20 min, samples typically 5-10 min, two sensors (inlet and exhaust). Short roasts are normal, so the roast-time and first-crack floors are lowered. Row count sized to typical roasts, not the 20-min machine limit. Measures INLET air temperature after the heater (not bean temperature); inlet temperature can reach 290 C (554 F), so the temperature cap is raised to 300 C.",
+            "green_weight_min_g": 20,
+            "green_weight_max_g": 60,
+            "green_weight_recommended_g": 60,
+            "roast_time_min_s": 180,
+            "first_crack_min_s": 150,
+            "profile_grid_minutes": 14,
+            "temp_unit": "C",
+            "temp_source": "inlet_air",
+            "has_temp_readout": true,
+            "temp_min": 15,
+            "temp_max": 300
+        }
     },
     "ikawa-pro100": {
         "name": "IKAWA Pro100",
-        "values": {}
+        "values": {
+            "type": "fluid bed",
+            "calibrated": false,
+            "sources": [
+                "https://www.ikawacoffee.com/wp-content/uploads/2023/10/IKAWA_Pro_Trade_Brochure_2023-1.pdf"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "roast_time_min_s",
+                "first_crack_min_s",
+                "profile_grid_minutes",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "Brochure: 120 g capacity, roast time 0-20 min, samples typically 5-10 min, two sensors (inlet and exhaust). Row count sized to typical roasts, not the 20-min machine limit. Measures INLET air temperature after the heater (not bean temperature); inlet temperature can reach 290 C (554 F), so the temperature cap is raised to 300 C.",
+            "green_weight_min_g": 40,
+            "green_weight_max_g": 120,
+            "green_weight_recommended_g": 120,
+            "roast_time_min_s": 180,
+            "first_crack_min_s": 150,
+            "profile_grid_minutes": 14,
+            "temp_unit": "C",
+            "temp_source": "inlet_air",
+            "has_temp_readout": true,
+            "temp_min": 15,
+            "temp_max": 300
+        }
     },
     "kaffelogic-nano-7": {
         "name": "Kaffelogic Nano 7",
-        "values": {}
+        "values": {
+            "type": "fluid bed",
+            "calibrated": false,
+            "sources": [
+                "https://webservices.kaffelogic.com/downloads/manuals/The%20Kaffelogic%20Roasters%20Companion%202.pdf",
+                "https://www.kaffelogic.com/products/nano-7e"
+            ],
+            "inferred": [
+                "profile_grid_minutes",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "Nano 7: 120 g standard batch; 50-200 g with the optional Boost kit (the maximum allows for it). Roast Companion: probe touches the beans (reads 5-10 C above true bean-surface temperature); first crack about 205 C; roast usually ended 220-230 C; profile = temperature curve plus fan curve, ended by a 'roast level'. Typical roast under 10 min; cool-down 2-3 min.",
+            "green_weight_min_g": 50,
+            "green_weight_max_g": 200,
+            "green_weight_recommended_g": 120,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 12,
+            "temp_unit": "C",
+            "temp_source": "bean_probe",
+            "has_temp_readout": true,
+            "temp_min": 15,
+            "temp_max": 260
+        }
     },
     "kaffelogic-nano-7e": {
         "name": "Kaffelogic Nano 7e",
-        "values": {}
+        "values": {
+            "type": "fluid bed",
+            "calibrated": false,
+            "sources": [
+                "https://webservices.kaffelogic.com/downloads/manuals/The%20Kaffelogic%20Roasters%20Companion%202.pdf",
+                "https://www.kaffelogic.com/products/nano-7e"
+            ],
+            "inferred": [
+                "profile_grid_minutes",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "Nano 7e: 120 g standard batch; 50-200 g with the optional Boost kit (the maximum allows for it). Roast Companion: probe touches the beans (reads 5-10 C above true bean-surface temperature); first crack about 205 C; roast usually ended 220-230 C; profile = temperature curve plus fan curve, ended by a 'roast level'. Typical roast under 10 min; cool-down 2-3 min.",
+            "green_weight_min_g": 50,
+            "green_weight_max_g": 200,
+            "green_weight_recommended_g": 120,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 12,
+            "temp_unit": "C",
+            "temp_source": "bean_probe",
+            "has_temp_readout": true,
+            "temp_min": 15,
+            "temp_max": 260
+        }
     },
     "kaldi-mini": {
         "name": "Kaldi Mini",
-        "values": {}
+        "values": {
+            "type": "drum",
+            "calibrated": false,
+            "sources": [
+                "https://coffeeroastco.com/products/kaffa-mini-coffee-roaster",
+                "https://roasters.space/kaldi-coffee-roaster-review/",
+                "https://www.homegrounds.co/kaldi-coffee-roaster-review/"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "profile_grid_minutes",
+                "temp_source",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "Retailer: capacity 200 g, max 250 g. Gas burner required. Ships with a Celsius analog thermometer in the drum (digital probe optional); reviewers report 8-15 min roasts with first crack around 7-8 min. Where the thermometer sits relative to the beans is not stated, so chamber air is assumed.",
+            "green_weight_min_g": 85,
+            "green_weight_max_g": 250,
+            "green_weight_recommended_g": 200,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 17,
+            "temp_unit": "C",
+            "temp_source": "chamber_air",
+            "has_temp_readout": true,
+            "temp_min": 15,
+            "temp_max": 260
+        }
     },
     "kaldi-wide": {
         "name": "Kaldi Wide",
-        "values": {}
+        "values": {
+            "type": "drum",
+            "calibrated": false,
+            "sources": [
+                "https://coffeeroastco.com/products/kaffa-wide-pop-coffee-roaster",
+                "https://roasters.space/kaldi-coffee-roaster-review/",
+                "https://www.homegrounds.co/kaldi-coffee-roaster-review/"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "profile_grid_minutes",
+                "temp_source",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "Capacity 300 g (reviewers commonly roast 200-250 g). Gas burner required. Ships with a Celsius analog thermometer in the drum (digital probe optional); reviewers report 8-15 min roasts with first crack around 7-8 min. Where the thermometer sits relative to the beans is not stated, so chamber air is assumed.",
+            "green_weight_min_g": 100,
+            "green_weight_max_g": 300,
+            "green_weight_recommended_g": 300,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 17,
+            "temp_unit": "C",
+            "temp_source": "chamber_air",
+            "has_temp_readout": true,
+            "temp_min": 15,
+            "temp_max": 260
+        }
     },
     "kaleido-sniper-m1": {
         "name": "Kaleido Sniper M1",
-        "values": {}
+        "values": {
+            "type": "drum",
+            "calibrated": false,
+            "sources": [
+                "https://kaleidoroasters.com/",
+                "https://espressooutlet.com/collections/kaleido-roasters",
+                "https://www.kaleidosniper.com/Kaleido-Sniper-M2-Standard-Coffee-roaster-machine-Small-coffee-roaster-p4690600.html"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "profile_grid_minutes",
+                "temp_unit",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "Retailers list 200 g. Two probes (bean and environment). Manufacturer M2 page lists roasting time 4-15 min; row count assumed the same across the M-series. Unit assumed C.",
+            "green_weight_min_g": 65,
+            "green_weight_max_g": 200,
+            "green_weight_recommended_g": null,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 17,
+            "temp_unit": "C",
+            "temp_source": "bean_probe",
+            "has_temp_readout": true,
+            "temp_min": 15,
+            "temp_max": 260
+        }
     },
     "kaleido-sniper-m2": {
         "name": "Kaleido Sniper M2",
-        "values": {}
+        "values": {
+            "type": "drum",
+            "calibrated": false,
+            "sources": [
+                "https://kaleidoroasters.com/",
+                "https://espressooutlet.com/collections/kaleido-roasters",
+                "https://www.kaleidosniper.com/Kaleido-Sniper-M2-Standard-Coffee-roaster-machine-Small-coffee-roaster-p4690600.html"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "profile_grid_minutes",
+                "temp_unit",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "Two US retailers list 500 g; a third lists 400 g, so the larger is used to avoid rejecting valid roasts. One search result gave a 50 g minimum (not read on the page). Two probes (bean and environment). Manufacturer M2 page lists roasting time 4-15 min; row count assumed the same across the M-series. Unit assumed C.",
+            "green_weight_min_g": 50,
+            "green_weight_max_g": 500,
+            "green_weight_recommended_g": null,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 17,
+            "temp_unit": "C",
+            "temp_source": "bean_probe",
+            "has_temp_readout": true,
+            "temp_min": 15,
+            "temp_max": 260
+        }
     },
     "kaleido-sniper-m6": {
         "name": "Kaleido Sniper M6",
-        "values": {}
+        "values": {
+            "type": "drum",
+            "calibrated": false,
+            "sources": [
+                "https://kaleidoroasters.com/",
+                "https://espressooutlet.com/collections/kaleido-roasters",
+                "https://www.kaleidosniper.com/Kaleido-Sniper-M2-Standard-Coffee-roaster-machine-Small-coffee-roaster-p4690600.html"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "profile_grid_minutes",
+                "temp_unit",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "Retailers list 700 g. Two probes (bean and environment). Manufacturer M2 page lists roasting time 4-15 min; row count assumed the same across the M-series. Unit assumed C.",
+            "green_weight_min_g": 235,
+            "green_weight_max_g": 700,
+            "green_weight_recommended_g": null,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 17,
+            "temp_unit": "C",
+            "temp_source": "bean_probe",
+            "has_temp_readout": true,
+            "temp_min": 15,
+            "temp_max": 260
+        }
     },
     "kaleido-sniper-m10": {
         "name": "Kaleido Sniper M10",
-        "values": {}
+        "values": {
+            "type": "drum",
+            "calibrated": false,
+            "sources": [
+                "https://kaleidoroasters.com/",
+                "https://espressooutlet.com/collections/kaleido-roasters",
+                "https://www.kaleidosniper.com/Kaleido-Sniper-M2-Standard-Coffee-roaster-machine-Small-coffee-roaster-p4690600.html"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "profile_grid_minutes",
+                "temp_unit",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "Retailers list 1.2 kg; one product title gives 500-1200 g (minimum from a title only, not read on the page). Two probes (bean and environment). Manufacturer M2 page lists roasting time 4-15 min; row count assumed the same across the M-series. Unit assumed C.",
+            "green_weight_min_g": 500,
+            "green_weight_max_g": 1200,
+            "green_weight_recommended_g": null,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 17,
+            "temp_unit": "C",
+            "temp_source": "bean_probe",
+            "has_temp_readout": true,
+            "temp_min": 15,
+            "temp_max": 260
+        }
     },
     "nesco-cr-1010-pr": {
         "name": "Nesco CR-1010-PR",
-        "values": {}
+        "values": {
+            "type": "hot air, auger-stirred",
+            "calibrated": false,
+            "sources": [
+                "https://www.bodhileafcoffee.com/pages/nesco-cr-1010-roasting-guide",
+                "https://www.newegg.com/p/14Y-005K-00001"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "profile_grid_minutes",
+                "temp_source",
+                "has_temp_readout"
+            ],
+            "notes": "Retailer guide: capacity 5 oz (142 g), 4 oz (113 g) recommended for evenness. Roast time is set in minutes and cooling starts automatically 5 min before the end; a retailer blurb (search result) says 20-30 min. Timer only; no temperature readout described.",
+            "green_weight_min_g": 45,
+            "green_weight_max_g": 142,
+            "green_weight_recommended_g": 113,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 32,
+            "temp_unit": null,
+            "temp_source": "none",
+            "has_temp_readout": false,
+            "temp_min": null,
+            "temp_max": null
+        }
     },
     "nostalgia-electric-popcorn-popper": {
         "name": "Nostalgia Electric Popcorn Popper",
-        "values": {}
+        "values": {
+            "type": "hot-air popper",
+            "calibrated": false,
+            "sources": [
+                "https://ineedcoffee.com/coffee-roasting-popcorn-poppers/"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "green_weight_max_g",
+                "green_weight_recommended_g",
+                "profile_grid_minutes",
+                "temp_source",
+                "has_temp_readout"
+            ],
+            "notes": "Article lists a Nostalgia with a solid 4.5 in chamber and a very strong fan (needs a chimney extender to keep beans in). Hot-air popcorn popper (no thermometer). Sources rate chamber depth: a 4.5 in chamber roasts about 90 g; 3.5 in chambers less. Typical 5-10 min (search-result snippet). Batch limits derived from the chamber-depth guideline.",
+            "green_weight_min_g": 30,
+            "green_weight_max_g": 100,
+            "green_weight_recommended_g": 90,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 12,
+            "temp_unit": null,
+            "temp_source": "none",
+            "has_temp_readout": false,
+            "temp_min": null,
+            "temp_max": null
+        }
     },
     "nuvo-eco-ceramic-stovetop": {
         "name": "Nuvo Eco (ceramic stovetop)",
-        "values": {}
+        "values": {
+            "type": "stovetop (manual)",
+            "calibrated": false,
+            "sources": [
+                "https://www.triplebarcoffee.com/equipment/roasting/nuvo-eco-coffee-roaster-review/"
+            ],
+            "inferred": [
+                "green_weight_recommended_g",
+                "profile_grid_minutes",
+                "temp_source",
+                "has_temp_readout"
+            ],
+            "notes": "Handheld ceramic roaster: 30-70 g per batch, 50-60 g recommended (another retailer says 30 g). Roast time 3-10 min from a search snippet. No thermometer.",
+            "green_weight_min_g": 30,
+            "green_weight_max_g": 70,
+            "green_weight_recommended_g": 55,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 12,
+            "temp_unit": null,
+            "temp_source": "none",
+            "has_temp_readout": false,
+            "temp_min": null,
+            "temp_max": null
+        }
     },
     "presto-poplite-popcorn-popper": {
         "name": "Presto PopLite (popcorn popper)",
-        "values": {}
+        "values": {
+            "type": "hot-air popper",
+            "calibrated": false,
+            "sources": [
+                "https://ineedcoffee.com/coffee-roasting-popcorn-poppers/"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "green_weight_max_g",
+                "green_weight_recommended_g",
+                "profile_grid_minutes",
+                "temp_source",
+                "has_temp_readout"
+            ],
+            "notes": "LOW CONFIDENCE: the article covers other Presto models (a 3.5 in chamber), not the PopLite. Batch limits assumed for a small-chamber popper; Presto poppers tend to roast fast and can blow beans out.",
+            "green_weight_min_g": 25,
+            "green_weight_max_g": 80,
+            "green_weight_recommended_g": 70,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 12,
+            "temp_unit": null,
+            "temp_source": "none",
+            "has_temp_readout": false,
+            "temp_min": null,
+            "temp_max": null
+        }
     },
     "quest-m3": {
         "name": "Quest M3",
-        "values": {}
+        "values": {
+            "type": "drum",
+            "calibrated": false,
+            "sources": [
+                "https://library.sweetmarias.com/wp-content/uploads/2021/05/QuestHandbook-May-2021.pdf",
+                "https://royalcoffee.com/roasting-on-the-quest-m3s-an-update/"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "profile_grid_minutes",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "M3: handbook batch 250-300 g (cooling bin handles about 300 g or less). Handbook: temperatures are in Celsius; ships with one analog thermometer, ports for bean (BT) and environment (ET) probes; BT reading varies with probe placement and batch size; overall roast 11-22 min; first crack about 205 C. Royal Coffee reports 225 g as a full M3s load.",
+            "green_weight_min_g": 100,
+            "green_weight_max_g": 300,
+            "green_weight_recommended_g": 250,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 24,
+            "temp_unit": "C",
+            "temp_source": "bean_probe",
+            "has_temp_readout": true,
+            "temp_min": 15,
+            "temp_max": 260
+        }
     },
     "quest-m3s": {
         "name": "Quest M3s",
-        "values": {}
+        "values": {
+            "type": "drum",
+            "calibrated": false,
+            "sources": [
+                "https://library.sweetmarias.com/wp-content/uploads/2021/05/QuestHandbook-May-2021.pdf",
+                "https://royalcoffee.com/roasting-on-the-quest-m3s-an-update/"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "profile_grid_minutes",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "M3s: handbook batch 250-300 g (cooling bin handles about 300 g or less). Handbook: temperatures are in Celsius; ships with one analog thermometer, ports for bean (BT) and environment (ET) probes; BT reading varies with probe placement and batch size; overall roast 11-22 min; first crack about 205 C. Royal Coffee reports 225 g as a full M3s load.",
+            "green_weight_min_g": 100,
+            "green_weight_max_g": 300,
+            "green_weight_recommended_g": 250,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 24,
+            "temp_unit": "C",
+            "temp_source": "bean_probe",
+            "has_temp_readout": true,
+            "temp_min": 15,
+            "temp_max": 260
+        }
     },
     "roest-l100-ultra": {
         "name": "Roest L100 Ultra",
-        "values": {}
+        "values": {
+            "type": "drum (electric convection)",
+            "calibrated": false,
+            "sources": [
+                "https://www.roestcoffee.com/products/sample-roasters/l100-ultra",
+                "https://www.roestcoffee.com/products/sample-roasters/new-generation"
+            ],
+            "inferred": [
+                "profile_grid_minutes",
+                "temp_unit",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "Previous-generation flagship; its page repeats the L200 spec text. Dual/single bean-temperature probe; 50-200 g per batch; 4-7 min per 200 g batch. Row count and unit assumed.",
+            "green_weight_min_g": 50,
+            "green_weight_max_g": 200,
+            "green_weight_recommended_g": null,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 12,
+            "temp_unit": "C",
+            "temp_source": "bean_probe",
+            "has_temp_readout": true,
+            "temp_min": 15,
+            "temp_max": 260
+        }
     },
     "roest-l200-plus": {
         "name": "Roest L200 Plus",
-        "values": {}
+        "values": {
+            "type": "drum (electric convection)",
+            "calibrated": false,
+            "sources": [
+                "https://www.roestcoffee.com/products/sample-roasters/new-generation"
+            ],
+            "inferred": [
+                "profile_grid_minutes",
+                "temp_unit",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "7 min per 200 g batch. Dual/single bean-temperature probe; 50-200 g per batch; 4-7 min per 200 g batch. Row count and unit assumed.",
+            "green_weight_min_g": 50,
+            "green_weight_max_g": 200,
+            "green_weight_recommended_g": null,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 12,
+            "temp_unit": "C",
+            "temp_source": "bean_probe",
+            "has_temp_readout": true,
+            "temp_min": 15,
+            "temp_max": 260
+        }
     },
     "roest-l200-ultra": {
         "name": "Roest L200 Ultra",
-        "values": {}
+        "values": {
+            "type": "drum (electric convection)",
+            "calibrated": false,
+            "sources": [
+                "https://www.roestcoffee.com/products/sample-roasters/new-generation"
+            ],
+            "inferred": [
+                "roast_time_min_s",
+                "first_crack_min_s",
+                "profile_grid_minutes",
+                "temp_unit",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "Counterflow mode: roasts in as little as 5 min per batch (4 min per 200 g batch), so the roast-time and first-crack floors are lowered. Dual/single bean-temperature probe; 50-200 g per batch; 4-7 min per 200 g batch. Row count and unit assumed.",
+            "green_weight_min_g": 50,
+            "green_weight_max_g": 200,
+            "green_weight_recommended_g": null,
+            "roast_time_min_s": 180,
+            "first_crack_min_s": 150,
+            "profile_grid_minutes": 12,
+            "temp_unit": "C",
+            "temp_source": "bean_probe",
+            "has_temp_readout": true,
+            "temp_min": 15,
+            "temp_max": 260
+        }
     },
     "roest-s200": {
         "name": "Roest S200",
-        "values": {}
+        "values": {
+            "type": "drum (electric convection)",
+            "calibrated": false,
+            "sources": [
+                "https://www.roestcoffee.com/products/sample-roasters/new-generation"
+            ],
+            "inferred": [
+                "profile_grid_minutes",
+                "temp_unit",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "7 min per 200 g batch. Dual/single bean-temperature probe; 50-200 g per batch; 4-7 min per 200 g batch. Row count and unit assumed.",
+            "green_weight_min_g": 50,
+            "green_weight_max_g": 200,
+            "green_weight_recommended_g": null,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 12,
+            "temp_unit": "C",
+            "temp_source": "bean_probe",
+            "has_temp_readout": true,
+            "temp_min": 15,
+            "temp_max": 260
+        }
     },
     "sandbox-smart-r1": {
         "name": "Sandbox Smart R1",
-        "values": {}
+        "values": {
+            "type": "drum",
+            "calibrated": false,
+            "sources": [
+                "https://www.sandboxsmart.com/sandbox-smart-r1-instructions/?lang=en",
+                "https://www.sandboxsmart.com/sandbox-smart-r1-home-coffee-roaster/?lang=en"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "profile_grid_minutes",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "FAQ: recommended 100 g +/- 20 g; page: 100-150 g takes 10-16 min; preheat 8-10 min at 180-220 C; first crack about 10 min after start; auto-stops after 20 min; maximum 220 C. Bean temperature (BT) shown in the app.",
+            "green_weight_min_g": 80,
+            "green_weight_max_g": 150,
+            "green_weight_recommended_g": 100,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 18,
+            "temp_unit": "C",
+            "temp_source": "bean_probe",
+            "has_temp_readout": true,
+            "temp_min": 15,
+            "temp_max": 260
+        }
     },
     "sandbox-smart-r2": {
         "name": "Sandbox Smart R2",
-        "values": {}
+        "values": {
+            "type": "drum",
+            "calibrated": false,
+            "sources": [
+                "https://www.sandboxsmart.com/sandbox-smart-r2-instructions/?lang=en",
+                "https://www.sandboxsmart.com/sandbox-smart-r1-instructions/?lang=en"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "profile_grid_minutes",
+                "temp_min",
+                "temp_max"
+            ],
+            "notes": "FAQ: recommended 200-550 g +/- 20 g; first crack at 175-185 C; preheat 8-10 min at 180-220 C; auto-stops after 20 min. Row count assumed larger than the R1 for bigger batches.",
+            "green_weight_min_g": 180,
+            "green_weight_max_g": 550,
+            "green_weight_recommended_g": null,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 22,
+            "temp_unit": "C",
+            "temp_source": "bean_probe",
+            "has_temp_readout": true,
+            "temp_min": 15,
+            "temp_max": 260
+        }
     },
     "west-bend-poppery-popcorn-popper": {
         "name": "West Bend Poppery (popcorn popper)",
-        "values": {}
+        "values": {
+            "type": "hot-air popper",
+            "calibrated": false,
+            "sources": [
+                "https://ineedcoffee.com/roasting-coffee-in-a-popcorn-popper/",
+                "https://ineedcoffee.com/coffee-roasting-popcorn-poppers/"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "green_weight_recommended_g",
+                "profile_grid_minutes",
+                "temp_source",
+                "has_temp_readout"
+            ],
+            "notes": "The original 1500 W model. Article: 100-150 g depending on roast level (150 g is the top of his table; he once roasted 160 g). Hot-air popper, no thermometer.",
+            "green_weight_min_g": 50,
+            "green_weight_max_g": 150,
+            "green_weight_recommended_g": 125,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 12,
+            "temp_unit": null,
+            "temp_source": "none",
+            "has_temp_readout": false,
+            "temp_min": null,
+            "temp_max": null
+        }
     },
     "west-bend-poppery-ii-popcorn-popper": {
         "name": "West Bend Poppery II (popcorn popper)",
-        "values": {}
+        "values": {
+            "type": "hot-air popper",
+            "calibrated": false,
+            "sources": [
+                "https://ineedcoffee.com/coffee-roasting-popcorn-poppers/",
+                "https://ineedcoffee.com/roasting-coffee-in-a-popcorn-popper/"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "green_weight_max_g",
+                "green_weight_recommended_g",
+                "profile_grid_minutes",
+                "temp_source",
+                "has_temp_readout"
+            ],
+            "notes": "Smaller and lower-wattage (1200 W) than the original Poppery, with a 4.5 in chamber. Hot-air popcorn popper (no thermometer). Sources rate chamber depth: a 4.5 in chamber roasts about 90 g; 3.5 in chambers less. Typical 5-10 min (search-result snippet).",
+            "green_weight_min_g": 30,
+            "green_weight_max_g": 100,
+            "green_weight_recommended_g": 90,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 12,
+            "temp_unit": null,
+            "temp_source": "none",
+            "has_temp_readout": false,
+            "temp_min": null,
+            "temp_max": null
+        }
     },
     "whirley-pop-stovetop-popcorn-popper": {
         "name": "Whirley-Pop (stovetop popcorn popper)",
-        "values": {}
+        "values": {
+            "type": "stovetop (manual)",
+            "calibrated": false,
+            "sources": [
+                "https://ineedcoffee.com/stovetop-roasting-with-the-whirley-pop/",
+                "https://thecaptainscoffee.com/pages/how-to-roast-coffee-with-a-whirley-pop"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "profile_grid_minutes",
+                "temp_source",
+                "has_temp_readout"
+            ],
+            "notes": "Stovetop popper with a hand crank. Source: 8 oz batch, about 10 min total, first crack at 5-7 min. No thermometer unless the owner adds one (source used a probe and an IR thermometer); not supported by this entry.",
+            "green_weight_min_g": 75,
+            "green_weight_max_g": 227,
+            "green_weight_recommended_g": 227,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 12,
+            "temp_unit": null,
+            "temp_source": "none",
+            "has_temp_readout": false,
+            "temp_min": null,
+            "temp_max": null
+        }
     },
     "zenroast-ceramic-stovetop": {
         "name": "Zenroast (ceramic stovetop)",
-        "values": {}
+        "values": {
+            "type": "stovetop (manual)",
+            "calibrated": false,
+            "sources": [
+                "https://zenroast.co/",
+                "https://www.thegreenhead.com/2016/03/zenroast-ceramic-coffee-bean-roaster.php"
+            ],
+            "inferred": [
+                "green_weight_min_g",
+                "green_weight_max_g",
+                "green_weight_recommended_g",
+                "profile_grid_minutes",
+                "temp_source",
+                "has_temp_readout"
+            ],
+            "notes": "LOW CONFIDENCE: the pages read give no specs. Search results said 50-70 g per batch (one source: 100 g maximum), 5-10 min; the larger maximum is used to avoid false rejections. No thermometer.",
+            "green_weight_min_g": 30,
+            "green_weight_max_g": 100,
+            "green_weight_recommended_g": 60,
+            "roast_time_min_s": null,
+            "first_crack_min_s": null,
+            "profile_grid_minutes": 12,
+            "temp_unit": null,
+            "temp_source": "none",
+            "has_temp_readout": false,
+            "temp_min": null,
+            "temp_max": null
+        }
     }
 }

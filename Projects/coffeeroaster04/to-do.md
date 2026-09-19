@@ -74,34 +74,47 @@ Kept deliberately modest: the live WSGI file does `from app import app` and `dat
 
 ---
 
-## T-02 [PLANNED] Populate `data/roasters.json` with per-roaster values
+## T-02 [IN PROGRESS] Populate `data/roasters.json` with per-roaster values — T-02a complete, T-02b planned
 
 **Depends on:** none (data + research only; can run alongside T-03 prep).
-**Goal:** every one of the 47 entries carries a full, explicit set of values (Settled #5). Split into two passes so research effort follows need.
+**Goal:** every one of the 46 entries carries a full, explicit set of values (Settled #5). Split into two passes so research effort follows need.
 
-**Provenance rule.** Each entry has `calibrated` (true only where real logged roasts back it — SR800 only), `sources` (URLs), and `notes`. Prefer primary documents (manuals, Sweet Maria's tip-sheet PDFs, which download fine even though their web pages block fetching). Values taken from secondary sources are marked in `notes`. Where no source exists, leave the value `null`, never a guess; `null` falls back to the legacy default for that field. Identical numbers across roasters are fine, but don't make identical numbers look like measurements: use `notes` to say "same as X by design/assumption".
+**Provenance rule.** Each entry has `calibrated` (true only where real logged roasts back it — SR800 only), `sources` (URLs), `inferred` (the fields whose value is not directly stated by a source), and `notes`. Prefer primary documents (manuals, manufacturer and Sweet Maria's tip-sheet PDFs, which download fine even though their web pages block fetching); read the raw text, not a page summarizer's paraphrase, which invented details more than once. Where a value cannot be sourced it is inferred by the rules in `SPEC.md` ("Roaster data") and listed in `inferred`, never presented as measured; a value that is optional and has no basis (e.g. the roast-time floor) stays `null` and falls back to today's constant. Identical numbers across roasters are fine, but don't make identical numbers look like measurements: use `notes` to say so.
 
-### T-02a — Tier 1 fields (needed by T-03)
-- [ ] Define the schema in `SPEC.md` and add a data-validation test (below).
-- [ ] Fill for all 47 entries:
+### T-02a — Tier 1 fields (needed by T-03) — [COMPLETE]
+
+Completed 2026-09-19 · **not yet committed** — awaiting your review.
+- [x] Schema defined in `SPEC.md` ("Roaster data (Tier 1)", including the rules for values).
+- [x] All 46 entries filled, each with its own explicit values, source URLs, an `inferred` list, and notes.
+- [x] `tests/test_roasters_data.py` (11 tests): required keys, batch ranges, row counts, time floors, unit/readout consistency, provenance, only-SR800-calibrated, SR series = 12 rows. Each guard was checked against deliberately broken copies of the data. Suite: 184 passing.
 
 | Field | Meaning |
 |---|---|
 | `type` | Descriptive label only (e.g. "fluid bed", "drum") — not used to inherit anything |
-| `calibrated`, `sources`, `notes` | Provenance (above) |
-| `green_weight_min_g`, `green_weight_max_g`, `green_weight_recommended_g` | Batch limits and hint |
-| `roast_time_min_s` | Shortest plausible roast |
-| `first_crack_min_s` | Earliest plausible first crack (today's global 240 s floor is wrong for fast roasters) |
-| `profile_grid_minutes` | Number of profile rows, one per whole minute; also the maximum roast time in minutes (Settled #13). **Required, never null.** |
-| `temp_unit` | `"F"` or `"C"` (Settled #12). **Required, never null.** |
+| `calibrated`, `sources`, `inferred`, `notes` | Provenance (above) |
+| `green_weight_min_g`, `green_weight_max_g`, `green_weight_recommended_g` | Batch limits and hint (recommended may be `null`) |
+| `roast_time_min_s`, `first_crack_min_s` | Shortest plausible roast / earliest plausible first crack; `null` = today's 240 s. Set only for IKAWA Pro and the Roest L200 Ultra, whose normal roasts are shorter |
+| `profile_grid_minutes` | Number of profile rows, one per whole minute; also the maximum roast time in minutes (Settled #13). Required |
+| `temp_unit` | `"F"` or `"C"` (Settled #12); `null` when there is no readout |
 | `temp_source` | `bean_probe` / `inlet_air` / `chamber_air` / `unspecified` / `none` |
-| `has_temp_readout` | false → hide the temperature grid; the target first-crack and development-time fields are unaffected |
-| `temp_min`, `temp_max` | Sanity range in the roaster's own unit (replaces the global 60–500 °F) |
+| `has_temp_readout` | false → `temp_source` is `none`, unit and range are `null`, and the temperature grid is hidden; the target first-crack and development-time fields are unaffected |
+| `temp_min`, `temp_max` | Sanity range in the roaster's own unit (IKAWA's is higher: inlet air reaches 290 °C) |
+
+**Result.** Manuals, manufacturer pages, or tip sheets back the batch sizes and temperature behavior of the Fresh Roast SR series, Gene Cafe, Behmor, Hottop, Quest, Aillio R1/R1 V2, IKAWA, Kaffelogic, Sandbox, and Roest. Retailer listings and reviews back Kaleido, Kaldi, Nesco, Huky, the poppers, the Whirley-Pop, and the ceramic roasters. Row counts are inferred for every roaster except the SR series (your rule), from the longest normal roast the sources describe: Gene Cafe 25, Behmor 28, Hottop 24–27, Quest 24, Kaldi/Kaleido/Huky 17, Sandbox 18–22, IKAWA 14, Kaffelogic/Roest/poppers/ceramics 12, Nesco 32.
+Low-confidence entries are flagged in their `notes`: Huky 500T, Presto PopLite, Zenroast (little or no model-specific source); Aillio R2 and R2 Pro (copied from the R1 V2 page); Behmor 2000AB Plus (copied from the 1600AB Plus manual).
+
+**For you to confirm**
+1. **SR800 limits:** minimum 113 g (the retailer's stated 4 oz) and maximum 227 g (8 oz washed; naturals are 170 g, and the natural limit is not enforced separately). Your logged roasts (about 202 g) fit.
+2. **SR800 rows:** the retailer text says total roast 8–18 min and a timer up to 20 min. I kept your 12 rows; this is the one place a source contradicts your rule.
+3. **SR300/SR340/SR500 have no temperature readout** in their sources, so after T-03 their profile form hides the temperature grid (target first crack and development time remain). If people use an external probe on these, that needs a decision (an override).
+4. **Removed "Bohemia 250 (ceramic stovetop)"** (list is now 46): it appeared only in a retailer blog post that contradicted that retailer's own product pages, and no other source exists. If you have a real product in mind, give me the actual name.
+5. **Kaffa is the export brand of the same Seoul maker as Kaldi** (Kaldi Wide400 = Kaffa Wide400, 400 g; Wide POP, 300 g). The list has only Kaldi Mini and Kaldi Wide; adding the Wide400 and Wide POP is optional and not done.
+
 
 Finished weight needs no per-roaster field: the domain rule is `0 < finished < green` (replacing the global ≥ 100 g floor, which rejects a full SR540 batch and any IKAWA roast).
 
 ### T-02b — Tier 2 fields (needed by T-04/T-05/T-06)
-- [ ] Fill for all 47 entries:
+- [ ] Fill for all 46 entries:
 
 | Field | Meaning |
 |---|---|
@@ -126,13 +139,13 @@ Finished weight needs no per-roaster field: the domain rule is `0 < finished < g
 | `wizard.natural_time_adjust_s` | 20 | Existing `static/js/profile_wizard.js` |
 | `wizard.dtr_by_level` | 0.12 / 0.13 / 0.16 / 0.18 / 0.20 / 0.23 | Existing `static/js/profile_wizard.js` (`ROAST_LEVEL_DTR`) |
 | `wizard.profile_start_temp`, `default_first_crack_temp` | 315, 400 | Existing `static/js/profile_wizard.js` |
-| `green_weight_max_g` | TBD | Retailer spec: 226 g (½ lb); your logged roasts: about 202 g |
-| `roast_time_min_s`, `first_crack_min_s` | TBD | Legacy constants are 240 s; confirm from your own roasts |
+| `green_weight_min_g`, `green_weight_max_g` | 113, 227 | **Resolved in T-02a:** retailer's stated minimum roast (4 oz) and washed maximum (8 oz) |
+| `roast_time_min_s`, `first_crack_min_s` | null | **Resolved in T-02a:** left `null` (today's 240 s); no source suggests SR800 roasts shorter than that |
 
-**Files touched:** `data/roasters.json`, `SPEC.md`, a generator script kept out of the repo root if we use one.
-**Tests (new):** every roaster has every required key; `green_weight_min_g < green_weight_max_g`; recommended lies within the min/max; `temp_min < temp_max`; `profile_grid_minutes >= 1`; `temp_unit` ∈ {F, C}; `calibrated` is false for everything except SR800; every `sources` entry is a URL. This is the guard against a typo silently breaking one roaster.
+**Files touched:** `data/roasters.json`, `SPEC.md`, `tests/test_roasters_data.py` (T-02a); T-02b will edit `data/roasters.json` and `SPEC.md` again.
+**Tests:** T-02a's validation tests are done (see above). T-02b adds checks for the Tier 2 fields.
 **Ops note:** `roasters.json` is loaded once at startup, so on PythonAnywhere an edit needs `git pull` and a web-app reload.
-**Done when:** the 47 entries validate, provenance is recorded, and `null` is used wherever a value couldn't be sourced.
+**Done when:** T-02a ✓ (46 entries validate, provenance recorded, `null` only where no basis exists); T-02b fills the Tier 2 fields the same way.
 
 ---
 
