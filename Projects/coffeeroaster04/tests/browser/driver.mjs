@@ -1,0 +1,265 @@
+// Drives headless Chromium over the DevTools protocol and prints what it observed as JSON.
+// Uses Node's built-in WebSocket (Node 22+): no npm packages and no build step.
+//
+// usage: node driver.mjs <chromium-debug-port> <base-url>
+//
+// This only observes; test_browser.py decides what is right. Each scenario records the
+// console problems (exceptions, console errors/warnings, failed loads) seen while it ran,
+// and a scenario that throws is recorded as {error} so one failure doesn't hide the rest.
+
+const [, , debugPort, baseUrl] = process.argv;
+
+const targets = await (await fetch(`http://127.0.0.1:${debugPort}/json`)).json();
+const ws = new WebSocket(targets.find((t) => t.type === "page").webSocketDebuggerUrl);
+await new Promise((resolve) => (ws.onopen = resolve));
+
+let nextId = 1;
+const pending = new Map();
+const eventWaiters = new Map();
+let problems = [];
+
+ws.onmessage = (message) => {
+  const msg = JSON.parse(message.data);
+  if (msg.id && pending.has(msg.id)) {
+    pending.get(msg.id)(msg);
+    pending.delete(msg.id);
+    return;
+  }
+  const waiting = eventWaiters.get(msg.method);
+  if (waiting?.length) waiting.shift()(msg.params);
+  if (msg.method === "Runtime.exceptionThrown") {
+    const details = msg.params.exceptionDetails;
+    problems.push("exception: " + (details.exception?.description || details.text));
+  } else if (msg.method === "Runtime.consoleAPICalled") {
+    if (["error", "warning"].includes(msg.params.type)) {
+      const text = msg.params.args.map((arg) => arg.value ?? arg.description).join(" ");
+      problems.push(`console.${msg.params.type}: ${text}`);
+    }
+  } else if (msg.method === "Log.entryAdded") {
+    const entry = msg.params.entry;
+    if (["error", "warning"].includes(entry.level)) {
+      problems.push(`log.${entry.level}: ${entry.text} ${entry.url || ""}`);
+    }
+  }
+};
+
+const send = (method, params = {}) =>
+  new Promise((resolve, reject) => {
+    const id = nextId++;
+    pending.set(id, (msg) => (msg.error ? reject(new Error(msg.error.message)) : resolve(msg.result)));
+    ws.send(JSON.stringify({ id, method, params }));
+  });
+
+const once = (method) =>
+  new Promise((resolve) => {
+    if (!eventWaiters.has(method)) eventWaiters.set(method, []);
+    eventWaiters.get(method).push(resolve);
+  });
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function ev(expression) {
+  const result = await send("Runtime.evaluate", { expression, returnByValue: true, awaitPromise: true });
+  if (result.exceptionDetails) {
+    throw new Error(`evaluating ${expression}: ${result.exceptionDetails.exception?.description}`);
+  }
+  return result.result.value;
+}
+
+async function waitFor(expression, timeoutMs = 10000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (await ev(expression)) return;
+    await sleep(50);
+  }
+  throw new Error(`timed out waiting for: ${expression}`);
+}
+
+// Navigation resolves when the load event fires, i.e. after every script (Chart.js included) has run.
+async function visit(path) {
+  const loaded = once("Page.loadEventFired");
+  await send("Page.navigate", { url: baseUrl + path });
+  await loaded;
+}
+
+async function clickAndWaitForLoad(selector) {
+  const loaded = once("Page.loadEventFired");
+  await ev(`document.querySelector(${JSON.stringify(selector)}).click()`);
+  await loaded;
+}
+
+const click = (id) => ev(`document.getElementById(${JSON.stringify(id)}).click()`);
+const text = (id) => ev(`document.getElementById(${JSON.stringify(id)}).textContent`);
+const CLOCK_RUNNING = "document.getElementById('clock-readout').textContent !== '0:00'";
+
+await send("Runtime.enable");
+await send("Page.enable");
+await send("Log.enable");
+await send("Emulation.setDeviceMetricsOverride", { width: 1400, height: 900, deviceScaleFactor: 1, mobile: false });
+
+const out = {};
+async function scenario(name, body) {
+  problems = [];
+  try {
+    out[name] = await body();
+  } catch (error) {
+    out[name] = { error: String(error) };
+  }
+  out[name].problems = problems;
+}
+
+// ---- Add Roast: what the page shows, then the timer, First Crack button, and pull countdown ----
+async function addRoast(path) {
+  await visit(path);
+  const state = {
+    chartLibLoaded: await ev("typeof Chart !== 'undefined'"),
+    graphHidden: await ev("document.querySelector('.roast-graph').hidden"),
+    layoutHeightSet: await ev("!!document.querySelector('.roast-layout').style.height"),
+    actualTempInputs: await ev("document.querySelectorAll('[name^=actual_temp_]').length"),
+    tableHeaders: await ev("Array.from(document.querySelectorAll('.roast-form th')).map((th) => th.textContent.trim())"),
+    hints: await ev("Array.from(document.querySelectorAll('.roast-form small')).map((s) => s.textContent.trim())"),
+    targetReference: await ev("document.querySelector('.target-reference')?.innerText.replace(/\\s+/g, ' ').trim() ?? null"),
+    targetReadoutHidden: await ev("document.getElementById('target-temp-readout').hidden"),
+    targetReadout: await text("target-temp-readout"),
+    clock: await text("clock-readout"),
+    pullCountdownHidden: await ev("document.getElementById('pull-countdown').hidden"),
+    hasFahrenheit: await ev("document.body.innerText.includes('°F')"),
+    hasCelsius: await ev("document.body.innerText.includes('°C')"),
+    chart: await ev(`(() => {
+      const chart = Chart.getChart('live-chart');
+      if (!chart) return null;
+      return {
+        datasets: chart.data.datasets.length,
+        curvePoints: chart.data.datasets[0].data.length,
+        curveStart: chart.data.datasets[0].data.slice(0, 4),
+        xMax: chart.options.scales.x.max,
+        yTitle: chart.options.scales.y.title.text,
+        y1Title: chart.options.scales.y1.title.text,
+      };
+    })()`),
+  };
+  // Date field auto-formatting.
+  await ev(`(() => {
+    const input = document.getElementById('date-input');
+    input.value = '09192026';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  })()`);
+  state.dateFormatted = await ev("document.getElementById('date-input').value");
+  // Timer.
+  await click("start-stop-btn");
+  await waitFor(CLOCK_RUNNING);
+  state.running = {
+    button: await text("start-stop-btn"),
+    clock: await text("clock-readout"),
+    targetReadout: await text("target-temp-readout"),
+    rorReadout: await text("ror-readout"),
+  };
+  // First Crack Now! fills the field and, if the profile has a target development time, starts the countdown.
+  await click("mark-first-crack-btn");
+  state.firstCrackValue = await ev("document.getElementById('first-crack-input').value");
+  if (await ev("!!document.querySelector('.target-reference')?.innerText.includes('development')")) {
+    await waitFor("!document.getElementById('pull-countdown').hidden", 5000);
+    state.pullCountdown = await text("pull-countdown");
+  }
+  await click("start-stop-btn");
+  state.afterStop = await text("start-stop-btn");
+  await click("reset-btn");
+  state.afterReset = await text("clock-readout");
+  return state;
+}
+
+await scenario("addRoastSr800", () => addRoast("/roasts/new/p-sr800"));
+await scenario("addRoastCelsius", () => addRoast("/roasts/new/p-kaffelogic"));
+await scenario("addRoastGeneCafe", () => addRoast("/roasts/new/p-genecafe"));
+await scenario("addRoastNoReadout", () => addRoast("/roasts/new/p-whirley"));
+
+// ---- Profile wizard (offered for the calibrated SR800 only) ----
+const readWizardOutput = () =>
+  ev(`({
+    temps: Array.from({ length: 12 }, (_, i) => document.querySelector('[name=temp_' + (i + 1) + ']').value),
+    firstCrack: document.querySelector('[name=target_first_crack]').value,
+    developmentTime: document.querySelector('[name=target_development_time]').value,
+  })`);
+
+await scenario("wizard", async () => {
+  await visit("/profiles/new?roaster=fresh-roast-sr800");
+  const state = { panelHiddenAtStart: await ev("document.getElementById('wizard-panel').hidden") };
+  await click("wizard-toggle");
+  state.panelShownAfterToggle = await ev("!document.getElementById('wizard-panel').hidden");
+  await click("wizard-generate-btn");
+  state.defaultInputs = await readWizardOutput();
+  await ev(`(() => {
+    document.getElementById('wizard-density').value = 'high';
+    document.getElementById('wizard-process').value = 'natural';
+    document.getElementById('wizard-roast-level').value = 'Vienna Roast';
+    document.getElementById('wizard-fc-temp').value = '415';
+    document.getElementById('wizard-generate-btn').click();
+  })()`);
+  state.otherInputs = await readWizardOutput();
+  return state;
+});
+
+await scenario("editProfile", async () => {
+  await visit("/profiles/p-sr800");
+  return {
+    hasWizard: await ev("!!document.getElementById('wizard-toggle')"),
+    hasSelect: await ev("!!document.querySelector('select')"),
+    hasRoasterInput: await ev("!!document.querySelector('[name=roaster_id]')"),
+    showsRoaster: await ev("document.body.innerText.includes('Fresh Roast SR800')"),
+    tempInputs: await ev("document.querySelectorAll('[name^=temp_]').length"),
+  };
+});
+
+// ---- Add a profile: choose the roaster first, then the form for it ----
+await scenario("chooser", async () => {
+  await visit("/profiles/new");
+  const state = {
+    optionCount: await ev("document.querySelectorAll('select[name=roaster] option').length"),
+    firstOption: await ev("document.querySelector('select[name=roaster] option').textContent"),
+    formShownAtStart: await ev("!!document.querySelector('[name=target_first_crack]')"),
+  };
+  await ev("document.querySelector('select[name=roaster]').value = 'gene-cafe-cbr-101'");
+  // The header has its own (Log out) form, so name the chooser's form explicitly.
+  await clickAndWaitForLoad("form[action='/profiles/new'] button[type=submit]");
+  state.search = await ev("location.search");
+  state.formShownAfter = await ev("!!document.querySelector('[name=target_first_crack]')");
+  state.roasterInput = await ev("document.querySelector('[name=roaster_id]')?.value ?? null");
+  state.showsRoaster = await ev("document.body.innerText.includes('Gene Cafe CBR-101')");
+  state.tempInputs = await ev("document.querySelectorAll('[name^=temp_]').length");
+  return state;
+});
+
+// ---- Roast detail: its own charts and table, in the record's unit ----
+async function roastDetail(path) {
+  await visit(path);
+  return {
+    hasTempChart: await ev("!!document.getElementById('temp-chart')"),
+    hasFahrenheit: await ev("document.body.innerText.includes('°F')"),
+    hasCelsius: await ev("document.body.innerText.includes('°C')"),
+    showsRoaster: await ev("/Roaster: /.test(document.body.innerText)"),
+    tableRows: await ev(`(() => {
+      const table = Array.from(document.querySelectorAll('table')).find((t) => t.querySelector('th')?.textContent === 'Time');
+      return table ? table.querySelectorAll('tbody tr').length : null;
+    })()`),
+    charts: await ev(`(() => {
+      if (typeof Chart === 'undefined' || !Chart.getChart('temp-chart')) return null;
+      const temp = Chart.getChart('temp-chart');
+      const ror = Chart.getChart('ror-chart');
+      return {
+        labelCount: temp.data.labels.length,
+        datasetLabels: temp.data.datasets.map((d) => d.label),
+        tempYTitle: temp.options.scales.y.title.text,
+        rorYTitle: ror.options.scales.y.title.text,
+      };
+    })()`),
+  };
+}
+
+await scenario("detailSr800", () => roastDetail("/roasts/r-sr800"));
+await scenario("detailCelsius", () => roastDetail("/roasts/r-kaffelogic"));
+await scenario("detailGeneCafe", () => roastDetail("/roasts/r-genecafe"));
+await scenario("detailNoReadout", () => roastDetail("/roasts/r-whirley"));
+
+console.log(JSON.stringify(out));
+ws.close();
+process.exit(0);

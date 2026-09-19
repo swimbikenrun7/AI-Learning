@@ -194,7 +194,7 @@ Completed 2026-09-19 · commit `e01d917` on branch `roaster-selection` (not yet 
 - [ ] Grid loops use the roaster's `profile_grid_minutes`; clamp the computed first-crack minute to it.
 - [ ] Update the SPEC Profile Wizard text, which currently describes the Fresh-Roast-only constants.
 
-**Tests:** no JS test harness exists in the repo (see T-09). Add server-side tests that the config island carries the right values per roaster, plus a browser check before commit.
+**Tests:** server-side tests that the config island carries the right values per roaster, and the browser check (`tests/browser/`, T-09) extended for whatever the wizard now does; it currently pins the SR800 wizard's output, so a deliberate change to those numbers means updating its expected values.
 **Done when:** the SR800 wizard output is identical to today's (the baseline values are recorded in the T-01 verification: default inputs → `315,343,366,383,394,400`, FC 6:15, dev 1:11), and a non-SR roaster produces values from its own entry with the notice shown.
 
 ---
@@ -236,13 +236,21 @@ Program-driven roasters take profiles in their own shape — IKAWA (up to 6 inle
 **Depends on:** T-03 (records carry `roaster_id`), plus real data.
 Add a read-only report script (not a web feature) that summarizes logged roasts per roaster — time to first crack, development ratio, weight loss, temperature at first crack — to compare against each roaster's stored values. When a roaster has enough consistent data, tune its entry and flip `calibrated` to true. This is how values for non-SR800 roasters get refined from user data (Settled #6).
 
-## T-09 [PLANNED] Keep a browser regression check in the repo
+## T-09 [COMPLETE] Keep a browser regression check in the repo
 
-**Depends on:** none; most useful before T-04/T-05, which change the JS's behavior.
-There are no JS tests, and T-01's verification showed how much that matters: a headless-Chromium script (no new dependency beyond a Chromium binary and Node's built-in WebSocket) that loads Add Roast and the profile form, clicks Start / First Crack / Reset and the wizard, and records the resulting chart data, readouts, and console errors, then diffs the result against a stored baseline. A working prototype exists from T-01 and was extended and reused to verify T-03 (a °C roaster, a 25-row grid, a no-readout roaster, plus the SR800 baseline comparison), but it lives in a scratch directory that is deleted with the session. It is now the only check of the chart and timer behavior, which T-04 and T-05 will change again. Options: commit it under `tests/browser/` as an optional check that skips itself when Chromium isn't installed, or keep it out of the repo and rebuild it when needed. Your call.
+Completed 2026-09-19 · **not yet committed** — awaiting your review. Suite: 284 passing (11 of them the browser check), about 8.5 s in all.
+The scratch prototype from T-01/T-03 became `tests/browser/`, committed as an automatic check that skips itself when it can't run.
+
+- **How it works.** `test_browser.py` writes fixture profiles and records, starts the real app on them (`serve.py`, with a session injected and the project's real data untouched), launches headless Chromium, and runs `driver.mjs` (Node's built-in WebSocket; no npm packages, no build step). The driver only observes; the Python test asserts, so a failure says what is wrong and there is no golden file to go stale. No pixel screenshots (they differ across machines).
+- **What it covers.** Add Roast for the SR800, a °C roaster, a 25-row roaster, and a no-readout roaster: chart data and opening, axis titles, units, row counts, hints, timer, First Crack button, pull countdown, date field, reset, and a clean console. The SR800 wizard's output for two input sets; the edit page (locked roaster, no wizard); the choose-a-roaster-first flow; and the roast detail charts and tables in each record's unit. Three of these were never browser-checked before: the pull countdown, the chooser, and the detail page's charts.
+- **When it runs.** Automatically with `pytest` when Chromium/Chrome, Node 22+, and the Chart.js CDN are all reachable; otherwise skipped with the reason (`-rs` shows it). `SKIP_BROWSER_TESTS=1` skips it on purpose. About six seconds.
+- **Checked against breakage.** Seven deliberate regressions in a scratch copy were each caught by the intended test: a hard-coded °F in the readout, an x-axis stuck at 12, the chart opening ignored, a changed countdown text, a changed wizard constant, a hard-coded °F title on the detail page, and a script error on load.
+- **Bugs found while building it (all in the check itself):** the first chooser test clicked the header's Log out button because it matched the first submit button on the page; a stale-frame race that made my earlier check read the pull countdown too early (it now waits for it).
+- **Files:** `tests/browser/{test_browser.py,serve.py,driver.mjs}`, `README.md` (a "Browser check" section), `SPEC.md` (one constraint).
+- **Limits:** it needs a system Chromium and Node, so a machine without them (or offline) silently skips it; a browser-version change could in principle move a chart value, so numeric checks use tolerances.
 
 ---
 
 ## Suggested order
 
-T-01 ✓ → T-02a ✓ → T-03 ✓ → T-02b → T-09 (recommended before) → T-04 and T-05 → T-06 as warranted → T-08 once data exists. T-07 stays deferred.
+T-01 ✓ → T-02a ✓ → T-03 ✓ → T-02b → T-09 ✓ → T-04 and T-05 → T-06 as warranted → T-08 once data exists. T-07 stays deferred.
