@@ -141,11 +141,29 @@ PROFILES = {
     ),
 }
 RECORDS = {
-    "r-sr800": record("p-sr800", "fresh-roast-sr800", "F", SR800_TEMPS),
-    "r-kaffelogic": record("p-kaffelogic", "kaffelogic-nano-7", "C", KAFFELOGIC_TEMPS),
+    "r-sr800": record(
+        "p-sr800",
+        "fresh-roast-sr800",
+        "F",
+        SR800_TEMPS,
+        start_condition="warm",
+        ambient_temp=68.0,
+    ),
+    "r-kaffelogic": record(
+        "p-kaffelogic",
+        "kaffelogic-nano-7",
+        "C",
+        KAFFELOGIC_TEMPS,
+        start_condition="cold",
+        ambient_temp=21.5,
+    ),
     "r-genecafe": record("p-genecafe", "gene-cafe-cbr-101", "F", GENE_CAFE_TEMPS),
     "r-whirley": record(
-        "p-whirley", "whirley-pop-stovetop-popcorn-popper", None, [None] * 12
+        "p-whirley",
+        "whirley-pop-stovetop-popcorn-popper",
+        None,
+        [None] * 12,
+        start_condition="preheated",
     ),
 }
 
@@ -273,6 +291,20 @@ class TestBrowser(unittest.TestCase):
             page["notes"],
             ["Reminder: this roaster needs at least 30 minutes between roasts."],
         )
+
+    def test_add_roast_offers_start_condition_and_ambient_in_the_roasters_unit(self):
+        for name, ambient in (
+            ("addRoastSr800", "Ambient temperature, °F (optional)"),
+            ("addRoastCelsius", "Ambient temperature, °C (optional)"),
+            ("addRoastNoReadout", None),
+        ):
+            with self.subTest(page=name):
+                page = self.scenario(name)
+                self.assertEqual(
+                    page["startConditionOptions"],
+                    ["— not recorded —", "Cold start", "Warm start", "Preheated"],
+                )
+                self.assertEqual(page["ambientLabel"], ambient)
 
     def test_sr800_timer_first_crack_and_pull_countdown(self):
         page = self.scenario("addRoastSr800")
@@ -548,6 +580,35 @@ class TestBrowser(unittest.TestCase):
                 self.assertTrue(page["showsRoaster"])
                 self.assertEqual(page["hasCelsius"], unit == "°C")
                 self.assertEqual(page["hasFahrenheit"], unit == "°F")
+
+    def test_roast_detail_shows_the_start_condition_and_ambient_in_the_records_unit(
+        self,
+    ):
+        for name, conditions in (
+            ("detailSr800", "Warm start · Ambient 68°F"),
+            ("detailCelsius", "Cold start · Ambient 21.5°C"),
+            ("detailNoReadout", "Preheated"),
+            ("detailGeneCafe", None),
+        ):
+            with self.subTest(page=name):
+                self.assertEqual(self.scenario(name)["conditions"], conditions)
+
+    def test_logging_a_roast_through_the_form_saves_the_start_condition_and_ambient(
+        self,
+    ):
+        page = self.scenario("submitRoast")
+        # 60 is a sensible room temperature in Fahrenheit but not in this Celsius roaster:
+        # the form comes back with the message and everything typed, saving nothing.
+        rejected = page["rejected"]
+        self.assertRegex(rejected["path"], r"^/roasts/new/")
+        self.assertIn("between -18 and 49", rejected["error"])
+        self.assertEqual(rejected["selectedCondition"], "cold")
+        self.assertEqual(rejected["ambientValue"], "60")
+        self.assertEqual(rejected["beanName"], "Browser Bean")
+        # Corrected, it saves and lands on the new roast's page.
+        self.assertRegex(page["savedPath"], r"^/roasts/[^/]+$")
+        self.assertIn("Browser Bean", page["heading"])
+        self.assertEqual(page["conditions"], "Cold start · Ambient 21.5°C")
 
     def test_roast_detail_for_a_roaster_without_a_readout_has_no_temperature_charts(
         self,

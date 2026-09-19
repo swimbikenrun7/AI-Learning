@@ -5,6 +5,13 @@
   <h1>{{ record.bean_name }} &mdash; {{ record.date }}</h1>
   <p>Roast profile: {{ profile_name }}</p>
   {% if roaster_name %}<p>Roaster: {{ roaster_name }}</p>{% endif %}
+  {% if start_condition_label or record.get("ambient_temp") is not none %}
+    <p class="roast-conditions">
+      {% if start_condition_label %}{{ start_condition_label }}{% endif %}
+      {% if start_condition_label and record.get("ambient_temp") is not none %} &middot; {% endif %}
+      {% if record.get("ambient_temp") is not none %}Ambient {{ "%g"|format(record.ambient_temp) }}{{ units.symbol if units else "" }}{% endif %}
+    </p>
+  {% endif %}
   {% if record.get("bean_origin") or record.get("bean_variety") or record.get("bean_process") %}
     <p>
       {% if record.get("bean_origin") %}Origin: {{ record.bean_origin }}<br>{% endif %}

@@ -38,6 +38,7 @@ from roasters import (
     settings_for,
 )
 from validators import (
+    validate_ambient_temperature,
     validate_bean_name,
     validate_date,
     validate_email,
@@ -48,10 +49,17 @@ from validators import (
     validate_profile_name,
     validate_roast_time,
     validate_roaster_id,
+    validate_start_condition,
     validate_target_development_time,
     validate_target_first_crack,
     validate_temperature,
 )
+
+START_CONDITION_LABELS = {
+    "cold": "Cold start",
+    "warm": "Warm start",
+    "preheated": "Preheated",
+}
 
 ROAST_TABLE_COLUMNS = [
     "Date",
@@ -491,6 +499,7 @@ def roast_detail(record_id):
         record_id=record_id,
         profile_name=profile["name"] if profile else "-",
         roaster_name=settings["roaster_name"],
+        start_condition_label=START_CONDITION_LABELS.get(record.get("start_condition")),
         units=units,
         minutes=minutes,
         target_temps=target_temps,
@@ -562,6 +571,8 @@ def add_roast(profile_id):
         "bean_origin": "",
         "bean_variety": "",
         "bean_process": "",
+        "start_condition": "",
+        "ambient_temp": "",
         "green_weight": "",
         "actual_temps": [""] * rows,
         "first_crack": "",
@@ -576,6 +587,8 @@ def add_roast(profile_id):
         values["bean_origin"] = request.form.get("bean_origin", "").strip()
         values["bean_variety"] = request.form.get("bean_variety", "").strip()
         values["bean_process"] = request.form.get("bean_process", "").strip()
+        values["start_condition"] = request.form.get("start_condition", "").strip()
+        values["ambient_temp"] = request.form.get("ambient_temp", "").strip()
         values["green_weight"] = request.form.get("green_weight", "")
         values["actual_temps"] = [
             request.form.get(f"actual_temp_{minute}", "") for minute in minutes
@@ -587,6 +600,16 @@ def add_roast(profile_id):
         try:
             date = validate_date(values["date"])
             bean_name = validate_bean_name(values["bean_name"])
+            start_condition = validate_start_condition(values["start_condition"])
+            # Ambient is recorded in the roaster's own unit; a roaster with no
+            # temperature unit has no ambient field, so anything posted is ignored.
+            ambient_temp = None
+            if settings["units"]:
+                ambient_temp = validate_ambient_temperature(
+                    values["ambient_temp"],
+                    settings["units"]["ambient_min"],
+                    settings["units"]["ambient_max"],
+                )
             green_weight = validate_green_weight(
                 values["green_weight"],
                 settings["green_weight_min_g"],
@@ -625,6 +648,8 @@ def add_roast(profile_id):
                 "bean_origin": values["bean_origin"],
                 "bean_variety": values["bean_variety"],
                 "bean_process": values["bean_process"],
+                "start_condition": start_condition,
+                "ambient_temp": ambient_temp,
                 "green_weight": green_weight,
                 "finished_weight": finished_weight,
                 "total_roast_time": total_roast_time,
@@ -647,7 +672,9 @@ def add_roast(profile_id):
         "profileTemps": profile_temps,
         "targetDevelopmentSeconds": profile.get("target_development_time"),
         "rows": rows,
-        "units": settings["units"],
+        # Only what the script draws with; the units table also holds server-side limits.
+        "units": settings["units"]
+        and {"symbol": settings["units"]["symbol"], "ror": settings["units"]["ror"]},
         "anchors": chart_opening(settings),
         # How long a roast keeps developing once cooling starts; unknown counts as 0.
         "coastSeconds": settings["cooling_coast_seconds"] or 0,
@@ -658,6 +685,7 @@ def add_roast(profile_id):
         profile=profile,
         profile_id=profile_id,
         settings=settings,
+        start_conditions=START_CONDITION_LABELS,
         max_roast_time=format_mm_ss(settings["roast_time_max_s"]),
         roast_config=roast_config,
         minutes=minutes,

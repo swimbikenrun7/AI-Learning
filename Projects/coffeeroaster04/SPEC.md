@@ -101,6 +101,12 @@ Values must be stored as integer seconds.
 ### Roast temperature
 See Roast Profiles below. Collected as part of Add roast via a selected roast profile, not as a standalone field.
 
+### Start condition and ambient temperature **(Phase 12)**
+Two optional facts about how the roast began, recorded because a cold room or a still-warm roaster changes how fast the same profile runs. Both are optional and independent, and a roast saved without them stores `null` for each.
+- *Start condition*: one of `cold` (the roaster started at room temperature), `warm` (still warm from a recent roast) or `preheated` (deliberately warmed up first), shown as "Cold start" / "Warm start" / "Preheated". The same three choices are offered for every roaster: the app does not guess which apply to a machine, since `start_model` describes how the chart begins, not how the user started the roaster. Anything else is rejected.
+- *Ambient temperature*: the room or outdoor air temperature, a number in the roaster's own temperature unit (never converted) within that unit's plausible range, kept in `roasters.TEMP_UNITS` (`ambient_min`–`ambient_max`: 0–120 °F, −18–49 °C; inclusive, negatives allowed). `nan` and `inf` are rejected. A roaster with no temperature unit (no readout) has no ambient field, and an ambient value posted to it is ignored.
+Both appear on the roast detail page, on one line ("Warm start · Ambient 68°F") only when at least one was recorded, and are not added to the roast list or the CSV export. Records saved before these fields existed simply show no line.
+
 ## Roast Profiles
 
 ### Requirements
@@ -200,7 +206,7 @@ Each roaster's `values` object holds exactly these fields. They are the data the
 - A roaster with no source at all for a value gets a low-confidence inferred value with that stated in `notes`; it is never presented as measured.
 
 ### Roaster data (Tier 2)
-Also in each roaster's `values`. The profile wizard reads `wizard` (T-04), and the Add Roast live panel reads `start_model`, `preheat_temp`, `charge_temp`, `cooling_coast_seconds`, and `min_gap_between_roasts_min` (T-05, see "Roaster-driven profiles"). `controls` and `cooling` are not read yet (T-06).
+Also in each roaster's `values`. The profile wizard reads `wizard` (T-04), and the Add Roast live panel reads `start_model`, `preheat_temp`, `charge_temp`, `cooling_coast_seconds`, and `min_gap_between_roasts_min` (T-05, see "Roaster-driven profiles"). `controls` and `cooling` are not read yet.
 
 | Field | Meaning |
 |---|---|

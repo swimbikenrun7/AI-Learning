@@ -1,3 +1,4 @@
+import math
 import re
 from datetime import datetime
 
@@ -133,6 +134,38 @@ def validate_temperature(value_str, min_temp=60, max_temp=500):
     if temperature is None or temperature < min_temp or temperature > max_temp:
         raise ValueError(
             f"Invalid input. Please enter a numeric value between {min_temp:g} and {max_temp:g}, or leave blank."
+        )
+    return temperature
+
+
+START_CONDITIONS = ("cold", "warm", "preheated")
+
+
+def validate_start_condition(value_str):
+    if not value_str:
+        return None
+    if value_str not in START_CONDITIONS:
+        raise ValueError("Choose a start condition from the list, or leave blank.")
+    return value_str
+
+
+def validate_ambient_temperature(value_str, min_temp, max_temp):
+    if not value_str:
+        return None
+    try:
+        temperature = float(value_str)
+    except ValueError:
+        temperature = None
+    # float() accepts "nan" and "inf", which slip past a range check.
+    if (
+        temperature is None
+        or not math.isfinite(temperature)
+        or temperature < min_temp
+        or temperature > max_temp
+    ):
+        raise ValueError(
+            "Invalid input. Please enter the air temperature as a number between "
+            f"{min_temp:g} and {max_temp:g}, or leave blank."
         )
     return temperature
 

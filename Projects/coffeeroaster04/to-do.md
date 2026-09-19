@@ -221,17 +221,15 @@ Completed 2026-09-19 · commit `24ea855` on branch `roaster-selection`. Suite: 3
 - No turning point: the data has none, so a charge-then-dip curve is approximated by heading from the charge temperature to the profile's first target.
 - `cooling_coast_seconds` is `null` for all 46 roasters, so the coast allowance is untested against real data (the browser check gives the Quest an in-memory value to exercise it).
 - The rate-of-rise *dot* at exactly t = 0 shows half the true slope on ramp and charge curves because the slope estimate reaches back before 0. That is how the SR800 has always behaved, so I left it to keep the SR800 identical; the fix is one line if you want it.
-- `controls` and `cooling` are still unread (T-06).
+- `controls` and `cooling` are still unread (the control-change log, a T-06 candidate, would read them).
 
 **Files:** `roasters.py` (`chart_opening`, more settings), `app.py`, `static/js/add_roast_live.js`, `static/css/add_roast.css`, `templates/add_roast.html`, `SPEC.md`, `tests/test_roasters.py`, `tests/test_roaster_roasts.py`, `tests/browser/{driver.mjs,serve.py,test_browser.py}`.
 
 ---
 
-## T-06 [PLANNED] New Add Roast fields, shown per roaster
+## T-06 [PARTLY COMPLETE] New Add Roast fields, shown per roaster
 
-**Depends on:** T-05 ✓. **Chosen next (Settled #17): start condition + ambient temperature.** The rest stay candidates, not scheduled.
-**Build now:** 
-1. **Start condition** (cold / warm / preheated) and **ambient temperature** — the Gene Cafe tip sheet says warm starts, ambient, and line voltage each shift roast time by up to a minute; the SR540 manual's 30-minute gap is about the same effect. Optional per roast, saved on the record, shown on the roast detail page. Open design points to settle when this starts: whether ambient is entered in the roaster's unit or the user's; whether "preheated" shows only for roasters whose `start_model` is `preheat_charge`; and whether the fields go in the CSV.
+**Depends on:** T-05 ✓. **Done (Settled #17): start condition + ambient temperature** — details below. The rest stay candidates, not scheduled.
 
 **Candidates, not scheduled:**
 2. Charge temperature and turning point (time, temperature) — for `preheat_charge` roasters.
@@ -239,6 +237,28 @@ Completed 2026-09-19 · commit `24ea855` on branch `roaster-selection`. Suite: 3
 4. Cooling start time.
 
 Each gets its own SPEC entry and its own commit; fields not applicable to a roaster don't appear.
+
+### T-06 (1) Start condition and ambient temperature — [COMPLETE, awaiting commit]
+
+Built 2026-09-19 on branch `roaster-selection`. Suite: 365 passing (was 338); the browser check is 22 tests (was 19). Why: the Gene Cafe tip sheet says warm starts, ambient temperature, and line voltage each shift roast time by up to a minute, and the SR540 manual's 30-minute gap is about the same effect. Two optional facts on each roast, saved on the record and shown on the roast detail page.
+
+**The three open design points, and what I chose** (each is a small change to reverse):
+- **Ambient is entered in the roaster's own unit**, like every other temperature (Settled #12) — never converted. Its plausible range is per unit in `roasters.TEMP_UNITS` (0–120 °F, −18–49 °C), so it stays with the other unit text. A roaster with no temperature readout has no unit, so it gets no ambient field (and a posted value is ignored).
+- **The same three start options for every roaster** (cold / warm / preheated), not only `preheat_charge` roasters. `start_model` says how the *chart* begins, not how the user started the roaster: a Fresh Roast owner can still start from a warm machine, which is exactly the SR540 gap. Hiding "preheated" for some roasters would be a guess the data doesn't support.
+- **Detail page only — not the list or CSV.** The list is already wide, and nothing needs to sort or search on these yet. Adding them later is one column each.
+
+**What it does.** Add Roast has a "Start condition (optional)" select and, for roasters with a unit, an "Ambient temperature, °F/°C (optional)" box, both after the bean fields. Both are stored as `start_condition` (`cold`/`warm`/`preheated`/`null`) and `ambient_temp` (number/`null`). The detail page shows one line ("Warm start · Ambient 68°F") only when at least one was recorded; older records show nothing. Rejected input re-shows the form with what was typed.
+
+**Details worth knowing**
+- `validate_ambient_temperature` rejects `nan` and `inf`. `float()` accepts both, and every comparison with NaN is false, so a plain range check lets them through.
+- The page's chart script config now gets only `{symbol, ror}` of the units row, since the row also holds the server-side ambient limits (two T-03 tests correctly caught the leak — I fixed the code, not the tests).
+- **No existing test changed.**
+
+**Tests.** 27 new: validators and the units table (`tests/test_limits.py`, `tests/test_roasters.py`), Add Roast and detail behavior (`tests/test_roaster_roasts.py`), and the browser check (the options and label per roaster, the detail line with the record's unit, and a real form round trip — a wrong-unit ambient is rejected with the typed values kept, then the corrected form saves and shows the line). Thirteen deliberate breakages in a scratch copy were each caught (NaN/inf allowed, both bounds made exclusive, start condition unchecked, Fahrenheit bounds hard-coded, no-unit roaster still validated, units row leaked to the page, raw text saved, zero ambient hidden ×2, selection not kept, ambient field shown without a unit, the separator dropped). One first slipped through (the dot between the two facts, which led to a tighter assertion); the bounds check first matched the older temperature validator's identical wording, so it was re-aimed at the ambient validator.
+
+**Files:** `roasters.py` (`TEMP_UNITS` ambient limits), `validators.py`, `app.py`, `templates/{add_roast,roast_detail}.html`, `SPEC.md` (a "Start condition and ambient temperature" input section), `tests/{test_limits,test_roasters,test_roaster_roasts}.py`, `tests/browser/{driver.mjs,test_browser.py}`.
+
+**Found but not fixed (out of scope):** `validate_green_weight("nan")` and `validate_temperature("nan")` return NaN (the same reason as above), so a form could save a NaN weight or temperature. Worth a small separate fix with tests if you want it.
 
 ---
 
@@ -279,4 +299,4 @@ Completed 2026-09-19 · commit `0652029` on branch `roaster-selection`. Suite: 3
 
 ## Suggested order
 
-T-01 ✓ → T-02a ✓ → T-03 ✓ → T-02b ✓ → T-09 ✓ → T-04 ✓ → T-05 ✓ → **T-06 (start condition + ambient) → T-08**. The T-06 control-change log and T-07 stay unscheduled.
+T-01 ✓ → T-02a ✓ → T-03 ✓ → T-02b ✓ → T-09 ✓ → T-04 ✓ → T-05 ✓ → T-10 ✓ → T-06 (start condition + ambient) ✓ → **T-08**. The other T-06 candidates and T-07 stay unscheduled.

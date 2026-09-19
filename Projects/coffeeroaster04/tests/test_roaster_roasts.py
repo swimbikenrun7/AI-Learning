@@ -373,6 +373,139 @@ class TestChartOpeningAndNotes(RoastTestCase):
         self.assertNotIn('class="roast-note"', body)
 
 
+class TestStartConditionAndAmbient(RoastTestCase):
+    def test_the_form_offers_the_start_options_and_an_ambient_field_in_the_roasters_unit(
+        self,
+    ):
+        body = self.client.get("/roasts/new/small-p").get_data(as_text=True)
+        self.assertIn('name="start_condition"', body)
+        for value in ("cold", "warm", "preheated"):
+            self.assertIn(f'<option value="{value}"', body)
+        self.assertIn('name="ambient_temp"', body)
+        self.assertIn("Ambient temperature, °C (optional)", body)
+        self.assertNotIn("°F", body)
+
+    def test_a_fahrenheit_roaster_labels_ambient_in_fahrenheit(self):
+        body = self.client.get("/roasts/new/sr-p").get_data(as_text=True)
+        self.assertIn("Ambient temperature, °F (optional)", body)
+
+    def test_a_roaster_with_no_temperature_unit_has_no_ambient_field(self):
+        body = self.client.get("/roasts/new/dial-p").get_data(as_text=True)
+        self.assertIn('name="start_condition"', body)
+        self.assertNotIn('name="ambient_temp"', body)
+
+    def test_both_are_saved_on_the_record(self):
+        response = self.client.post(
+            "/roasts/new/small-p",
+            data=form(start_condition="warm", ambient_temp="21.5"),
+        )
+        self.assertEqual(response.status_code, 302)
+        record = next(iter(self.records.values()))
+        self.assertEqual(record["start_condition"], "warm")
+        self.assertEqual(record["ambient_temp"], 21.5)
+
+    def test_both_are_optional_and_saved_as_none_when_blank(self):
+        self.client.post("/roasts/new/small-p", data=form())
+        record = next(iter(self.records.values()))
+        self.assertIsNone(record["start_condition"])
+        self.assertIsNone(record["ambient_temp"])
+
+    def test_ambient_is_checked_against_the_roasters_unit(self):
+        # 60 is a fine room temperature in °F and impossible in °C.
+        rejected = self.client.post("/roasts/new/small-p", data=form(ambient_temp="60"))
+        self.assertEqual(rejected.status_code, 200)
+        self.assertIn("between -18 and 49", rejected.get_data(as_text=True))
+        self.assertEqual(self.records, {})
+        accepted = self.client.post(
+            "/roasts/new/sr-p",
+            data=form(green_weight="150", finished_weight="130", ambient_temp="60"),
+        )
+        self.assertEqual(accepted.status_code, 302)
+
+    def test_a_bad_ambient_or_condition_saves_nothing_and_keeps_what_was_typed(self):
+        for field, bad in (
+            ("ambient_temp", "warm-ish"),
+            ("ambient_temp", "nan"),
+            ("start_condition", "lukewarm"),
+        ):
+            with self.subTest(field=field, bad=bad):
+                response = self.client.post(
+                    "/roasts/new/small-p", data=form(**{field: bad})
+                )
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(self.records, {})
+                self.assertIn("Test Bean", response.get_data(as_text=True))
+
+    def test_the_chosen_condition_and_typed_ambient_survive_a_rejected_submit(self):
+        response = self.client.post(
+            "/roasts/new/small-p",
+            data=form(start_condition="cold", ambient_temp="60", bean_name=""),
+        )
+        body = response.get_data(as_text=True)
+        self.assertIn('<option value="cold" selected>', body)
+        self.assertIn('value="60"', body)
+
+    def test_ambient_posted_to_a_roaster_without_a_unit_is_ignored(self):
+        response = self.client.post(
+            "/roasts/new/dial-p",
+            data=form(
+                green_weight="100",
+                finished_weight="85",
+                start_condition="cold",
+                ambient_temp="999",
+            ),
+        )
+        self.assertEqual(response.status_code, 302)
+        record = next(iter(self.records.values()))
+        self.assertEqual(record["start_condition"], "cold")
+        self.assertIsNone(record["ambient_temp"])
+
+    def test_the_ambient_limits_stay_out_of_the_chart_script_config(self):
+        self.assertEqual(
+            self.config("small-p")["units"], {"symbol": "°C", "ror": "°C/min"}
+        )
+
+    def test_the_detail_page_shows_both(self):
+        self.add_record(start_condition="preheated", ambient_temp=21.5)
+        body = self.client.get("/roasts/r1").get_data(as_text=True)
+        self.assertRegex(body, r"Preheated\s*&middot;\s*Ambient 21\.5°C")
+
+    def test_the_detail_page_shows_zero_ambient(self):
+        self.add_record(ambient_temp=0.0)
+        self.assertIn(
+            "Ambient 0°C", self.client.get("/roasts/r1").get_data(as_text=True)
+        )
+
+    def test_the_detail_page_shows_only_what_was_recorded(self):
+        self.add_record("only-condition", start_condition="cold", ambient_temp=None)
+        self.add_record("only-ambient", start_condition=None, ambient_temp=18.0)
+        only_condition = self.client.get("/roasts/only-condition").get_data(
+            as_text=True
+        )
+        only_ambient = self.client.get("/roasts/only-ambient").get_data(as_text=True)
+        self.assertIn("Cold start", only_condition)
+        self.assertNotIn("Ambient", only_condition)
+        self.assertNotIn("Cold start", only_ambient)
+        self.assertIn("Ambient 18°C", only_ambient)
+
+    def test_a_record_saved_before_these_fields_shows_no_conditions_line(self):
+        self.add_record()
+        body = self.client.get("/roasts/r1").get_data(as_text=True)
+        self.assertNotIn("roast-conditions", body)
+        self.assertNotIn("Ambient", body)
+
+    def test_the_conditions_are_not_added_to_the_list_or_the_csv(self):
+        self.add_record(start_condition="warm", ambient_temp=21.5)
+        self.assertNotIn("Warm", self.client.get("/roasts").get_data(as_text=True))
+        rows = list(
+            csv.reader(
+                io.StringIO(self.client.get("/roasts/export").get_data(as_text=True))
+            )
+        )
+        self.assertNotIn("warm", [cell.lower() for cell in rows[0]])
+        self.assertNotIn("21.5", rows[1])
+
+
 class TestRoasterColumn(RoastTestCase):
     def export_rows(self):
         text = self.client.get("/roasts/export").get_data(as_text=True)

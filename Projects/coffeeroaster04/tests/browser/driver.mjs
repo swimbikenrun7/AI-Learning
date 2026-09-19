@@ -118,6 +118,8 @@ async function addRoast(path) {
     actualTempInputs: await ev("document.querySelectorAll('[name^=actual_temp_]').length"),
     tableHeaders: await ev("Array.from(document.querySelectorAll('.roast-form th')).map((th) => th.textContent.trim())"),
     hints: await ev("Array.from(document.querySelectorAll('.roast-form small')).map((s) => s.textContent.trim())"),
+    startConditionOptions: await ev("Array.from(document.querySelectorAll('[name=start_condition] option')).map((o) => o.textContent.trim())"),
+    ambientLabel: await ev("document.querySelector('[name=ambient_temp]')?.closest('label').textContent.trim().replace(/\\s+/g, ' ') ?? null"),
     targetReference: await ev("document.querySelector('.target-reference')?.innerText.replace(/\\s+/g, ' ').trim() ?? null"),
     targetReadoutHidden: await ev("document.getElementById('target-temp-readout').hidden"),
     targetReadout: await text("target-temp-readout"),
@@ -294,6 +296,7 @@ async function roastDetail(path) {
     hasFahrenheit: await ev("document.body.innerText.includes('°F')"),
     hasCelsius: await ev("document.body.innerText.includes('°C')"),
     showsRoaster: await ev("/Roaster: /.test(document.body.innerText)"),
+    conditions: await ev("document.querySelector('.roast-conditions')?.innerText.replace(/\\s+/g, ' ').trim() ?? null"),
     tableRows: await ev(`(() => {
       const table = Array.from(document.querySelectorAll('table')).find((t) => t.querySelector('th')?.textContent === 'Time');
       return table ? table.querySelectorAll('tbody tr').length : null;
@@ -316,6 +319,39 @@ await scenario("detailSr800", () => roastDetail("/roasts/r-sr800"));
 await scenario("detailCelsius", () => roastDetail("/roasts/r-kaffelogic"));
 await scenario("detailGeneCafe", () => roastDetail("/roasts/r-genecafe"));
 await scenario("detailNoReadout", () => roastDetail("/roasts/r-whirley"));
+
+// ---- Logging a roast through the real form: start condition and ambient temperature ----
+// Runs last because it saves a record into the fixture data.
+await scenario("submitRoast", async () => {
+  await visit("/roasts/new/p-kaffelogic");
+  await ev(`(() => {
+    const set = (name, value) => { document.querySelector('[name=' + name + ']').value = value; };
+    set('date', '09/19/2026');
+    set('bean_name', 'Browser Bean');
+    set('start_condition', 'cold');
+    set('ambient_temp', '60');   // fine in Fahrenheit, impossible in this Celsius roaster
+    set('green_weight', '100');
+    set('first_crack', '8:00');
+    set('roast_time', '10:00');
+    set('finished_weight', '85');
+  })()`);
+  await clickAndWaitForLoad(".roast-form button[type=submit]");
+  const rejected = {
+    path: await ev("location.pathname"),
+    error: await ev("document.querySelector('p[style*=danger]')?.textContent.trim() ?? null"),
+    selectedCondition: await ev("document.querySelector('[name=start_condition]').value"),
+    ambientValue: await ev("document.querySelector('[name=ambient_temp]').value"),
+    beanName: await ev("document.querySelector('[name=bean_name]').value"),
+  };
+  await ev("document.querySelector('[name=ambient_temp]').value = '21.5'");
+  await clickAndWaitForLoad(".roast-form button[type=submit]");
+  return {
+    rejected,
+    savedPath: await ev("location.pathname"),
+    conditions: await ev("document.querySelector('.roast-conditions')?.innerText.replace(/\\s+/g, ' ').trim() ?? null"),
+    heading: await ev("document.querySelector('h1').textContent.trim()"),
+  };
+});
 
 console.log(JSON.stringify(out));
 ws.close();

@@ -51,6 +51,25 @@
           </label>
         </p>
         <p>
+          <label>Start condition (optional)<br>
+            <select name="start_condition">
+              <option value="">&mdash; not recorded &mdash;</option>
+              {% for key, label in start_conditions.items() %}
+                <option value="{{ key }}"{{ " selected" if values.start_condition == key else "" }}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <br><small>Cold: the roaster started at room temperature. Warm: still warm from a recent roast. Preheated: deliberately warmed up first.</small>
+        </p>
+        {% if settings.units %}
+          <p>
+            <label>Ambient temperature, {{ settings.units.symbol }} (optional)<br>
+              <input type="text" name="ambient_temp" value="{{ values.ambient_temp }}" size="6">
+            </label>
+            <br><small>Room or outdoor air temperature &mdash; a cold room or a warm start both change how fast a roast runs.</small>
+          </p>
+        {% endif %}
+        <p>
           <label>Green weight (g)<br>
             <input type="text" name="green_weight" value="{{ values.green_weight }}">
           </label>

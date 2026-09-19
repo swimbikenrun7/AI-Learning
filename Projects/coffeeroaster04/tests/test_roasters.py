@@ -122,6 +122,19 @@ class TestSettingsFor(unittest.TestCase):
         self.assertEqual(LEGACY_SETTINGS["green_weight_max_g"], 300)
 
 
+class TestAmbientRanges(unittest.TestCase):
+    def test_each_unit_has_a_plausible_range(self):
+        for unit, row in TEMP_UNITS.items():
+            with self.subTest(unit=unit):
+                self.assertLess(row["ambient_min"], row["ambient_max"])
+
+    def test_the_two_units_describe_the_same_temperatures(self):
+        f, c = TEMP_UNITS["F"], TEMP_UNITS["C"]
+        for key in ("ambient_min", "ambient_max"):
+            in_celsius = (f[key] - 32) * 5 / 9
+            self.assertAlmostEqual(in_celsius, c[key], delta=1)
+
+
 class TestSettingsForRealData(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

@@ -4,10 +4,12 @@ import unittest
 
 from calculations import calculate_development_time, calculate_weight_loss
 from validators import (
+    validate_ambient_temperature,
     validate_finished_weight,
     validate_first_crack,
     validate_green_weight,
     validate_roast_time,
+    validate_start_condition,
     validate_target_development_time,
     validate_target_first_crack,
     validate_temperature,
@@ -162,6 +164,47 @@ class TestCalculationGuards(unittest.TestCase):
     def test_first_crack_must_still_come_before_the_end(self):
         with self.assertRaises(ValueError):
             calculate_development_time(300, 300, min_total_seconds=0)
+
+
+class TestStartCondition(unittest.TestCase):
+    def test_the_three_conditions_and_blank_are_accepted(self):
+        for value in ("cold", "warm", "preheated"):
+            self.assertEqual(validate_start_condition(value), value)
+        self.assertIsNone(validate_start_condition(""))
+
+    def test_anything_else_is_rejected(self):
+        for bad in ("hot", "Cold", "warm ", "1", "None"):
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                validate_start_condition(bad)
+
+
+class TestAmbientTemperature(unittest.TestCase):
+    def test_blank_means_not_recorded(self):
+        self.assertIsNone(validate_ambient_temperature("", -18, 49))
+
+    def test_the_range_is_inclusive_and_can_be_negative(self):
+        self.assertEqual(validate_ambient_temperature("-18", -18, 49), -18)
+        self.assertEqual(validate_ambient_temperature("49", -18, 49), 49)
+        self.assertEqual(validate_ambient_temperature("21.5", -18, 49), 21.5)
+        self.assertEqual(validate_ambient_temperature("0", 0, 120), 0)
+
+    def test_out_of_range_and_non_numbers_are_rejected(self):
+        for bad in ("-18.1", "49.1", "hot", "1e309"):
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                validate_ambient_temperature(bad, -18, 49)
+
+    def test_nan_and_infinity_are_rejected(self):
+        # float() accepts these and every comparison with NaN is false, so a bare
+        # range check would let them through.
+        for bad in ("nan", "NaN", "inf", "-inf", "Infinity"):
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                validate_ambient_temperature(bad, -18, 49)
+
+    def test_the_error_names_the_range(self):
+        with self.assertRaises(ValueError) as caught:
+            validate_ambient_temperature("99", -18, 49)
+        self.assertIn("-18", str(caught.exception))
+        self.assertIn("49", str(caught.exception))
 
 
 if __name__ == "__main__":

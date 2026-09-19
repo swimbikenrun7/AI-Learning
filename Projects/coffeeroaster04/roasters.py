@@ -37,8 +37,9 @@ LEGACY_SETTINGS = {
 # never converted; the only unit-specific text lives here, so no template or script
 # carries a literal unit.
 TEMP_UNITS = {
-    "F": {"symbol": "°F", "ror": "°F/min"},
-    "C": {"symbol": "°C", "ror": "°C/min"},
+    # ambient_min/ambient_max: a plausible room or outdoor air temperature to record.
+    "F": {"symbol": "°F", "ror": "°F/min", "ambient_min": 0, "ambient_max": 120},
+    "C": {"symbol": "°C", "ror": "°C/min", "ambient_min": -18, "ambient_max": 49},
 }
 
 _FIELDS_WITH_FALLBACK = [
