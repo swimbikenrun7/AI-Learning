@@ -35,6 +35,7 @@ Convert dates appropriately between the Python internal representation and JSON 
 JSON only; do not introduce a database.
 Do not introduce external Python dependencies except `flask` (and its own required dependencies, e.g. Jinja2, Werkzeug) for the web layer.
 Charting is rendered client-side via Chart.js, loaded from a CDN `<script>` tag — this is not a Python package dependency and introduces no build tooling (no npm, no bundler, no SPA framework).
+Page-specific JavaScript and CSS live as plain files under `static/` (served by Flask's built-in `/static/` route) rather than inline in templates; per-page data reaches them through a JSON data island in the template, not Jinja interpolated into script code. Still no build step.
 The UI shall be a server-rendered web application (Flask + Jinja2 templates), not a terminal UI and not a single-page JS application.
 Do not change the existing calculation formulas.
 Do not delete existing functionality once implemented in this mission.

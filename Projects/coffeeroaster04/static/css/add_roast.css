@@ -1,0 +1,67 @@
+/* A true split pane, not the sticky-while-scrolling trick this used
+   before: .roast-layout gets an explicit height (set in JS, since it
+   depends on where the header/page chrome puts its top edge) so
+   .roast-form can scroll *inside* that fixed box while .roast-live
+   just sits still, centered on the cross-axis via align-self. */
+.roast-layout { display: flex; gap: 2rem; align-items: stretch; }
+.roast-form { flex: 1 1 420px; min-width: 320px; overflow-y: auto; padding-right: 0.5rem; }
+.roast-live {
+  flex: 1 1 420px;
+  min-width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-self: center;
+}
+.date-field { display: inline-flex; align-items: center; gap: 0.5rem; }
+.date-field input[type="date"] {
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  padding: 0.35rem 0.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+}
+.roast-controls { display: flex; gap: 0.6rem; }
+.timer-btn { border-color: transparent; color: #fff; min-width: 100px; text-align: center; }
+.timer-btn--start { background: #0a5; }
+.timer-btn--stop { background: #c00; }
+.timer-btn--reset { background: #d9a400; }
+.roast-graph { width: 100%; aspect-ratio: 16 / 10; margin-top: 1rem; position: relative; }
+.roast-graph canvas { width: 100%; height: 100%; }
+.roast-readout {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 1rem;
+  font-size: 3.6rem;
+}
+#target-temp-readout { color: #d95f02; }
+#clock-readout { font-variant-numeric: tabular-nums; }
+.ror-readout { font-size: var(--font-size-lg); color: var(--color-text-muted); margin-top: 0.25rem; }
+#ror-readout { color: #1b9e77; font-weight: 700; }
+.target-reference { margin-top: 0.5rem; color: var(--color-text-muted); }
+.mark-first-crack-btn {
+  display: block;
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+}
+.pull-countdown {
+  margin-top: 0.75rem;
+  text-align: center;
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+}
+html.inverted { filter: invert(1); }
+@media (max-width: 640px) {
+  .roast-readout { font-size: 2rem; flex-wrap: wrap; gap: 0.5rem; }
+  /* The fixed-height split pane (sized in JS) is desktop-only - on
+     narrow screens the columns stack and the whole page scrolls
+     normally, same as any other page. */
+  .roast-layout { flex-wrap: wrap; }
+  .roast-form { overflow-y: visible; }
+  .roast-live { align-self: auto; }
+}

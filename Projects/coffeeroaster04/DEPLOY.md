@@ -63,6 +63,8 @@ from app import app as application
 
 Replace `yourusername` with your actual PythonAnywhere username (visible in the file's own default path, and in your dashboard URL).
 
+The app's own JavaScript and CSS live in `static/` and are served by Flask at `/static/`, so no separate static-files mapping is needed on the **Web** tab.
+
 Generate the secret in a PythonAnywhere Bash console (don't reuse this one, and don't commit it anywhere) and paste the output in place of `paste-a-real-generated-secret-here`:
 
 ```bash
