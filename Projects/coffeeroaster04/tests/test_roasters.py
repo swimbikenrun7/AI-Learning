@@ -99,6 +99,17 @@ class TestSettingsFor(unittest.TestCase):
         # Only a profile with no roaster keeps the original anchors.
         self.assertEqual(settings_for({}, None)["chart_start_temp"], 145)
 
+    def test_the_roasters_wizard_data_is_passed_through(self):
+        wizard = {"time_to_first_crack_s": {"low": 1, "medium": 2, "high": 3}}
+        roasters = {"x": roaster(has_temp_readout=True, wizard=wizard)}
+        self.assertEqual(settings_for(roasters, "x")["wizard"], wizard)
+        self.assertIsNone(settings_for({"y": roaster()}, "y")["wizard"])
+        self.assertIsNone(settings_for({}, None)["wizard"])
+
+    def test_a_roaster_without_a_readout_never_has_a_wizard(self):
+        roasters = {"x": roaster(has_temp_readout=False, wizard={"anything": 1})}
+        self.assertIsNone(settings_for(roasters, "x")["wizard"])
+
     def test_the_settings_dict_can_be_changed_without_altering_the_defaults(self):
         settings = settings_for({}, None)
         settings["green_weight_max_g"] = 1

@@ -336,36 +336,20 @@ class TestRoastersTier2(unittest.TestCase):
                     roaster_id.startswith("fresh-roast-sr"),
                 )
 
-    def test_the_sr800_wizard_data_matches_the_constants_the_wizard_script_uses(self):
-        # Until the wizard reads this data (T-04), the two copies must not drift apart.
-        # T-04 removes the constants from the script and should replace this test.
+    def test_the_wizard_script_takes_its_numbers_from_the_data_not_from_constants(self):
+        # The wizard used to carry the SR800's numbers in the script itself; they now come
+        # from the roaster's data via the page config. Fail if that comes back.
         script = WIZARD_JS.read_text()
-        wizard = self.roasters["fresh-roast-sr800"]["values"]["wizard"]
-
-        def number(name):
-            return float(re.search(rf"const {name} = ([\d.]+);", script).group(1))
-
-        times = re.search(
-            r"MAILLARD_TIME_SECONDS = \{ low: (\d+), medium: (\d+), high: (\d+) \}",
-            script,
-        )
-        self.assertEqual(
-            [int(t) for t in times.groups()],
-            [wizard["time_to_first_crack_s"][k] for k in ("low", "medium", "high")],
-        )
-        self.assertEqual(
-            number("NATURAL_TIME_ADJUST_SECONDS"), wizard["natural_time_adjust_s"]
-        )
-        self.assertEqual(number("PROFILE_START_TEMP"), wizard["profile_start_temp"])
-        table = dict(
-            re.findall(
-                r'"([A-Za-z ]+)": ([\d.]+),',
-                script.split("ROAST_LEVEL_DTR")[1].split("};")[0],
-            )
-        )
-        self.assertEqual(
-            {k: float(v) for k, v in table.items()}, wizard["dtr_by_level"]
-        )
+        self.assertIn('getElementById("wizard-config")', script)
+        for name in (
+            "ROAST_LEVEL_DTR",
+            "MAILLARD_TIME_SECONDS",
+            "NATURAL_TIME_ADJUST_SECONDS",
+            "PROFILE_START_TEMP",
+        ):
+            self.assertNotIn(name, script)
+        self.assertNotIn("Array(12)", script)
+        self.assertNotIn("<= 12", script)
 
     def test_only_the_sr800_has_a_stated_wizard(self):
         for roaster_id, roaster in self.roasters.items():

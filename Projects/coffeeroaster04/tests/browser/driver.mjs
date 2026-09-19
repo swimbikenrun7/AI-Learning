@@ -176,7 +176,7 @@ await scenario("addRoastNoReadout", () => addRoast("/roasts/new/p-whirley"));
 // ---- Profile wizard (offered for the calibrated SR800 only) ----
 const readWizardOutput = () =>
   ev(`({
-    temps: Array.from({ length: 12 }, (_, i) => document.querySelector('[name=temp_' + (i + 1) + ']').value),
+    temps: Array.from(document.querySelectorAll('[name^=temp_]')).map((input) => input.value),
     firstCrack: document.querySelector('[name=target_first_crack]').value,
     developmentTime: document.querySelector('[name=target_development_time]').value,
   })`);
@@ -197,6 +197,35 @@ await scenario("wizard", async () => {
   })()`);
   state.otherInputs = await readWizardOutput();
   return state;
+});
+
+// The wizard for any roaster with wizard data: what the panel shows, then what Generate fills in.
+async function wizardPage(path) {
+  await visit(path);
+  const state = {
+    tempInputs: await ev("document.querySelectorAll('[name^=temp_]').length"),
+    fcTempInput: await ev("document.getElementById('wizard-fc-temp')?.value ?? null"),
+  };
+  await click("wizard-toggle");
+  // innerText leaves out hidden elements, so read the panel's text only once it is open.
+  state.notice = await ev("document.body.innerText.includes('Estimated for this roaster')");
+  state.noCurveMessage = await ev("document.body.innerText.includes('No temperature curve for this roaster')");
+  await click("wizard-generate-btn");
+  state.washed = await readWizardOutput();
+  await ev(`(() => {
+    document.getElementById('wizard-process').value = 'natural';
+    document.getElementById('wizard-generate-btn').click();
+  })()`);
+  state.natural = await readWizardOutput();
+  return state;
+}
+
+await scenario("wizardEstimatedCurve", () => wizardPage("/profiles/new?roaster=fresh-roast-sr540"));
+await scenario("wizardTimesOnly", () => wizardPage("/profiles/new?roaster=kaffelogic-nano-7"));
+await scenario("wizardLongGrid", () => wizardPage("/profiles/new?roaster=gene-cafe-cbr-101"));
+await scenario("wizardNone", async () => {
+  await visit("/profiles/new?roaster=whirley-pop-stovetop-popcorn-popper");
+  return { toggle: await ev("!!document.getElementById('wizard-toggle')") };
 });
 
 await scenario("editProfile", async () => {

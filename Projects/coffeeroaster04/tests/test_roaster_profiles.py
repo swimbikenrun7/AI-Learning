@@ -1,11 +1,34 @@
 """Profile pages driven by the profile's roaster (rows, limits, units), using synthetic roasters."""
 
+import json
+import re
 import unittest
 from unittest import mock
 
 import app
+from data_persistence import load_roasters
 
 OWNER_EMAIL = "owner@example.com"
+
+DTR = {
+    "City Roast": 0.16,
+    "City Plus": 0.18,
+    "Full City": 0.21,
+    "Full City Plus": 0.24,
+    "Vienna Roast": 0.27,
+    "Italian Roast": 0.31,
+}
+
+
+def wizard(start_temp=None, first_crack_temp=None, natural=None):
+    return {
+        "time_to_first_crack_s": {"low": 400, "medium": 400, "high": 430},
+        "natural_time_adjust_s": natural,
+        "dtr_by_level": DTR,
+        "profile_start_temp": start_temp,
+        "default_first_crack_temp": first_crack_temp,
+    }
+
 
 ROASTERS = {
     "long": {
@@ -17,6 +40,7 @@ ROASTERS = {
             "temp_source": "bean_probe",
             "temp_min": 15,
             "temp_max": 300,
+            "wizard": wizard(),  # times only: no temperatures to build a curve from
         },
     },
     "plain": {
@@ -42,6 +66,7 @@ ROASTERS = {
             "temp_min": 60,
             "temp_max": 500,
             "calibrated": True,
+            "wizard": wizard(start_temp=315, first_crack_temp=400, natural=20),
         },
     },
 }
@@ -146,20 +171,161 @@ class TestRoasterWithoutAReadout(RoasterProfileTestCase):
         self.assertEqual(profile["target_first_crack"], 375)
 
 
-class TestWizardAvailability(RoasterProfileTestCase):
-    def test_wizard_is_offered_only_for_a_calibrated_roaster(self):
+def wizard_config(body):
+    match = re.search(
+        r'<script id="wizard-config" type="application/json">(.*?)</script>',
+        body,
+        re.DOTALL,
+    )
+    return json.loads(match.group(1)) if match else None
+
+
+class TestWizardFollowsTheRoaster(RoasterProfileTestCase):
+    def new_profile_page(self, roaster_id):
+        return self.client.get(f"/profiles/new?roaster={roaster_id}").get_data(
+            as_text=True
+        )
+
+    def test_wizard_is_offered_wherever_the_roaster_has_wizard_data(self):
         for roaster_id, expected in (
             ("calibrated", True),
-            ("plain", False),
-            ("long", False),
-            ("dial", False),
+            ("long", True),  # not calibrated, but it has (times-only) wizard data
+            ("plain", False),  # no wizard data
+            ("dial", False),  # no readout
         ):
             with self.subTest(roaster=roaster_id):
-                body = self.client.get(f"/profiles/new?roaster={roaster_id}").get_data(
-                    as_text=True
-                )
+                body = self.new_profile_page(roaster_id)
                 self.assertEqual('id="wizard-toggle"' in body, expected)
                 self.assertEqual("js/profile_wizard.js" in body, expected)
+                self.assertEqual(wizard_config(body) is not None, expected)
+
+    def test_an_uncalibrated_roaster_gets_the_estimate_notice_and_a_calibrated_one_does_not(
+        self,
+    ):
+        self.assertIn("Estimated for this roaster", self.new_profile_page("long"))
+        self.assertIn(
+            "Long Grid C these are starting estimates", self.new_profile_page("long")
+        )
+        self.assertNotIn(
+            "Estimated for this roaster", self.new_profile_page("calibrated")
+        )
+
+    def test_the_temperature_field_and_curve_only_appear_when_a_curve_is_possible(self):
+        curve = self.new_profile_page("calibrated")
+        self.assertIn('id="wizard-fc-temp" value="400" min="60" max="500"', curve)
+        self.assertIn("a starting curve and target times", curve)
+        self.assertNotIn("No temperature curve for this roaster", curve)
+        times_only = self.new_profile_page("long")
+        self.assertNotIn('id="wizard-fc-temp"', times_only)
+        self.assertIn("No temperature curve for this roaster", times_only)
+        self.assertIn("the target first-crack and development times below", times_only)
+
+    def test_config_carries_the_roasters_own_numbers(self):
+        config = wizard_config(self.new_profile_page("calibrated"))
+        self.assertEqual(config["rows"], 12)
+        self.assertEqual(
+            config["timeToFirstCrack"], {"low": 400, "medium": 400, "high": 430}
+        )
+        self.assertEqual(config["naturalAdjustSeconds"], 20)
+        self.assertEqual(config["dtrByLevel"], DTR)
+        self.assertEqual(config["startTemp"], 315)
+        self.assertEqual(config["defaultFirstCrackTemp"], 400)
+        self.assertTrue(config["hasCurve"])
+
+    def test_times_only_config_and_an_unknown_natural_adjustment(self):
+        config = wizard_config(self.new_profile_page("long"))
+        self.assertEqual(config["rows"], 20)
+        self.assertFalse(config["hasCurve"])
+        self.assertIsNone(config["startTemp"])
+        self.assertEqual(
+            config["naturalAdjustSeconds"], 0
+        )  # unknown means no adjustment
+
+    def test_the_curve_needs_both_temperatures(self):
+        for start, first_crack in ((315, None), (None, 400)):
+            with self.subTest(start=start, first_crack=first_crack):
+                roasters = json.loads(json.dumps(ROASTERS))
+                roasters["calibrated"]["values"]["wizard"] = wizard(start, first_crack)
+                with mock.patch.object(app, "roasters", roasters):
+                    config = wizard_config(self.new_profile_page("calibrated"))
+                self.assertFalse(config["hasCurve"])
+
+    def test_the_edit_page_has_no_wizard(self):
+        self.profiles["p1"] = {
+            "name": "Saved",
+            "roaster_id": "calibrated",
+            "temps": [None] * 12,
+            "owner": OWNER_EMAIL,
+        }
+        body = self.client.get("/profiles/p1").get_data(as_text=True)
+        self.assertNotIn('id="wizard-toggle"', body)
+        self.assertIsNone(wizard_config(body))
+
+
+class TestWizardWithTheRealRoasterData(RoasterProfileTestCase):
+    def setUp(self):
+        super().setUp()
+        patcher = mock.patch.object(app, "roasters", load_roasters())
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def config(self, roaster_id):
+        body = self.client.get(f"/profiles/new?roaster={roaster_id}").get_data(
+            as_text=True
+        )
+        return wizard_config(body), body
+
+    def test_sr800_config_is_exactly_its_data_and_has_no_notice(self):
+        config, body = self.config("fresh-roast-sr800")
+        self.assertEqual(config["rows"], 12)
+        self.assertEqual(
+            config["timeToFirstCrack"], {"low": 375, "medium": 375, "high": 405}
+        )
+        self.assertEqual(config["naturalAdjustSeconds"], 20)
+        self.assertEqual(config["dtrByLevel"]["Full City"], 0.16)
+        self.assertEqual(
+            (config["startTemp"], config["defaultFirstCrackTemp"]), (315, 400)
+        )
+        self.assertTrue(config["hasCurve"])
+        self.assertNotIn("Estimated for this roaster", body)
+
+    def test_the_other_sr_models_get_a_curve_with_the_estimate_notice(self):
+        for roaster_id in ("fresh-roast-sr540", "fresh-roast-sr700"):
+            with self.subTest(roaster=roaster_id):
+                config, body = self.config(roaster_id)
+                self.assertTrue(config["hasCurve"])
+                self.assertIn("Estimated for this roaster", body)
+
+    def test_roasters_without_start_temperatures_get_times_only(self):
+        for roaster_id in (
+            "kaffelogic-nano-7",
+            "hottop-kn-8828b-2k",
+            "quest-m3",
+            "gene-cafe-cbr-101",
+        ):
+            with self.subTest(roaster=roaster_id):
+                config, body = self.config(roaster_id)
+                self.assertFalse(config["hasCurve"])
+                self.assertIn("Estimated for this roaster", body)
+                self.assertNotIn('id="wizard-fc-temp"', body)
+
+    def test_a_long_grid_reaches_the_wizard_and_gene_cafes_natural_adjustment_is_negative(
+        self,
+    ):
+        config, _ = self.config("gene-cafe-cbr-101")
+        self.assertEqual(config["rows"], 25)
+        self.assertEqual(config["naturalAdjustSeconds"], -30)
+
+    def test_no_readout_roasters_have_no_wizard(self):
+        for roaster_id in (
+            "whirley-pop-stovetop-popcorn-popper",
+            "fresh-roast-sr300",
+            "nesco-cr-1010-pr",
+        ):
+            with self.subTest(roaster=roaster_id):
+                config, body = self.config(roaster_id)
+                self.assertIsNone(config)
+                self.assertNotIn('id="wizard-toggle"', body)
 
 
 class TestEditingKeepsTheRoaster(RoasterProfileTestCase):

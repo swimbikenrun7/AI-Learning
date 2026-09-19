@@ -364,6 +364,62 @@ class TestBrowser(unittest.TestCase):
             },
         )
 
+    def test_an_sr_model_without_calibration_gets_the_same_curve_and_the_notice(self):
+        wizard = self.scenario("wizardEstimatedCurve")
+        self.assertTrue(wizard["notice"])
+        self.assertFalse(wizard["noCurveMessage"])
+        self.assertEqual(wizard["fcTempInput"], "400")
+        self.assertEqual(
+            wizard["washed"],
+            {
+                "temps": [
+                    "315",
+                    "343",
+                    "366",
+                    "383",
+                    "394",
+                    "400",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                ],
+                "firstCrack": "6:15",
+                "developmentTime": "1:11",
+            },
+        )
+        # Natural process adds the SR family's 20 s to first crack.
+        self.assertEqual(wizard["natural"]["firstCrack"], "6:35")
+        self.assertEqual(wizard["natural"]["developmentTime"], "1:15")
+
+    def test_a_roaster_without_start_temperatures_gets_times_only(self):
+        wizard = self.scenario("wizardTimesOnly")
+        self.assertTrue(wizard["notice"])
+        self.assertTrue(wizard["noCurveMessage"])
+        self.assertIsNone(wizard["fcTempInput"])
+        # Kaffelogic's worked example: first crack at 7:30; Full City DTR 21% -> 2:00.
+        self.assertEqual(wizard["washed"]["firstCrack"], "7:30")
+        self.assertEqual(wizard["washed"]["developmentTime"], "2:00")
+        # The temperature grid is left alone (all 12 rows still blank).
+        self.assertEqual(wizard["washed"]["temps"], [""] * 12)
+        # No natural-process adjustment is known for it, so process changes nothing.
+        self.assertEqual(wizard["natural"]["firstCrack"], "7:30")
+
+    def test_the_wizard_follows_a_25_row_roasters_own_data(self):
+        wizard = self.scenario("wizardLongGrid")
+        self.assertEqual(wizard["tempInputs"], 25)
+        self.assertEqual(wizard["washed"]["temps"], [""] * 25)
+        self.assertEqual(wizard["washed"]["firstCrack"], "15:00")
+        self.assertEqual(wizard["washed"]["developmentTime"], "3:59")
+        # Gene Cafe's natural adjustment is negative (dry-process coffee roasts faster).
+        self.assertEqual(wizard["natural"]["firstCrack"], "14:30")
+        self.assertEqual(wizard["natural"]["developmentTime"], "3:51")
+
+    def test_a_roaster_without_a_readout_has_no_wizard(self):
+        self.assertFalse(self.scenario("wizardNone")["toggle"])
+
     def test_edit_page_shows_the_locked_roaster_and_no_wizard(self):
         page = self.scenario("editProfile")
         self.assertFalse(page["hasWizard"])

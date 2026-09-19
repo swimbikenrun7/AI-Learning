@@ -168,19 +168,25 @@ Completed 2026-09-19 · commit `e01d917` on branch `roaster-selection` (not yet 
 
 ---
 
-## T-04 [PLANNED] Data-driven profile wizard
+## T-04 [COMPLETE] Data-driven profile wizard
 
-**Depends on:** T-02b ✓, T-03 ✓. **Starting point after T-02b:** every readout roaster has a `wizard` block; only the SR family has start and first-crack temperatures (see the T-02b decision above). **Starting point after T-03:** the wizard is offered only for a `calibrated` roaster (the SR800); this item removes that gate.
-**Goal:** the wizard's hard-coded constants (`MAILLARD_TIME_SECONDS`, `NATURAL_TIME_ADJUST_SECONDS`, `ROAST_LEVEL_DTR`, `PROFILE_START_TEMP`, default first-crack temp, the 12-row loop in `static/js/profile_wizard.js`) come from the roaster's `wizard` values and grid length.
+Completed 2026-09-19 · **not yet committed** — awaiting your review. Suite: 310 passing (was 293).
 
-**Tasks**
-- [ ] Add a JSON config island to `profile_form.html`, modeled on Add Roast's `roast-config` (the wizard script had no Jinja, so it has none yet). The wizard reads the roaster's values from it: on load for a locked roaster, and on selection change for a new profile.
-- [ ] `calibrated: false` → show a plain notice ("Estimated for this roaster — not calibrated; expect to adjust") rather than hiding the wizard (Settled #6: targets are inferred for now).
-- [ ] Grid loops use the roaster's `profile_grid_minutes`; clamp the computed first-crack minute to it.
-- [ ] Update the SPEC Profile Wizard text, which currently describes the Fresh-Roast-only constants.
+**What now works**
+- **No constants in the script.** `static/js/profile_wizard.js` reads a JSON config island (`#wizard-config`) built from the profile's roaster's `wizard` data: first-crack time by density, the natural-process adjustment (0 if unknown), the DTR by roast level, the start and default first-crack temperatures, and the roaster's row count. The curve loop, array length, and first-crack-minute clamp all use the roaster's rows instead of 12.
+- **The SR800's output is unchanged.** The browser check's SR800 wizard assertions (two input sets) passed untouched after the switch, so the data-driven wizard produces exactly the same numbers as the old constants.
+- **The `calibrated` gate is gone.** The wizard is offered for every roaster that has wizard data (a readout and a `wizard` block). A roaster that isn't calibrated gets the notice "Estimated for this roaster — not calibrated; expect to adjust" plus a line saying only the SR800 is calibrated.
+- **Times-only mode (the T-02b decision).** A temperature curve needs both a start and a default first-crack temperature, which only the SR family has. For every other roaster the wizard fills the target first-crack and development times, leaves the temperature grid untouched, hides the first-crack-temperature field, and says why. Verified: Kaffelogic 7:30 / 2:00; Gene Cafe (25 rows) 15:00 / 3:59, and 14:30 / 3:51 for a natural coffee (its −30 s adjustment); the SR540 gets the SR800's curve plus the notice.
+- **The first-crack temperature field** is pre-filled from the roaster's data and its min/max come from the roaster's own temperature range (it was a hard-coded 300–480, a Fahrenheit assumption).
+- **The plan's "on selection change" item is moot:** since T-03 the roaster is chosen on its own page before the form, so the wizard reads its data once, on load.
 
-**Tests:** server-side tests that the config island carries the right values per roaster, and the browser check (`tests/browser/`, T-09) extended for whatever the wizard now does; it currently pins the SR800 wizard's output, so a deliberate change to those numbers means updating its expected values.
-**Done when:** the SR800 wizard output is identical to today's (the baseline values are recorded in the T-01 verification: default inputs → `315,343,366,383,394,400`, FC 6:15, dev 1:11), and a non-SR roaster produces values from its own entry with the notice shown.
+**Existing tests changed** (both mine, both anticipated by this item's plan): T-03's `test_wizard_is_offered_only_for_a_calibrated_roaster` asserted the `calibrated` gate that this item removes, and is replaced by tests that the wizard follows the roaster's data (offered, the notice, times-only vs curve, the config's numbers, no wizard on the edit page, and the real data for the SR800, SR540/SR700, Kaffelogic/Hottop/Quest/Gene Cafe, and the no-readout roasters). T-02b's drift guard, which compared the data to constants in the script, is replaced by a guard that the constants don't come back.
+
+**Verified:** 6 deliberate breakages of the wizard (natural adjustment ignored, curve always drawn, stuck at 12 rows, notice removed, temperature field shown without a curve, server sending 0 for the adjustment) were each caught. I also looked at the open panel for the SR800 and for Kaffelogic.
+
+**Known gap:** no roaster in the real data has both a temperature curve and a grid other than 12 rows, so the "curve uses the roaster's row count" path is covered only by a static guard and unit tests of the config, not by a browser run.
+
+**Files:** `static/js/profile_wizard.js`, `templates/profile_form.html`, `app.py` (`wizard_config_for`), `roasters.py`, `SPEC.md` (Profile Wizard text), `tests/test_roaster_profiles.py`, `tests/test_roasters.py`, `tests/test_roasters_data.py`, `tests/browser/{driver.mjs,test_browser.py}`.
 
 ---
 
@@ -238,4 +244,4 @@ The scratch prototype from T-01/T-03 became `tests/browser/`, committed as an au
 
 ## Suggested order
 
-T-01 ✓ → T-02a ✓ → T-03 ✓ → T-02b ✓ → T-09 ✓ → T-04 and T-05 → T-06 as warranted → T-08 once data exists. T-07 stays deferred.
+T-01 ✓ → T-02a ✓ → T-03 ✓ → T-02b ✓ → T-09 ✓ → T-04 ✓ → T-05 → T-06 as warranted → T-08 once data exists. T-07 stays deferred.

@@ -19,13 +19,16 @@
     {% endif %}
   </p>
 
-  {% if not profile_id and settings.calibrated %}
+  {% if wizard_config %}
     <p>
       <button type="button" id="wizard-toggle" class="btn btn--ghost">Want some help? Try the profile wizard &rarr;</button>
     </p>
 
     <div id="wizard-panel" hidden>
-      <p>Tell the wizard a bit about your beans and roast goal, and it'll fill in a starting curve below &mdash; based on typical Maillard/development pacing and development-time-ratio guidance for each roast level. Review and adjust every value before saving; every roaster runs a little differently.</p>
+      {% if not settings.calibrated %}
+        <p><strong>Estimated for this roaster</strong> &mdash; not calibrated; expect to adjust. Only the Fresh Roast SR800 has been calibrated against real roasts; for {{ settings.roaster_name }} these are starting estimates from published guidance.</p>
+      {% endif %}
+      <p>Tell the wizard a bit about your beans and roast goal, and it'll fill in {% if wizard_config.hasCurve %}a starting curve and target times below{% else %}the target first-crack and development times below{% endif %} &mdash; based on typical Maillard/development pacing and development-time-ratio guidance for each roast level. Review and adjust every value before saving; every roaster runs a little differently.</p>
       <p>
         <label>Bean density<br>
           <select id="wizard-density">
@@ -55,14 +58,19 @@
           </select>
         </label>
       </p>
-      <p>
-        <label>Your typical first crack temperature ({{ settings.units.symbol }})<br>
-          <input type="number" id="wizard-fc-temp" value="400" min="300" max="480" step="1">
-        </label>
-        <br><small>This varies by roaster and probe placement &mdash; use what you usually observe on your own machine, not a generic number. It shapes where the curve ends, not how long it takes to get there &mdash; time to first crack is estimated separately, from density/process.</small>
-      </p>
+      {% if wizard_config.hasCurve %}
+        <p>
+          <label>Your typical first crack temperature ({{ settings.units.symbol }})<br>
+            <input type="number" id="wizard-fc-temp" value="{{ wizard_config.defaultFirstCrackTemp }}" min="{{ settings.temp_min }}" max="{{ settings.temp_max }}" step="1">
+          </label>
+          <br><small>This varies by roaster and probe placement &mdash; use what you usually observe on your own machine, not a generic number. It shapes where the curve ends, not how long it takes to get there &mdash; time to first crack is estimated separately, from density/process.</small>
+        </p>
+      {% else %}
+        <p><small>No temperature curve for this roaster: its data has no start or first-crack temperature to build one from, so the wizard fills only the target times.</small></p>
+      {% endif %}
       <button type="button" id="wizard-generate-btn" class="btn btn--primary">Generate profile</button>
     </div>
+    <script id="wizard-config" type="application/json">{{ wizard_config|tojson }}</script>
   {% endif %}
 
   <form method="post" id="profile-form">
@@ -125,7 +133,7 @@
     </div>
   {% endif %}
 
-  {% if not profile_id and settings.calibrated %}
+  {% if wizard_config %}
     <script src="{{ url_for('static', filename='js/profile_wizard.js') }}"></script>
   {% endif %}
 {% endblock %}

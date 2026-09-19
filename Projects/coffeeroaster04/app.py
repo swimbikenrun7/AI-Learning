@@ -101,6 +101,26 @@ def profile_settings(profile):
     )
 
 
+def wizard_config_for(settings, rows):
+    """What the profile wizard needs from its roaster, or None if it has no wizard."""
+    wizard = settings["wizard"]
+    if not wizard:
+        return None
+    start_temp = wizard["profile_start_temp"]
+    first_crack_temp = wizard["default_first_crack_temp"]
+    return {
+        "rows": rows,
+        "timeToFirstCrack": wizard["time_to_first_crack_s"],
+        "naturalAdjustSeconds": wizard["natural_time_adjust_s"] or 0,
+        "dtrByLevel": wizard["dtr_by_level"],
+        "startTemp": start_temp,
+        "defaultFirstCrackTemp": first_crack_temp,
+        # A temperature curve needs both temperatures; without them the wizard
+        # only fills the target first-crack and development times.
+        "hasCurve": start_temp is not None and first_crack_temp is not None,
+    }
+
+
 def roaster_name(profile):
     roaster = roasters.get(profile.get("roaster_id"))
     return roaster["name"] if roaster else None
@@ -770,6 +790,7 @@ def add_edit_profile(profile_id=None):
         "profile_form.html",
         profile_id=profile_id,
         settings=settings,
+        wizard_config=None if existing_profile else wizard_config_for(settings, rows),
         minutes=minutes,
         values=values,
         error=error,

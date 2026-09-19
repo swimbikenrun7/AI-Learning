@@ -15,6 +15,7 @@ LEGACY_SETTINGS = {
     "first_crack_min_s": 240,
     "profile_grid_minutes": 12,
     "calibrated": False,
+    "wizard": None,
     "has_temp_readout": True,
     "temp_unit": "F",
     "temp_source": "unspecified",
@@ -62,6 +63,7 @@ def settings_for(roasters, roaster_id, rows=None):
         settings["roaster_id"] = roaster_id
         settings["roaster_name"] = roaster.get("name")
         settings["calibrated"] = bool(values.get("calibrated"))
+        settings["wizard"] = values.get("wizard")
         for field in _FIELDS_WITH_FALLBACK:
             if values.get(field) is not None:
                 settings[field] = values[field]
@@ -77,6 +79,7 @@ def settings_for(roasters, roaster_id, rows=None):
             settings["temp_source"] = "none"
             settings["temp_min"] = None
             settings["temp_max"] = None
+            settings["wizard"] = None  # a wizard needs a temperature grid
         else:
             for field in ("temp_unit", "temp_source", "temp_min", "temp_max"):
                 if values.get(field) is not None:
