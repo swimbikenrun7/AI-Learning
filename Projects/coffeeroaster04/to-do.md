@@ -192,7 +192,7 @@ Completed 2026-09-19 · commit `c6a279b` on branch `roaster-selection`. Suite: 3
 
 ## T-05 [COMPLETE] Data-driven Add Roast live panel
 
-Completed 2026-09-19 · **not yet committed** — awaiting your review. Suite: 334 passing (was 310); the browser check is now 18 tests (was 15).
+Completed 2026-09-19 · commit `24ea855` on branch `roaster-selection`. Suite: 334 passing (was 310); the browser check is now 18 tests (was 15).
 
 **What now works**
 - **Chart opening follows the roaster's data** (`roasters.chart_opening`, sent to the page as `anchors`): the SR540/700/800 keep today's synthetic ramp (145 / 0.5 min / 270); a `preheat_charge` roaster with a stated `charge_temp` (else `preheat_temp`) starts the curve at that temperature and heads for the first target — Hottop 167, Aillio R1 160 / R1 V2 230, Quest 150, Sandbox 200; every other roaster's curve begins at the profile's first target, with no invented ramp, lead-in, or turning point (no source describes one). The T-03 flat lead-in, which caused a rate-of-rise spike, is gone.
