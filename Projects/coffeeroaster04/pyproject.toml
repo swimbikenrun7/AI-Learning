@@ -1,7 +1,7 @@
 [project]
 name = "coffeeroaster04"
 version = "0.1.0"
-description = "Add your description here"
+description = "Crackle: a Flask web app for logging home coffee roasts and managing roast profiles."
 readme = "README.md"
 authors = [
     { name = "Joshua George", email = "josh.george7@gmail.com" }
@@ -11,12 +11,9 @@ dependencies = [
     "flask>=3.1.3",
 ]
 
-[project.scripts]
-coffeeroaster04 = "app:main"
-
-[build-system]
-requires = ["uv_build>=0.12.5,<0.13.0"]
-build-backend = "uv_build"
+# No [build-system]: this is an application run from its own folder
+# (`python app.py`, or `from app import app` in the WSGI file), not an
+# installable package.
 
 [dependency-groups]
 dev = [
