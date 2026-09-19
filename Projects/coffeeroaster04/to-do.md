@@ -115,7 +115,7 @@ Finished weight needs no per-roaster field: the domain rule is `0 < finished < g
 
 ### T-02b — Tier 2 fields (needed by T-04/T-05/T-06) — [COMPLETE]
 
-Completed 2026-09-19 · **not yet committed** — awaiting your review. Suite: 293 passing (was 284).
+Completed 2026-09-19 · commit `0c93e16` on branch `roaster-selection`. Suite: 293 passing (was 284).
 - [x] Schema and rules written into `SPEC.md` ("Roaster data (Tier 2)").
 - [x] All 46 entries filled: `start_model`, `preheat_temp`, `charge_temp`, `controls`, `cooling`, `cooling_coast_seconds`, `min_gap_between_roasts_min`, `wizard` (the three chart-anchor fields were done in T-03). Wizard sub-fields are listed in `inferred` by dotted name (e.g. `wizard.dtr_by_level`).
 - [x] Tier 2 tests added to `tests/test_roasters_data.py` (start model vs readout and anchors, preheat/charge within range, control shape, cooling, gap, wizard shape and consistency, SR-only table, and a drift guard that fails if the SR800's wizard data differs from the constants actually in `profile_wizard.js`). Each guard was checked against 14 deliberately broken copies of the data.
