@@ -1,5 +1,7 @@
 """Add Roast, saved records, and the roast pages driven by the profile's roaster (synthetic roasters)."""
 
+import csv
+import io
 import json
 import re
 import unittest
@@ -369,6 +371,38 @@ class TestChartOpeningAndNotes(RoastTestCase):
     def test_no_notes_for_a_roaster_with_no_gap_or_coast_data(self):
         body = self.client.get("/roasts/new/small-p").get_data(as_text=True)
         self.assertNotIn('class="roast-note"', body)
+
+
+class TestRoasterColumn(RoastTestCase):
+    def export_rows(self):
+        text = self.client.get("/roasts/export").get_data(as_text=True)
+        return list(csv.reader(io.StringIO(text)))
+
+    def test_the_list_shows_each_roasts_roaster_after_the_profile(self):
+        self.add_record("r1")
+        body = self.client.get("/roasts").get_data(as_text=True)
+        profile = body.index('<th data-type="text">Roast Profile</th>')
+        roaster = body.index('<th data-type="text">Roaster</th>')
+        green = body.index('<th data-type="number">Green (g)</th>')
+        self.assertTrue(profile < roaster < green)
+        self.assertIn("<td>Small Profile</td>\n          <td>Small C</td>", body)
+
+    def test_the_csv_export_has_the_column_in_the_same_place(self):
+        self.add_record("r1")
+        header, first = self.export_rows()[:2]
+        self.assertEqual(header, app.ROAST_TABLE_COLUMNS)
+        position = header.index("Roaster")
+        self.assertEqual(position, header.index("Roast Profile") + 1)
+        self.assertEqual(first[position], "Small C")
+
+    def test_a_record_with_no_roaster_or_a_vanished_one_shows_a_dash(self):
+        self.add_record("no-roaster")
+        del self.records["no-roaster"]["roaster_id"]
+        self.add_record("gone", roaster_id="removed-from-the-list")
+        body = self.client.get("/roasts").get_data(as_text=True)
+        self.assertEqual(body.count("<td>-</td>"), 2)
+        for row in self.export_rows()[1:]:
+            self.assertEqual(row[3], "-")
 
 
 class TestRoastDetailFollowsTheRecord(RoastTestCase):

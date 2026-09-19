@@ -57,6 +57,7 @@ ROAST_TABLE_COLUMNS = [
     "Date",
     "Bean Name",
     "Roast Profile",
+    "Roaster",
     "Green (g)",
     "Finished (g)",
     "Roast Time",
@@ -402,12 +403,14 @@ def _weight_loss_and_development_time(record):
 def _build_roast_row(record_id, record):
     weight_loss, development_time = _weight_loss_and_development_time(record)
     profile = roast_profiles.get(record.get("roast_profile_id"))
+    roaster = roasters.get(record.get("roaster_id"))
     classification = calc.classify_roast(weight_loss)
     return {
         "id": record_id,
         "date": record["date"],
         "bean_name": record["bean_name"],
         "profile_name": profile["name"] if profile else "-",
+        "roaster_name": roaster["name"] if roaster else "-",
         "green_weight": record["green_weight"],
         "finished_weight": record["finished_weight"],
         "total_roast_time": format_mm_ss(record["total_roast_time"]),
@@ -447,6 +450,7 @@ def export_roasts():
                 row["date"],
                 row["bean_name"],
                 row["profile_name"],
+                row["roaster_name"],
                 f"{row['green_weight']:.1f}",
                 f"{row['finished_weight']:.1f}",
                 row["total_roast_time"],

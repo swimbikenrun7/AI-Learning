@@ -264,6 +264,28 @@ await scenario("chooser", async () => {
   return state;
 });
 
+// ---- Roast list: the columns, client-side sort (including the Roaster column), and search ----
+await scenario("roastsList", async () => {
+  await visit("/roasts");
+  const headers = await ev("Array.from(document.querySelectorAll('#roasts-table th')).map((th) => th.textContent.trim())");
+  const column = headers.indexOf("Roaster");
+  const roasterCells = () => ev(`Array.from(document.querySelectorAll('#roasts-table tbody tr')).filter((row) => !row.hidden).map((row) => row.cells[${column}].textContent.trim())`);
+  const clickHeader = (index) => ev(`document.querySelectorAll('#roasts-table th[data-type]')[${index}].click()`);
+  const state = { headers, unsorted: await roasterCells() };
+  await clickHeader(column);
+  state.ascending = await roasterCells();
+  await clickHeader(column);
+  state.descending = await roasterCells();
+  // Search reads the date, bean name and profile columns, which come before the new one.
+  await ev(`(() => {
+    const input = document.getElementById('roast-search');
+    input.value = 'kaffelogic';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  })()`);
+  state.searched = await roasterCells();
+  return state;
+});
+
 // ---- Roast detail: its own charts and table, in the record's unit ----
 async function roastDetail(path) {
   await visit(path);

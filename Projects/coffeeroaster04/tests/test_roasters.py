@@ -308,8 +308,11 @@ class TestChartOpeningForTheRealRoasters(unittest.TestCase):
         self.assertTrue(stated("fresh-roast-sr540"))  # the manual says 30 minutes
         self.assertTrue(stated("behmor-1600ab"))  # the manual says 1 hour
         self.assertTrue(stated("quest-m3"))  # stated as 0: back-to-back is fine
-        self.assertFalse(
+        self.assertTrue(
             stated("fresh-roast-sr800")
+        )  # the owner confirmed it for his machine
+        self.assertFalse(
+            stated("fresh-roast-sr700")
         )  # only assumed from the SR540 manual
         self.assertFalse(stated("gene-cafe-cbr-101"))  # no stated gap at all
 

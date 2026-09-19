@@ -294,7 +294,7 @@ The roast detail page shall offer a form to record cupping notes (free text) and
 
 ### Constraints
 No new external dependency: CSV export uses the standard-library `csv` module; search/sort and the live RoR/split-pane behavior are plain JS, no client-side library.
-The `/roasts` list table's columns are unchanged — bean origin/variety/process and cupping notes/rating are shown on the roast detail page only, not added to `ROAST_TABLE_COLUMNS`.
+The `/roasts` list table's columns are unchanged from Phase 1 except for one addition, **Roaster** (Phase 12, directly after Roast Profile, shown as "-" for a record with no roaster or one no longer in `roasters.json`), which the CSV export carries too. Bean origin/variety/process and cupping notes/rating are shown on the roast detail page only, not added to `ROAST_TABLE_COLUMNS`. The list's text search still matches bean name, profile name, or date only.
 Cupping notes/rating are optional and have no bearing on any existing calculation (weight loss, DTR, classification).
 The fixed-height split-pane and wheel-forwarding behavior on Add Roast is desktop-only; below the existing 640px breakpoint the layout falls back to normal stacked columns and whole-page scrolling.
 
@@ -313,7 +313,7 @@ On startup, after checking the JSON files for corruption, the application shall 
 1. `/` — Home: a main menu offering Add roast, View roasts, and View and edit roast profiles as buttons, mirroring coffeeroaster03's `MainScreen` (minus Exit, which doesn't apply to a web application). **(Phase 5)** Stays reachable while logged out; the buttons redirect through login if needed.
 2. `/signup`, `/login` — create an account / authenticate; `/logout` (POST) ends the session. **(Phase 7)**
    `/verify-email/<token>` — confirms an account's email from the link sent at signup; `/resend-verification` (POST, requires login) re-sends it. `/forgot-password` — request a password-reset link by email; `/reset-password/<token>` — set a new password from that link. **(Phase 7)**
-3. `/roasts` — View roasts: displays existing roast records in an HTML table, including a Roast Profile column, using the same fields/order as `ROAST_TABLE_COLUMNS` in coffeeroaster03. **(Phase 1, moved off `/` in Phase 5, requires login and scoped to the current account as of Phase 7)**
+3. `/roasts` — View roasts: displays existing roast records in an HTML table, including a Roast Profile column (and, since Phase 12, a Roaster column after it), using the same fields/order as `ROAST_TABLE_COLUMNS` in coffeeroaster03 apart from that addition. **(Phase 1, moved off `/` in Phase 5, requires login and scoped to the current account as of Phase 7)**
 4. `/roasts/<id>` — Roast detail: displays that roast's full time/actual/target temperature table (1:00-12:00) and a line chart (x-axis: time in minutes, y-axis: temperature °F) plotting actual vs. target temperature, rendered client-side with Chart.js. **(Phase 1, requires login and ownership as of Phase 7)**
 5. Add roast — select a roast profile, then a form to collect roast fields (including the profile's temperature table), validate inline, and save. **(Phase 2, requires login as of Phase 7; saved records are owned by the current account)**
 6. View and edit roast profiles — add a new profile, or view/edit existing ones. **(Phase 3, requires login and ownership as of Phase 7)**

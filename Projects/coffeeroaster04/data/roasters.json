@@ -902,10 +902,9 @@
             ],
             "inferred": [
                 "temp_min",
-                "temp_max",
-                "min_gap_between_roasts_min"
+                "temp_max"
             ],
-            "notes": "The one CALIBRATED roaster (owner's logged roasts, in F). Retailer: washed 8 oz / 227 g, natural 6 oz / 170 g, minimum roast 4 oz / 113 g; real-time temperature readout, sensor type unstated. Retailer text says total roast 8-18 min and timer to 20 min, but the owner's experience is 10 min at most, so 12 rows per the owner's rule. Chart anchors (145 F start, 270 F at 30 s) are the app's original live-chart constants, tuned on the SR800. Tier 2: the calibrated roaster. Wizard values are the app's own constants from the owner's logged roast (medium density, washed: 6:15 first crack, 1:10 development, Full City); high density +30 s and natural +20 s are the owner's rules. Retailer: 9 heat and 9 fan levels, timer 0.1-20 min, cool stages C.3-C.1. The 30-minute gap is assumed from the SR540 manual, not stated for the SR800.",
+            "notes": "The one CALIBRATED roaster (owner's logged roasts, in F). Retailer: washed 8 oz / 227 g, natural 6 oz / 170 g, minimum roast 4 oz / 113 g; real-time temperature readout, sensor type unstated. Retailer text says total roast 8-18 min and timer to 20 min, but the owner's experience is 10 min at most, so 12 rows per the owner's rule. Chart anchors (145 F start, 270 F at 30 s) are the app's original live-chart constants, tuned on the SR800. Tier 2: the calibrated roaster. Wizard values are the app's own constants from the owner's logged roast (medium density, washed: 6:15 first crack, 1:10 development, Full City); high density +30 s and natural +20 s are the owner's rules. Retailer: 9 heat and 9 fan levels, timer 0.1-20 min, cool stages C.3-C.1. The 30-minute gap between roasts is the owner's confirmation for the SR800 (it matches the SR540 manual's rule).",
             "green_weight_min_g": 113,
             "green_weight_max_g": 227,
             "green_weight_recommended_g": 227,

@@ -30,10 +30,22 @@ These are fixed inputs to the plan below, not open questions.
 11. **The test changes for "roaster required" are approved** (the four tests listed under T-03).
 12. **Temperature units: shared code, per-roaster data** (was U1; details below). Each roaster carries `temp_unit`; one code path reads a units table; no conversion, no C/F module forks. The main aim is that graphics scale correctly and the right unit appears in every axis label and readout.
 13. **Maximum roast time = the roaster's row count** (was U2). The longest roast accepted without an input error is exactly as long as the profile grid generated for that roaster: 12 rows → 12:00 is accepted and 12:01 is rejected; a 20-row roaster accepts up to 20:00. (Roast time is stored in seconds, so in code this is `profile_grid_minutes × 60` — just minutes converted to seconds.) This guarantees a roast can never run past the rows that describe it. The roaster-less fallback (Settled #8) keeps today's 20:00 limit so existing tests are unaffected.
+14. **The SR800's 30-minute gap between roasts is confirmed by the owner** (2026-09-19 review), so it is stated data: Add Roast shows the reminder "this roaster needs at least 30 minutes between roasts". The other SR models' 30 minutes stay assumed and unshown, except the SR540, whose manual states it.
+15. **Roasters with no temperature readout stay grid-less until someone needs otherwise** (SR300/340/500, the poppers, Whirley-Pop, Nesco, the ceramics). An opt-in "I use an external probe" per profile (with a unit choice) was considered and deferred; revisit only when a real user with a probe on one of these appears.
+16. **Roast records show their roaster in the `/roasts` list and the CSV export** (a Roaster column right after Roast Profile; done 2026-09-19).
+17. **Next, in this order: T-06 start condition + ambient temperature, then T-08 (calibration report).** Not selected for now: the T-06 control-change log, and merging `roaster-selection` into `main` (the branch carries on).
 
 ## Open decisions
 
-None at the moment.
+Nothing is blocking. These are the defaults I'm assuming from the 2026-09-19 review — say if you object to any and I'll reverse it:
+
+- **The wizard is times-only for every roaster without start and first-crack temperatures** (all but the SR family), rather than inferring temperatures (the T-02b/T-04 decision).
+- **The SR800 keeps 12 rows** even though its retailer says roasts run 8–18 minutes (your rule: about 10 minutes is the longest anyone roasts).
+- **The SR800's 170 g cap for natural coffees is not enforced** (only its 113–227 g range is); the app can't tell which coffees are naturals reliably, since process is optional free text.
+- **"Bohemia 250" stays removed** and **the Kaldi Wide400 / Wide POP (Kaffa) are not added** to the list.
+- **The `/roasts` search still matches only bean, profile, and date**, not the new roaster column.
+- **The rate-of-rise dot at exactly t = 0 keeps showing half the true slope** on ramp and charge curves (how the SR800 has always behaved) rather than changing the SR800's initial readout.
+- **The roaster-less fallback stays in the code** (the original limits for a profile with no roaster): removing it would mean rewriting the tests that build roaster-less profiles, for no user-visible gain now that every stored profile is migrated.
 
 ### Temperature units — how Settled #12 is implemented
 
@@ -110,6 +122,8 @@ Low-confidence entries are flagged in their `notes`: Huky 500T, Presto PopLite, 
 4. **Removed "Bohemia 250 (ceramic stovetop)"** (list is now 46): it appeared only in a retailer blog post that contradicted that retailer's own product pages, and no other source exists. If you have a real product in mind, give me the actual name.
 5. **Kaffa is the export brand of the same Seoul maker as Kaldi** (Kaldi Wide400 = Kaffa Wide400, 400 g; Wide POP, 300 g). The list has only Kaldi Mini and Kaldi Wide; adding the Wide400 and Wide POP is optional and not done.
 
+**Resolved in the 2026-09-19 review:** 1–2 stand (SR800 limits and 12 rows; see Open decisions); 3 became Settled #15 (leave as is); 4 and 5 stay as they are (see Open decisions).
+
 
 Finished weight needs no per-roaster field: the domain rule is `0 < finished < green` (replacing the global ≥ 100 g floor, which rejects a full SR540 batch and any IKAWA roast).
 
@@ -159,10 +173,10 @@ Completed 2026-09-19 · commit `e01d917` on branch `roaster-selection` (not yet 
 **Verified in a real browser** (headless Chromium, before/after): the SR800 Add Roast, timer, First Crack, wizard (two input sets), and profile pages match the pre-T-03 baseline on every recorded value with no console errors. A °C roaster shows `°C` on both axes and readouts and starts flat; a 25-row Gene Cafe profile gets 25 rows and a 25-minute axis; a no-readout roaster hides the chart but its timer and First Crack button work.
 
 **Known interim limits (by design; later items fix them)**
-- Non-SR roasters have no chart opening, so a curve starts flat and its rate-of-rise line spikes when it first climbs; T-05 gives each roaster a proper `start_model`.
-- The wizard is SR800-only (T-04).
-- SR300/340/500, the poppers, Nesco, Whirley-Pop, and the ceramic roasters have no temperature grid at all (they have no readout); if people use external probes there, that needs an override.
-- Roasters do not yet appear on the `/roasts` list or CSV export.
+- ~~Non-SR roasters have no chart opening, so a curve starts flat and its rate-of-rise line spikes when it first climbs~~ — **resolved by T-05.**
+- ~~The wizard is SR800-only~~ — **resolved by T-04.**
+- SR300/340/500, the poppers, Nesco, Whirley-Pop, and the ceramic roasters have no temperature grid at all (they have no readout) — **decided: leave as is (Settled #15).**
+- ~~Roasters do not yet appear on the `/roasts` list or CSV export~~ — **done (Settled #16).**
 
 **Files:** `roasters.py` (new), `validators.py`, `calculations.py`, `app.py`, `templates/{choose_roaster,profile_form,add_roast,roast_detail}.html`, `static/js/{add_roast_live,profile_wizard}.js`, `data/roasters.json` (chart anchors), `SPEC.md`, `DEPLOY.md`; tests: `test_roasters.py`, `test_limits.py`, `test_roaster_profiles.py`, `test_roaster_roasts.py`, `test_no_hardcoded_units.py` (new) and the seven edits above.
 
@@ -198,7 +212,7 @@ Completed 2026-09-19 · commit `24ea855` on branch `roaster-selection`. Suite: 3
 - **Chart opening follows the roaster's data** (`roasters.chart_opening`, sent to the page as `anchors`): the SR540/700/800 keep today's synthetic ramp (145 / 0.5 min / 270); a `preheat_charge` roaster with a stated `charge_temp` (else `preheat_temp`) starts the curve at that temperature and heads for the first target — Hottop 167, Aillio R1 160 / R1 V2 230, Quest 150, Sandbox 200; every other roaster's curve begins at the profile's first target, with no invented ramp, lead-in, or turning point (no source describes one). The T-03 flat lead-in, which caused a rate-of-rise spike, is gone.
 - **Rate of rise** shows an en dash before a curve that begins later than minute 0 has a slope, and its first samples use the curve's real slope (my first version halved them; a browser assertion now guards it). The SR800's numbers are unchanged.
 - **Pull countdown** subtracts the roaster's `cooling_coast_seconds` (unknown counts as 0). No roaster has coast data yet, so today it changes nothing; the page states the allowance when one is set.
-- **Back-to-back reminder**, informational only: "this roaster needs at least N minutes between roasts", shown only for a *stated* gap greater than zero (SR540 30, Behmor 60, Aillio R1 V2 2). The SR800's 30 minutes is only assumed, so it shows nothing — its page is unchanged. The app stores only a roast's date, not a time, so it could not enforce a gap anyway.
+- **Back-to-back reminder**, informational only: "this roaster needs at least N minutes between roasts", shown only for a *stated* gap greater than zero (SR540 30, Behmor 60, Aillio R1 V2 2, and — after the 2026-09-19 review confirmed it — SR800 30). The other SR models' 30 minutes are only assumed, so they show nothing. The app stores only a roast's date, not a time, so it could not enforce a gap anyway.
 - **Axis units, y-axis and x-axis length:** already done in T-03 — labels and readouts come from the roaster's unit, the x-axis runs to its row count, and the y-axes auto-scale to whatever unit the data is in, so no separate bounds are needed.
 
 **Tests.** 24 new unit and browser tests (opening for every kind of roaster and the real data, charge vs preheat, only stated gaps, coast reaching the page and the countdown, the notes). Six deliberate breakages (opening unused, preheat preferred to charge, curve always from minute 0, coast ignored, an inferred gap shown, the server sending coast 0) and the reverted rate-of-rise fix were each caught. **Existing tests changed** (both mine, from T-09, both pinning the behavior this item replaces): the Celsius test's "starts flat" is now "starts at its first target", and the 25-row curve has 240 points, not 250, because it begins at minute 1. I also looked at the Kaffelogic and Hottop charts.
@@ -215,11 +229,13 @@ Completed 2026-09-19 · commit `24ea855` on branch `roaster-selection`. Suite: 3
 
 ## T-06 [PLANNED] New Add Roast fields, shown per roaster
 
-**Depends on:** T-05. Schedule after real use of T-03–T-05 shows which of these earn their place.
-**Candidates, roughly in value order:**
-1. Start condition (cold / warm / preheated) and ambient temperature — the Gene Cafe tip sheet says warm starts, ambient, and line voltage each shift roast time by up to a minute.
+**Depends on:** T-05 ✓. **Chosen next (Settled #17): start condition + ambient temperature.** The rest stay candidates, not scheduled.
+**Build now:** 
+1. **Start condition** (cold / warm / preheated) and **ambient temperature** — the Gene Cafe tip sheet says warm starts, ambient, and line voltage each shift roast time by up to a minute; the SR540 manual's 30-minute gap is about the same effect. Optional per roast, saved on the record, shown on the roast detail page. Open design points to settle when this starts: whether ambient is entered in the roaster's unit or the user's; whether "preheated" shows only for roasters whose `start_model` is `preheat_charge`; and whether the fields go in the CSV.
+
+**Candidates, not scheduled:**
 2. Charge temperature and turning point (time, temperature) — for `preheat_charge` roasters.
-3. Control changes: timestamped fan/heat/drum adjustments, using the roaster's `controls` list. On dial-driven machines the temperature curve is an outcome and the dial sequence is the repeatable part; a profile-side `control_plan` would mirror this.
+3. Control changes: timestamped fan/heat/drum adjustments, using the roaster's `controls` list. On dial-driven machines the dial sequence is the repeatable part of a roast; a profile-side `control_plan` would mirror this. *(Considered on 2026-09-19 and not selected for now.)*
 4. Cooling start time.
 
 Each gets its own SPEC entry and its own commit; fields not applicable to a roaster don't appear.
@@ -232,7 +248,7 @@ Program-driven roasters take profiles in their own shape — IKAWA (up to 6 inle
 
 ## T-08 [PLANNED] Calibration feedback loop
 
-**Depends on:** T-03 (records carry `roaster_id`), plus real data.
+**Depends on:** T-03 (records carry `roaster_id`), plus real data. **Chosen next after T-06 (Settled #17).**
 Add a read-only report script (not a web feature) that summarizes logged roasts per roaster — time to first crack, development ratio, weight loss, temperature at first crack — to compare against each roaster's stored values. When a roaster has enough consistent data, tune its entry and flip `calibrated` to true. This is how values for non-SR800 roasters get refined from user data (Settled #6).
 
 ## T-09 [COMPLETE] Keep a browser regression check in the repo
@@ -248,8 +264,19 @@ The scratch prototype from T-01/T-03 became `tests/browser/`, committed as an au
 - **Files:** `tests/browser/{test_browser.py,serve.py,driver.mjs}`, `README.md` (a "Browser check" section), `SPEC.md` (one constraint).
 - **Limits:** it needs a system Chromium and Node, so a machine without them (or offline) silently skips it; a browser-version change could in principle move a chart value, so numeric checks use tolerances.
 
+## T-10 [COMPLETE] Review follow-ups: the SR800's stated gap and the Roaster column
+
+Completed 2026-09-19 · **not yet committed** — awaiting your review. Suite: 338 passing (was 334); the browser check is 19 tests (was 18). These are the two concrete decisions from the open-questions review (Settled #14 and #16).
+
+- **SR800 gap.** `data/roasters.json`: the SR800's 30-minute gap is now stated (removed from its `inferred` list; the note records the owner's confirmation). Add Roast therefore shows "Reminder: this roaster needs at least 30 minutes between roasts." for the SR800. The other SR models' 30 minutes stay assumed and unshown.
+- **Roaster column.** `ROAST_TABLE_COLUMNS` gains "Roaster" directly after "Roast Profile", in the `/roasts` list and the CSV export (a record with no roaster, or one no longer in the list, shows "-"). The list's client-side sort and search were unaffected; a new browser scenario checks the headers, sorting by the new column both ways, and search. `SPEC.md` describes both.
+- **Existing tests changed** (both mine, from T-05, both asserting the SR800's gap is *not* shown — the opposite of Settled #14): `test_only_stated_gaps_are_reminders` now expects the SR800 stated (the SR700 is the assumed example), and the browser check's SR800 page test now expects the reminder. The one original test on the CSV header only checks a substring, which still holds, so no original test changed.
+- **Verified:** the new column tests failed when the cell or the CSV value was removed (the misaligned-cell breakage failed 3 tests, the missing CSV value 2); the gap tests failed the moment the data changed and passed once updated.
+- **Files:** `data/roasters.json`, `app.py`, `templates/roasts.html`, `SPEC.md`, `tests/test_roasters.py`, `tests/test_roaster_roasts.py`, `tests/browser/{driver.mjs,test_browser.py}`.
+
+
 ---
 
 ## Suggested order
 
-T-01 ✓ → T-02a ✓ → T-03 ✓ → T-02b ✓ → T-09 ✓ → T-04 ✓ → T-05 ✓ → T-06 as warranted → T-08 once data exists. T-07 stays deferred.
+T-01 ✓ → T-02a ✓ → T-03 ✓ → T-02b ✓ → T-09 ✓ → T-04 ✓ → T-05 ✓ → **T-06 (start condition + ambient) → T-08**. The T-06 control-change log and T-07 stay unscheduled.

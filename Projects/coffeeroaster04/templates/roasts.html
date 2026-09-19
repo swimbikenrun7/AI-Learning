@@ -37,6 +37,7 @@
         <th data-type="date">Date</th>
         <th data-type="text">Bean Name</th>
         <th data-type="text">Roast Profile</th>
+        <th data-type="text">Roaster</th>
         <th data-type="number">Green (g)</th>
         <th data-type="number">Finished (g)</th>
         <th data-type="time">Roast Time</th>
@@ -52,6 +53,7 @@
           <td>{{ row.date }}</td>
           <td>{{ row.bean_name }}</td>
           <td>{{ row.profile_name }}</td>
+          <td>{{ row.roaster_name }}</td>
           <td>{{ "%.1f"|format(row.green_weight) }}</td>
           <td>{{ "%.1f"|format(row.finished_weight) }}</td>
           <td>{{ row.total_roast_time }}</td>

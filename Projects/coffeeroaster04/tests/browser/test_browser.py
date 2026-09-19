@@ -268,8 +268,11 @@ class TestBrowser(unittest.TestCase):
         )
         self.assertTrue(any("Allowed 113–227 g" in hint for hint in page["hints"]))
         self.assertFalse(page["hasCelsius"])
-        # The SR800's 30-minute gap is only inferred, so it is not shown as a reminder.
-        self.assertEqual(page["notes"], [])
+        # The owner confirmed the SR800's 30-minute rule, so it is shown as a reminder.
+        self.assertEqual(
+            page["notes"],
+            ["Reminder: this roaster needs at least 30 minutes between roasts."],
+        )
 
     def test_sr800_timer_first_crack_and_pull_countdown(self):
         page = self.scenario("addRoastSr800")
@@ -493,6 +496,36 @@ class TestBrowser(unittest.TestCase):
         self.assertEqual(page["roasterInput"], "gene-cafe-cbr-101")
         self.assertTrue(page["showsRoaster"])
         self.assertEqual(page["tempInputs"], 25)
+
+    # ---- Roast list ----
+
+    def test_the_roast_list_has_a_roaster_column_that_sorts_and_searches_correctly(
+        self,
+    ):
+        page = self.scenario("roastsList")
+        self.assertEqual(
+            page["headers"],
+            [
+                "Date",
+                "Bean Name",
+                "Roast Profile",
+                "Roaster",
+                "Green (g)",
+                "Finished (g)",
+                "Roast Time",
+                "1st Crack",
+                "Weight Loss (%)",
+                "Dev Time",
+                "Classification",
+            ],
+        )
+        names = sorted(page["unsorted"])
+        self.assertEqual(len(names), len(RECORDS))
+        self.assertIn("Fresh Roast SR800", names)
+        self.assertEqual(page["ascending"], names)
+        self.assertEqual(page["descending"], names[::-1])
+        # Search still matches the profile column and hides the rest.
+        self.assertEqual(page["searched"], ["Kaffelogic Nano 7"])
 
     # ---- Roast detail ----
 
