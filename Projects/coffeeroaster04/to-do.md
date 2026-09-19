@@ -266,7 +266,7 @@ The scratch prototype from T-01/T-03 became `tests/browser/`, committed as an au
 
 ## T-10 [COMPLETE] Review follow-ups: the SR800's stated gap and the Roaster column
 
-Completed 2026-09-19 · **not yet committed** — awaiting your review. Suite: 338 passing (was 334); the browser check is 19 tests (was 18). These are the two concrete decisions from the open-questions review (Settled #14 and #16).
+Completed 2026-09-19 · commit `0652029` on branch `roaster-selection`. Suite: 338 passing (was 334); the browser check is 19 tests (was 18). These are the two concrete decisions from the open-questions review (Settled #14 and #16).
 
 - **SR800 gap.** `data/roasters.json`: the SR800's 30-minute gap is now stated (removed from its `inferred` list; the note records the owner's confirmation). Add Roast therefore shows "Reminder: this roaster needs at least 30 minutes between roasts." for the SR800. The other SR models' 30 minutes stay assumed and unshown.
 - **Roaster column.** `ROAST_TABLE_COLUMNS` gains "Roaster" directly after "Roast Profile", in the `/roasts` list and the CSV export (a record with no roaster, or one no longer in the list, shows "-"). The list's client-side sort and search were unaffected; a new browser scenario checks the headers, sorting by the new column both ways, and search. `SPEC.md` describes both.
