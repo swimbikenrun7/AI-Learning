@@ -238,9 +238,9 @@ Completed 2026-09-19 · commit `24ea855` on branch `roaster-selection`. Suite: 3
 
 Each gets its own SPEC entry and its own commit; fields not applicable to a roaster don't appear.
 
-### T-06 (1) Start condition and ambient temperature — [COMPLETE, awaiting commit]
+### T-06 (1) Start condition and ambient temperature — [COMPLETE]
 
-Built 2026-09-19 on branch `roaster-selection`. Suite: 365 passing (was 338); the browser check is 22 tests (was 19). Why: the Gene Cafe tip sheet says warm starts, ambient temperature, and line voltage each shift roast time by up to a minute, and the SR540 manual's 30-minute gap is about the same effect. Two optional facts on each roast, saved on the record and shown on the roast detail page.
+Completed 2026-09-19 · commit `1916067` on branch `roaster-selection`. Suite: 365 passing (was 338); the browser check is 22 tests (was 19). Why: the Gene Cafe tip sheet says warm starts, ambient temperature, and line voltage each shift roast time by up to a minute, and the SR540 manual's 30-minute gap is about the same effect. Two optional facts on each roast, saved on the record and shown on the roast detail page.
 
 **The three open design points, and what I chose** (each is a small change to reverse):
 - **Ambient is entered in the roaster's own unit**, like every other temperature (Settled #12) — never converted. Its plausible range is per unit in `roasters.TEMP_UNITS` (0–120 °F, −18–49 °C), so it stays with the other unit text. A roaster with no temperature readout has no unit, so it gets no ambient field (and a posted value is ignored).
