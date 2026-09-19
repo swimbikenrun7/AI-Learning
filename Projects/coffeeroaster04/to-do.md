@@ -7,9 +7,22 @@ A running list of planned feature updates and their detailed plans.
 - Nothing here is implemented until its status says so. Human review of `git diff` before every commit is part of the process (see `CLAUDE.md`).
 
 **Status tags**
-`[PLANNED]` · `[IN PROGRESS]` · `[COMPLETE]` (with date and commit) · `[DEFERRED]` (considered, deliberately not scheduled)
+`[PLANNED]` · `[IN PROGRESS]` · `[PARTLY COMPLETE]` (an item with several parts, some built) · `[COMPLETE]` (with date and commit) · `[DEFERRED]` (considered, deliberately not scheduled)
 
 **Item template** — each item has: Status · Depends on · Goal · Tasks (checkboxes) · Files touched · Tests · Done when. Tick a task's box as it lands; when every box is ticked and the suite passes, change the tag to `[COMPLETE]`, add the date and commit, and collapse the detail to a paragraph.
+
+---
+
+## Current status (as of 2026-09-19)
+
+- **Branches.** `roaster-selection` was merged into `main` by fast-forward (no merge commit, matching `main`'s linear history) and `main` was pushed: `main` and `origin/main` are both at `e068e85`. The `roaster-selection` branch still exists locally at that same commit and can be deleted (`git branch -d roaster-selection`). Whether PythonAnywhere has pulled and reloaded this is not recorded here; before its first reload, back up `data/` (the startup migration rewrites the profile and record files once; see `DEPLOY.md`).
+- **Tests.** 398 passing (`pytest`), including the 22-test browser check (about 10 s; it skips itself without Chromium, Node 22, or the CDN). `ruff check`/`ruff format --check` are clean on every file added in this work; the 18 remaining `ruff check` findings (naive `datetime` calls and unused unpacked variables) and the unformatted `app.py` and `tests/test_app.py` were there before it started and are left for you to review.
+- **Done:** T-00 through T-06 (1: start condition + ambient temperature), T-08 (calibration report), T-09 (browser check), T-10 (review follow-ups). Commit hashes are in each item.
+- **Not yet done or decided:**
+  - The calibration report has only run on synthetic records; run it on your real SR800 roasts (see T-08) before trusting the thresholds.
+  - `validate_green_weight("nan")` and `validate_temperature("nan")` accept NaN (found during T-06, not fixed; see Open decisions).
+  - Unscheduled: T-06 candidates 2–4 (charge/turning point, control-change log, cooling start) and T-07 (native profile formats, deferred).
+  - `app.py` is 879 lines, so the Blueprint split (T-01, "revisit once it passes roughly 900 lines") is still not due.
 
 ---
 
@@ -33,7 +46,7 @@ These are fixed inputs to the plan below, not open questions.
 14. **The SR800's 30-minute gap between roasts is confirmed by the owner** (2026-09-19 review), so it is stated data: Add Roast shows the reminder "this roaster needs at least 30 minutes between roasts". The other SR models' 30 minutes stay assumed and unshown, except the SR540, whose manual states it.
 15. **Roasters with no temperature readout stay grid-less until someone needs otherwise** (SR300/340/500, the poppers, Whirley-Pop, Nesco, the ceramics). An opt-in "I use an external probe" per profile (with a unit choice) was considered and deferred; revisit only when a real user with a probe on one of these appears.
 16. **Roast records show their roaster in the `/roasts` list and the CSV export** (a Roaster column right after Roast Profile; done 2026-09-19).
-17. **Next, in this order: T-06 start condition + ambient temperature, then T-08 (calibration report).** Not selected for now: the T-06 control-change log, and merging `roaster-selection` into `main` (the branch carries on).
+17. **Next, in this order: T-06 start condition + ambient temperature, then T-08 (calibration report).** Both are done. Not selected: the T-06 control-change log. Afterwards `roaster-selection` was merged into `main` and pushed (2026-09-19).
 
 ## Open decisions
 
@@ -45,6 +58,9 @@ Nothing is blocking. These are the defaults I'm assuming from the 2026-09-19 rev
 - **"Bohemia 250" stays removed** and **the Kaldi Wide400 / Wide POP (Kaffa) are not added** to the list.
 - **The `/roasts` search still matches only bean, profile, and date**, not the new roaster column.
 - **The rate-of-rise dot at exactly t = 0 keeps showing half the true slope** on ramp and charge curves (how the SR800 has always behaved) rather than changing the SR800's initial readout.
+- **T-06's three choices stand** (details in T-06): ambient is entered in the roaster's own unit; all three start options are offered for every roaster; the two fields show on the roast detail page only, not the list or CSV.
+- **T-08's "enough consistent data" thresholds are mine** — at least 5 roasts with first-crack times within 60 s of each other (two constants at the top of `calibration_report.py`) — to be adjusted once you have seen real output.
+- **`validate_green_weight` and `validate_temperature` still accept `nan`** (T-06 found it; only the new ambient validator rejects it). A NaN weight or temperature could be saved, and a NaN weight loss classifies as an Italian Roast. A small fix with tests; not done because it is outside T-06's scope and changes original validators.
 - **The roaster-less fallback stays in the code** (the original limits for a profile with no roaster): removing it would mean rewriting the tests that build roaster-less profiles, for no user-visible gain now that every stored profile is migrated.
 
 ### Temperature units — how Settled #12 is implemented
@@ -67,14 +83,14 @@ Nothing is blocking. These are the defaults I'm assuming from the 2026-09-19 rev
 
 ## T-00 [COMPLETE] Roaster selection (Phase 11)
 
-Completed 2026-09-19 · commit `509a315` on branch `roaster-selection` (not yet merged to `main`).
-Added `data/roasters.json` (47 roasters, each `{name, values: {}}`), an optional roaster dropdown on the profile form above the wizard, and a faint `.roaster-tag` beside profile names on the profiles list, Add Roast picker, and Add Roast heading. Documented as Phase 11 in `SPEC.md`. 173 tests passing.
+Completed 2026-09-19 · commit `509a315` on branch `roaster-selection` (since merged to `main`).
+Added `data/roasters.json` (47 roasters at the time; 46 after T-02 removed "Bohemia 250", each `{name, values: {}}`), an optional roaster dropdown on the profile form above the wizard, and a faint `.roaster-tag` beside profile names on the profiles list, Add Roast picker, and Add Roast heading. Documented as Phase 11 in `SPEC.md`. 173 tests passing.
 
 ---
 
 ## T-01 [COMPLETE] Repo cleanup / refactor
 
-Completed 2026-09-19 · commits `3358ebc` (R1), `f0dd94e` (R2), `bd826e1` (R3) on branch `roaster-selection` (not yet merged to `main`). Each commit's suite was run in isolation: 173 passing.
+Completed 2026-09-19 · commits `3358ebc` (R1), `f0dd94e` (R2), `bd826e1` (R3) on branch `roaster-selection` (since merged to `main`). Each commit's suite was run in isolation: 173 passing.
 Kept deliberately modest: the live WSGI file does `from app import app` and `data_persistence.py` derives `DATA_DIR` from its own location, so neither module moved.
 
 - **R1 — tests into `tests/`.** `git mv` (pure renames; contents unchanged) plus `pythonpath`/`testpaths` under `[tool.pytest.ini_options]` in `pyproject.toml`. `pytest` from the project directory works exactly as before; a single test is now `pytest tests/test_app.py::Class::test`. `CLAUDE.md` needed no change — its commands don't reference this project.
@@ -82,7 +98,7 @@ Kept deliberately modest: the live WSGI file does `from app import app` and `dat
 - **R3 — housekeeping.** Removed the unused `src/` "Hello" stub, `[build-system]`, and the `[project.scripts]` entry (which already failed with `ModuleNotFoundError: No module named 'app'`); wrote a real description and README. `uv.lock` changed by one line (`editable` → `virtual`).
 - **Verified:** 173 tests pass unchanged via `pytest` and `uv run pytest`; each extracted file re-checked line-for-line against the original; a headless-Chromium click-through (chart data, timer, first-crack button, wizard output for two input sets, console errors) matched the pre-refactor baseline exactly; screenshots of four pages were pixel-identical; `uv sync` and `uv run python app.py` work.
 - **Deploy note:** on PythonAnywhere this is `git pull` and Reload; `static/` needs no extra mapping (see `DEPLOY.md`).
-- **Still deferred:** splitting `app.py` into Flask Blueprints (revisit once it passes roughly 900 lines after T-03), and moving the modules into a `coffeeroaster04/` package (needs a coordinated WSGI and `DATA_DIR` change).
+- **Still deferred:** splitting `app.py` into Flask Blueprints (revisit once it passes roughly 900 lines after T-03; it was 879 lines on 2026-09-19, so not yet), and moving the modules into a `coffeeroaster04/` package (needs a coordinated WSGI and `DATA_DIR` change).
 
 ---
 
@@ -150,7 +166,7 @@ Completed 2026-09-19 · commit `0c93e16` on branch `roaster-selection`. Suite: 2
 
 ## T-03 [COMPLETE] Roaster required and locked; limits, units, and grid driven by roaster data
 
-Completed 2026-09-19 · commit `e01d917` on branch `roaster-selection` (not yet merged to `main`). 273 tests passing (was 184 at the start of T-03), verified on the commit in isolation.
+Completed 2026-09-19 · commit `e01d917` on branch `roaster-selection` (since merged to `main`). 273 tests passing (was 184 at the start of T-03), verified on the commit in isolation.
 
 **What now works**
 - **Choose the roaster first.** `/profiles/new` asks which roaster (an alphabetical dropdown, no default); the profile form for that roaster follows. The roaster is then shown read-only and is locked: an edit that tries to change it gets a 400. Add Roast has no roaster override.
@@ -316,4 +332,4 @@ Completed 2026-09-19 · commit `0652029` on branch `roaster-selection`. Suite: 3
 
 ## Suggested order
 
-T-01 ✓ → T-02a ✓ → T-03 ✓ → T-02b ✓ → T-09 ✓ → T-04 ✓ → T-05 ✓ → T-10 ✓ → T-06 (start condition + ambient) ✓ → T-08 ✓. The other T-06 candidates and T-07 stay unscheduled; merging `roaster-selection` into `main` is still open.
+T-01 ✓ → T-02a ✓ → T-03 ✓ → T-02b ✓ → T-09 ✓ → T-04 ✓ → T-05 ✓ → T-10 ✓ → T-06 (start condition + ambient) ✓ → T-08 ✓ → merged to `main` and pushed. The other T-06 candidates and T-07 stay unscheduled.

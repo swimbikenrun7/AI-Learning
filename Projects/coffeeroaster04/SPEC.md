@@ -4,7 +4,7 @@
 Record coffee roasting sessions and calculate basic roast metrics in Python, presented through a browser-based UI instead of a terminal UI. This is an independent iteration of the coffeeroaster exercise (see coffeeroaster01-03); it carries forward the calculation and persistence logic from coffeeroaster03 and replaces only the UI layer.
 
 ## Implementation Phases
-This SPEC describes the full target feature set, carried forward from coffeeroaster03. It is built in phases; only Phase 1 is in scope until a later phase is explicitly requested.
+This SPEC describes the full feature set, carried forward from coffeeroaster03 and extended. It was built in phases, each requested explicitly; Phases 1 through 12 are all built, and Phase 12 is the current one. `to-do.md` tracks what was built for Phases 11 and 12 and what is still open.
 
 - **Phase 1**: View roasts (read-only table) and a roast detail page with a temperature chart. Uses data seeded from coffeeroaster03's existing JSON files.
 - **Phase 2**: Add roast form.
@@ -15,9 +15,9 @@ This SPEC describes the full target feature set, carried forward from coffeeroas
 - **Phase 7**: User accounts. Each account has its own private roast records and profiles — the earlier "no authentication" decision applied while this was a purely local, single-user tool; it no longer holds once the app is reachable on the open internet.
 - **Phase 8**: About page. Static project description plus a feedback form that emails the site owner directly — no user-visible email address, no new external service.
 - **Phase 9**: Roast intelligence & data tools. Surfaces calculated roast quality metrics that already had the underlying data, plus search/sort, CSV export, a live first-crack marking shortcut, and richer per-roast metadata (bean origin/variety/process, post-roast cupping notes).
-- **Phase 11**: Roaster selection. A reference list of home coffee roasters (`data/roasters.json`) and a roaster dropdown on the roast profile form, shown alongside the profile name wherever profiles are listed or used — groundwork for later customizing profiles and the Add Roast experience per roaster.
-- **Phase 12 (current)**: Roaster-driven profiles. A profile belongs to one roaster, chosen first and locked afterward; that roaster's data supplies the profile's row count, the weight and time limits, and the temperature unit, and each saved roast records its roaster. See "Roaster-driven profiles" under Roasters.
 - **Phase 10**: Roast profile wizard. An opt-in helper on the Add roast profile page that recommends a starting Maillard-phase target-temperature curve plus target first-crack/development-time reference values, from bean characteristics, desired roast level, and the user's own observed first-crack temperature, which the user can then edit before saving. The target reference values also drive a live pull countdown timer on the Add Roast page once first crack is marked.
+- **Phase 11**: Roaster selection. A reference list of home coffee roasters (`data/roasters.json`) and a roaster dropdown on the roast profile form, shown alongside the profile name wherever profiles are listed or used — groundwork for later customizing profiles and the Add Roast experience per roaster.
+- **Phase 12 (current)**: Roaster-driven profiles. A profile belongs to one roaster, chosen first and locked afterward; that roaster's data supplies the profile's row count, the weight and time limits, and the temperature unit, and each saved roast records its roaster. Also part of this phase: an optional start condition and ambient temperature on each roast (see "Start condition and ambient temperature" under User Inputs), and a read-only calibration report that compares logged roasts with each roaster's stored values (see "Calibration report" under Roasters). See "Roaster-driven profiles" under Roasters.
 
 ## Requirements
 The code shall have a separate module for calculations (`calculations.py`, carried forward from coffeeroaster03 unchanged).
@@ -25,7 +25,7 @@ The code shall have a separate module for persistence (`data_persistence.py`, ca
 The code shall have a separate module/package for the web interface (Flask routes + Jinja2 templates), isolated from `calculations.py` and `data_persistence.py`.
 `calculations.py` and `data_persistence.py` shall not import from or depend on the Flask/web module.
 Each module shall have a pytest script written for validation testing.
-Persistent data shall be written to a JSON file in the `data/` folder in the parent directory.
+Persistent data shall be written to JSON files in this project's own `data/` folder (see Persistence).
 Load existing roast records when the application starts.
 If the data file does not yet exist, start with an empty dataset.
 Save roast records when a new roast is added (Phase 2).
@@ -47,7 +47,7 @@ Explain the proposed changes before implementing them.
 ## User Inputs
 *(Phase 12: the numeric limits below (green/finished weight, roast time, first-crack time, temperature) are the limits for a profile with no roaster. For a profile with a roaster they come from that roaster's data — see "Roaster-driven profiles" under Roasters.)*
 
-*(These are domain/validation rules carried forward unchanged from coffeeroaster03. In Phase 1 they apply to the seeded records already on disk; there is no web form collecting them until Phase 2 — see Implementation Phases.)*
+*(These are domain/validation rules carried forward from coffeeroaster03. The Add roast form (Phase 2) enforces them when a roast is entered.)*
 
 ### Date
 Required.
@@ -113,12 +113,13 @@ Both appear on the roast detail page, on one line ("Warm start · Ambient 68°F"
 The application shall provide a "View and edit roast profiles" area leading to add-a-new-profile and view/edit-existing-profiles pages. **(Phase 3)**
 A roast profile shall consist of a name and a target temperature for each whole-minute interval from 1:00 through its last row: 12 rows (°F) for a profile with no roaster; for a profile with a roaster, that roaster's row count and unit (Phase 12).
 Temperature entries within a profile are optional per minute.
+A profile may be marked as a favorite, toggled with a star on the Add roast profile picker, which lists favorites first in their own section. Every profile list shows favorites first, then the rest alphabetically by name. A new profile is not a favorite, and editing a profile keeps its favorite flag.
 A roast profile may also store a target first-crack time (MM:SS) and a target development time (MM:SS), both optional, fixed reference values shown in the Add Roast live panel, directly above the "First Crack Now!" button — not modeled as part of the temperature curve. **(Phase 10)**
 Once a first-crack time is set on the Add Roast page (via "First Crack Now!" or by typing directly into the field) and the selected profile has a target development time, a pull countdown shall appear below the "First Crack Now!" button, live-updating as `first crack time + target development time − the roaster's cooling coast time − elapsed time` (the coast time is 0 when the roaster's data has none) until it reaches zero, then holding at "Pull now!". Reaching zero triggers a quadruple flash (the existing per-whole-minute flash — see Phase 9 — is a double flash; this is visually distinct and reserved for the pull moment specifically). **(Phase 10)**
 Any minute interval left blank in a profile shall default to the most recently entered temperature at an earlier interval (carry-forward). An interval with no earlier entry has no default.
 Selecting Add roast shall first require selecting an existing roast profile before the roast entry form is shown. **(Phase 2)**
 If no roast profiles exist, the user shall be directed to create one before a roast can be added. **(Phase 2/3)**
-The Add roast form shall present a table of time / actual temperature (°F) / target temperature (°F) for minutes 1:00 through 12:00, positioned after Green Weight and before Time of First Crack, which remains a standalone field. **(Phase 2)**
+The Add roast form shall present a table of time / actual temperature / target temperature, one row per minute of the selected profile (1:00 through 12:00, in °F, for a profile with no roaster; the roaster's row count and unit otherwise, Phase 12), positioned after Green Weight and before Time of First Crack, which remains a standalone field. **(Phase 2)**
 The target temperature column shall be pre-populated and read-only, sourced from the selected profile with carry-forward applied.
 The actual temperature column shall be manually entered by the user; entries are optional per minute.
 At submission, if total roast time exceeds the last whole minute at which an actual temperature was entered, the latest entered actual temperature shall be used to populate the remaining whole-minute intervals up to total roast time.
@@ -329,7 +330,7 @@ On startup, after checking the JSON files for corruption, the application shall 
 2. `/signup`, `/login` — create an account / authenticate; `/logout` (POST) ends the session. **(Phase 7)**
    `/verify-email/<token>` — confirms an account's email from the link sent at signup; `/resend-verification` (POST, requires login) re-sends it. `/forgot-password` — request a password-reset link by email; `/reset-password/<token>` — set a new password from that link. **(Phase 7)**
 3. `/roasts` — View roasts: displays existing roast records in an HTML table, including a Roast Profile column (and, since Phase 12, a Roaster column after it), using the same fields/order as `ROAST_TABLE_COLUMNS` in coffeeroaster03 apart from that addition. **(Phase 1, moved off `/` in Phase 5, requires login and scoped to the current account as of Phase 7)**
-4. `/roasts/<id>` — Roast detail: displays that roast's full time/actual/target temperature table (1:00-12:00) and a line chart (x-axis: time in minutes, y-axis: temperature °F) plotting actual vs. target temperature, rendered client-side with Chart.js. **(Phase 1, requires login and ownership as of Phase 7)**
+4. `/roasts/<id>` — Roast detail: displays that roast's full time/actual/target temperature table and a line chart (x-axis: time in minutes, y-axis: temperature) plotting actual vs. target temperature, rendered client-side with Chart.js. The table has one row per minute of the record's own lists and the temperatures are in the record's own unit (°F and 12 rows for a record with no roaster, Phase 12); a roast from a roaster with no temperature readout shows no temperature table or charts. It also shows the roast's roaster and, if recorded, its start condition and ambient temperature. **(Phase 1, requires login and ownership as of Phase 7)**
 5. Add roast — select a roast profile, then a form to collect roast fields (including the profile's temperature table), validate inline, and save. **(Phase 2, requires login as of Phase 7; saved records are owned by the current account)**
 6. View and edit roast profiles — add a new profile, or view/edit existing ones. **(Phase 3, requires login and ownership as of Phase 7)**
 7. Delete a roast record, from its detail page, behind a confirmation step. **(Phase 4, requires login and ownership as of Phase 7)**
@@ -337,6 +338,7 @@ On startup, after checking the JSON files for corruption, the application shall 
 9. `/about` — About: project description and a feedback form, linked from a footer on every page. **(Phase 8)** Stays reachable while logged out.
 10. `/roasts/export` — CSV download of the current account's own roast records, same columns as the `/roasts` table. **(Phase 9, requires login and scoped to the current account)**
 11. `/roasts/<id>/cupping` (POST) — save or update cupping notes/rating on an existing roast, from its detail page. **(Phase 9, requires login and ownership)**
+12. `/profiles/<id>/favorite` (POST) — toggle a profile's favorite flag, from the Add roast profile picker. **(requires login and ownership)**
 
 There is no "Exit" action for a web application; the process runs until the server is stopped.
 

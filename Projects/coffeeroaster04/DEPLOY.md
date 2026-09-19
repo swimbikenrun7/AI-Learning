@@ -12,7 +12,7 @@ From the PythonAnywhere dashboard: **Consoles** tab → **Bash**.
 
 ## 3. Clone the repo
 
-The deployment branch is `main`. Day-to-day mission work happens on `agent_lab` and gets merged into `main` before it's deployed — `main` is what PythonAnywhere should always be running:
+The deployment branch is `main`. Day-to-day mission work happens on a feature branch (`agent_lab`, or e.g. `roaster-selection` for the roaster-driven redesign) and gets merged into `main` before it's deployed — `main` is what PythonAnywhere should always be running:
 
 ```bash
 git clone https://github.com/swimbikenrun7/AI-Learning.git
@@ -89,7 +89,7 @@ Hit the big green **Reload** button at the top of the **Web** tab. Your app is n
 
 ## Updating after future changes
 
-Work happens on `agent_lab`, gets merged into `main`, and `main` gets pushed. Once that's pushed, pull it on PythonAnywhere:
+Work happens on a feature branch, gets merged into `main`, and `main` gets pushed. Once that's pushed, pull it on PythonAnywhere:
 
 ```bash
 cd ~/AI-Learning
@@ -114,6 +114,10 @@ git pull
 **One-time migration on the first start after the roaster-driven-profiles update.** Any profile or roast record that has no roaster is assigned the Fresh Roast SR800, and every record gets a `temp_unit`; `roast_profiles.json` and `roast_records.json` are rewritten once, only if something changed, and later starts change nothing. Back up `data/` before the first reload (`cp -r data data.backup`) if you want a rollback point.
 
 Because the three files above are gitignored, a fresh clone (a new deployment, or a fresh checkout for local dev) starts with no `data/` files at all. Per `SPEC.md`, the app treats a missing data file as an empty dataset and creates it on first write — so a new deployment simply starts empty rather than inheriting another deployment's seed/demo data. If you want to seed a specific deployment with sample data (e.g. for a demo), copy JSON files into `data/` by hand after cloning; that's a one-time local action, never something `git` does for you.
+
+## Calibration report
+
+`calibration_report.py` reads the live `data/roast_records.json` and prints how logged roasts compare with each roaster's stored values; it only reads, never writes, and does not touch the running app. On PythonAnywhere, in a Bash console with the virtualenv active: `cd ~/AI-Learning/Projects/coffeeroaster04 && python calibration_report.py`. It needs no extra packages.
 
 ## Accounts
 
