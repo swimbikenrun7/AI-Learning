@@ -15,13 +15,13 @@ A running list of planned feature updates and their detailed plans.
 
 ## Current status (as of 2026-09-19)
 
-- **Branches.** `roaster-selection` was merged into `main` by fast-forward (no merge commit, matching `main`'s linear history) and pushed. Since then `origin/main` is at `ab0316b` (docs), and local `main` is one commit ahead (`1d0638d`, the T-11 to T-14 queue). T-11 is committed on `mobile-optimization` (`2ff59ad`, `64a1b3d`) and T-12 is committed on `versioning` (`b18b677`), cut from it (so it includes T-11); T-13 is committed on `espresso-style` (`94dc301`), cut from `versioning`; T-14 is built on `how-to`, cut from `espresso-style`; none of the four is merged to `main`. The old `roaster-selection` branch still exists locally and can be deleted (`git branch -d roaster-selection`). Whether PythonAnywhere has pulled and reloaded this is not recorded here; before its first reload, back up `data/` (the startup migration rewrites the profile and record files once; see `DEPLOY.md`).
-- **Tests.** 398 passing on `main`, 409 on `mobile-optimization`, 432 on `versioning`, 483 on `espresso-style`, 508 on `how-to`, including the browser check (22, 30, 31, 34 and 36 tests; about 11 s; it skips itself without Chromium, Node 22, or the CDN). `ruff check`/`ruff format --check` are clean on every file added in this work; the 18 remaining `ruff check` findings (naive `datetime` calls and unused unpacked variables) and the unformatted `app.py` and `tests/test_app.py` were there before it started and are left for you to review.
-- **Done:** T-00 through T-06 (1: start condition + ambient temperature), T-08 (calibration report), T-09 (browser check), T-10 (review follow-ups). Commit hashes are in each item.
+- **Branches.** `roaster-selection` was merged into `main` by fast-forward (no merge commit, matching `main`'s linear history) and pushed. Later, the four stacked branches `mobile-optimization` (T-11), `versioning` (T-12), `espresso-style` (T-13) and `how-to` (T-14, each cut from the one before) were merged into `main` the same way, so `main` holds everything through T-14 (commit `e72908b`, plus the record-keeping commit after it). Whether `origin/main` and PythonAnywhere have these is not recorded here (`git status -sb` shows if `main` is ahead). The four feature branches and the old `roaster-selection` branch still exist locally and can be deleted (`git branch -d <name>`). **Before PythonAnywhere's first reload, back up `data/`** (`cp -r data data.backup`): the startup migration rewrites the profile and record files once to add each profile's style and each record's profile style (see `DEPLOY.md`).
+- **Tests.** 508 passing on `main`, including the browser check (36 tests; about 11 s; it skips itself without Chromium, Node 22, or the CDN). `ruff check`/`ruff format --check` are clean on every file added in this work; the 18 remaining `ruff check` findings (naive `datetime` calls and unused unpacked variables) and the unformatted `app.py` and `tests/test_app.py` were there before it started and are left for you to review.
+- **Done:** T-00 through T-06 (1: start condition + ambient temperature), T-08 (calibration report), T-09 (browser check), T-10 (review follow-ups), T-11 (mobile), T-12 (version and release notes), T-13 (espresso style), T-14 (how-to). Commit hashes are in each item. The app is at version 1.4.0.
 - **Not yet done or decided:**
   - The calibration report has only run on synthetic records; run it on your real SR800 roasts (see T-08) before trusting the thresholds.
   - `validate_green_weight("nan")` and `validate_temperature("nan")` accept NaN (found during T-06, not fixed; see Open decisions).
-  - **T-11 mobile optimization is built and committed** (`2ff59ad`) on `mobile-optimization`; it still needs a test on your phone. **T-12 version and release notes is built and committed** (`b18b677`) on `versioning`. **T-13 espresso style is built and committed** (`94dc301`) on `espresso-style`; it is awaiting your own espresso numbers. **T-14 how-to is built** on `how-to` (uncommitted, awaiting your read-through). That completes the queue you set (T-11 to T-14).
+  - **The queue you set (T-11 to T-14) is complete and merged to `main`**: T-11 mobile (`2ff59ad`), T-12 version and release notes (`b18b677`), T-13 espresso style (`94dc301`), T-14 how-to (`e72908b`). Still open on it: **T-11 needs your test on a real phone** (planned after you pull the code onto PythonAnywhere; changes come from what you find); **T-13's espresso numbers are estimates** until you give me your own (see T-13); **T-14's text needs your read-through**.
   - Unscheduled: T-06 candidates 2–4 (charge/turning point, control-change log, cooling start) and T-07 (native profile formats, deferred).
   - `app.py` is 879 lines, so the Blueprint split (T-01, "revisit once it passes roughly 900 lines") is still not due.
 
@@ -332,7 +332,7 @@ Completed 2026-09-19 · commit `0652029` on branch `roaster-selection`. Suite: 3
 
 ## T-11 [COMPLETE, phone test pending] Mobile optimization
 
-Built and committed 2026-09-19 · commit `2ff59ad` on branch `mobile-optimization` (branched from `main` at `1d0638d`; not yet merged to `main`). Suite: 409 passing (was 398); the browser check is 30 tests (was 22). Queued the same day; nothing needed a decision from you to start, so the open points below were settled with defaults you can reverse.
+Built and committed 2026-09-19 · commit `2ff59ad` on branch `mobile-optimization` (branched from `main` at `1d0638d`; merged to `main` with T-12 to T-14, see Current status). Suite: 409 passing (was 398); the browser check is 30 tests (was 22). Queued the same day; nothing needed a decision from you to start, so the open points below were settled with defaults you can reverse.
 
 **The finding.** No template had a `<meta name="viewport">` tag, so a phone laid every page out at 980 px and shrank it (measured in headless Chromium as a 390 px touch device: every page had a 980 px layout). The two existing `@media (max-width: 640px)` rules never fired. One line fixed that; the rest is what a real phone width then showed.
 
@@ -361,7 +361,7 @@ Built and committed 2026-09-19 · commit `2ff59ad` on branch `mobile-optimizatio
 
 ## T-12 [COMPLETE] App version and in-app release notes
 
-Completed 2026-09-19 · commit `b18b677` on branch `versioning` (cut from `mobile-optimization` at `64a1b3d`, so it includes T-11; not yet merged to `main`). Suite: 432 passing (was 409); the browser check is 31 tests (was 30). Queued the same day.
+Completed 2026-09-19 · commit `b18b677` on branch `versioning` (cut from `mobile-optimization` at `64a1b3d`, so it includes T-11; merged to `main` with T-11, T-13 and T-14). Suite: 432 passing (was 409); the browser check is 31 tests (was 30). Queued the same day.
 
 **What it is.** The app now has a version, shown in every page's footer ("About · v1.2.0 · What's new"), and a public `/whats-new` page listing every release newest first: version, title, date written out, and a few plain-language changes, with the newest marked "current version". Everything comes from one tracked file, `data/release_notes.json` (a list, newest first, of `{version, date, title, changes}`), and **the app's version is the newest entry's version**, so the number and the notes cannot drift apart. `pyproject.toml` and `uv.lock` carry the same version (`uv lock --check` passes).
 
@@ -384,7 +384,7 @@ Completed 2026-09-19 · commit `b18b677` on branch `versioning` (cut from `mobil
 
 ## T-13 [COMPLETE, awaiting your own espresso numbers] Espresso profile style
 
-Completed 2026-09-19 · commit `94dc301` on branch `espresso-style` (cut from `versioning` at `fcdbf69`, so it includes T-11 and T-12; not yet merged to `main`). Suite: 483 passing (was 432); the browser check is 34 tests (was 31). Released as version **1.3.0** ("Espresso profiles") in `data/release_notes.json`. Queued the same day; you started it without answering the five design points, so I used my leans, listed below.
+Completed 2026-09-19 · commit `94dc301` on branch `espresso-style` (cut from `versioning` at `fcdbf69`, so it includes T-11 and T-12; merged to `main` with T-11, T-12 and T-14). Suite: 483 passing (was 432); the browser check is 34 tests (was 31). Released as version **1.3.0** ("Espresso profiles") in `data/release_notes.json`. Queued the same day; you started it without answering the five design points, so I used my leans, listed below.
 
 **What it does.** A profile now has a **style**, Drip (what every profile was) or Espresso, chosen on the page where you choose the roaster and **locked afterward** (read-only on the edit form; a change is rejected with a 400). The wizard reads the roaster's new `wizard.espresso` values for an espresso profile, and always says they are estimates, the SR800 included. The style shows as a faint tag beside the roaster's tag in the profile lists, the Add Roast picker and the Add Roast heading, and as a "Style:" line on the profile form and the roast detail page. Each roast records its profile's style, and at startup every existing profile and roast becomes Drip (idempotent, like the roaster migration: back up `data/` first, per `DEPLOY.md`). The calibration report now groups by roaster **and** style, compares espresso with the espresso values, and never calls espresso calibrated, so espresso roasts are never averaged into the drip comparison.
 
@@ -411,9 +411,9 @@ Completed 2026-09-19 · commit `94dc301` on branch `espresso-style` (cut from `v
 
 ---
 
-## T-14 [BUILT, awaiting your read-through] How-to / tutorial
+## T-14 [COMPLETE, awaiting your read-through] How-to / tutorial
 
-Built 2026-09-19 on branch `how-to` (cut from `espresso-style` at `2cc98ee`, so it includes T-11, T-12 and T-13; uncommitted). Suite: 508 passing (was 483); the browser check is 36 tests (was 34). Released as version **1.4.0** ("How-to guide"). Queued the same day; you started it without answering the open points, so I used my leans.
+Completed 2026-09-19 · commit `e72908b` on branch `how-to` (cut from `espresso-style` at `2cc98ee`, so it includes T-11, T-12 and T-13; merged to `main` with them). Suite: 508 passing (was 483); the browser check is 36 tests (was 34). Released as version **1.4.0** ("How-to guide"). Queued the same day; you started it without answering the open points, so I used my leans.
 
 **What it is.** A public `/help` page ("How to use Crackle") with a contents list and nine sections in the order a user meets things: getting started (the four-step flow), roast profiles, the profile wizard, drip or espresso, logging a roast (before, during and after, including the timer, First Crack Now! and the pull countdown), using it on a phone, reading roasts (the list, the roast page, a roast-level table, cupping notes), a glossary, and where to send feedback. It is linked as **Help** from the footer of every page, from a "New here?" line on the home page, and by small **?** links on the pages it describes: the roaster chooser (profiles; drip or espresso), the profile wizard, Add Roast, and the roast page.
 
@@ -436,6 +436,6 @@ Built 2026-09-19 on branch `how-to` (cut from `espresso-style` at `2cc98ee`, so 
 
 ## Suggested order
 
-T-01 ✓ → T-02a ✓ → T-03 ✓ → T-02b ✓ → T-09 ✓ → T-04 ✓ → T-05 ✓ → T-10 ✓ → T-06 (start condition + ambient) ✓ → T-08 ✓ → merged to `main` and pushed. The other T-06 candidates and T-07 stay unscheduled.
+T-01 ✓ → T-02a ✓ → T-03 ✓ → T-02b ✓ → T-09 ✓ → T-04 ✓ → T-05 ✓ → T-10 ✓ → T-06 (start condition + ambient) ✓ → T-08 ✓ → merged to `main` and pushed → T-11 ✓ → T-12 ✓ → T-13 ✓ → T-14 ✓ → merged to `main`. The other T-06 candidates and T-07 stay unscheduled.
 
-**Queued 2026-09-19 (all four have since been built: T-11, T-12 and T-13 committed, T-14 awaiting review):** T-11 mobile optimization, T-12 app version and release notes, T-13 espresso profile style, T-14 how-to. A suggestion, not a decision: T-11 first (the missing viewport tag is a one-line fix that helps every page), T-12 next (small, and gives later items somewhere to be announced), then T-13, and T-14 last because it documents the final screens.
+**Queued 2026-09-19 (all four have since been built and merged to `main`):** T-11 mobile optimization, T-12 app version and release notes, T-13 espresso profile style, T-14 how-to. A suggestion, not a decision: T-11 first (the missing viewport tag is a one-line fix that helps every page), T-12 next (small, and gives later items somewhere to be announced), then T-13, and T-14 last because it documents the final screens.
