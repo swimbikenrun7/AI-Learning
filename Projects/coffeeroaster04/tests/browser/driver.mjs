@@ -322,6 +322,16 @@ await scenario("detailCelsius", () => roastDetail("/roasts/r-kaffelogic"));
 await scenario("detailGeneCafe", () => roastDetail("/roasts/r-genecafe"));
 await scenario("detailNoReadout", () => roastDetail("/roasts/r-whirley"));
 
+// ---- What's new: the release history and the footer's version link ----
+await scenario("whatsNew", async () => {
+  await visit("/whats-new");
+  return {
+    releases: await ev("Array.from(document.querySelectorAll('.release h2')).map((h) => h.textContent.trim())"),
+    current: await ev("Array.from(document.querySelectorAll('.release__date')).map((p) => /current version/.test(p.textContent))"),
+    footer: await ev("document.querySelector('.site-footer').innerText.replace(/\\s+/g, ' ').trim()"),
+  };
+});
+
 // ---- Logging a roast through the real form: start condition and ambient temperature ----
 // Runs last because it saves a record into the fixture data.
 await scenario("submitRoast", async () => {
@@ -395,6 +405,7 @@ await scenario("phoneProfiles", () => phonePage("/profiles"));
 await scenario("phoneChooser", () => phonePage("/profiles/new"));
 await scenario("phoneProfileForm", () => phonePage("/profiles/new?roaster=fresh-roast-sr800", "document.getElementById('wizard-toggle').click()"));
 await scenario("phoneAbout", () => phonePage("/about"));
+await scenario("phoneWhatsNew", () => phonePage("/whats-new"));
 
 // A tablet is wider than the 640 px phone breakpoint, so Add Roast keeps its two-column layout
 // there with a narrow form column.

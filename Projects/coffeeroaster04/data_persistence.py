@@ -9,6 +9,7 @@ ROAST_RECORDS_PATH = DATA_DIR / "roast_records.json"
 ROAST_PROFILES_PATH = DATA_DIR / "roast_profiles.json"
 USERS_PATH = DATA_DIR / "users.json"
 ROASTERS_PATH = DATA_DIR / "roasters.json"
+RELEASE_NOTES_PATH = DATA_DIR / "release_notes.json"
 
 
 def load_roast_records():
@@ -80,6 +81,19 @@ def load_roasters():
                 print("Error: The roasters file is corrupted. Exiting the program.")
                 sys.exit(1)
     return {}
+
+
+def load_release_notes():
+    if RELEASE_NOTES_PATH.exists():
+        with open(RELEASE_NOTES_PATH, "r") as file:
+            try:
+                return json.load(file)
+            except json.JSONDecodeError:
+                print(
+                    "Error: The release notes file is corrupted. Exiting the program."
+                )
+                sys.exit(1)
+    return []
 
 
 def count_roasts():

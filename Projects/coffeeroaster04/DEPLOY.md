@@ -109,7 +109,7 @@ git pull
 
 `data/roast_records.json`, `data/roast_profiles.json`, and `data/users.json` live inside the cloned repo on PythonAnywhere's own persistent filesystem. They are gitignored (not tracked in git), so `git pull` will never touch, merge, or overwrite them, no matter what changes upstream — this is a guarantee, not a matter of remembering not to commit changes to them. They survive reloads and future pulls indefinitely.
 
-`data/roasters.json` is the exception: it is reference data (the list of selectable roasters), not user data, so it **is** tracked in git and updates arrive with `git pull`. Don't add it to `.gitignore`.
+`data/roasters.json` and `data/release_notes.json` are the exceptions: they are reference data (the list of selectable roasters, and the release history behind the footer's version and the What's new page), not user data, so they **are** tracked in git and updates arrive with `git pull`. Don't add them to `.gitignore`.
 
 **One-time migration on the first start after the roaster-driven-profiles update.** Any profile or roast record that has no roaster is assigned the Fresh Roast SR800, and every record gets a `temp_unit`; `roast_profiles.json` and `roast_records.json` are rewritten once, only if something changed, and later starts change nothing. Back up `data/` before the first reload (`cp -r data data.backup`) if you want a rollback point.
 

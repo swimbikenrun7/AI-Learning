@@ -30,7 +30,7 @@ ruff format --check .    # preview formatting changes without applying them
 | `calibration_report.py` | Read-only report comparing logged roasts with each roaster's stored values (see below) |
 | `email_sender.py` | Verification, password-reset, and feedback emails |
 | `templates/`, `static/` | Jinja2 pages; extracted JS and CSS |
-| `data/` | JSON data. `roasters.json` is tracked; the other files are live data and gitignored |
+| `data/` | JSON data. `roasters.json` and `release_notes.json` are tracked; the other files are live data and gitignored |
 | `tests/` | pytest suite; `tests/browser/` drives the pages in headless Chromium (see below) |
 
 ## Project documents
@@ -55,3 +55,12 @@ uv run python calibration_report.py --records ~/roast_records.json   # e.g. a co
 ```
 
 Your live roasts are not in the repository (`data/roast_records.json` is gitignored), so either run it where the real file is or download a copy and pass `--records`.
+
+## Releasing
+
+The app's version and its "What's new" page both come from `data/release_notes.json`. For a change users can see, in the same commit:
+
+1. Add an entry at the **top** of `data/release_notes.json`: the new `version` (MINOR for a feature, PATCH for a fix, MAJOR if existing data or behavior changes), today's `date` (`YYYY-MM-DD`), a short `title`, and a few plain-language `changes` (each at most 220 characters, no HTML).
+2. Set the same `version` in `pyproject.toml` (and the `coffeeroaster04` entry in `uv.lock`; `uv lock` does it).
+
+A test fails if the notes are malformed or the two versions disagree. Nothing tags git; run `git tag vX.Y.Z` yourself if you want tags.

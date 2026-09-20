@@ -4,7 +4,7 @@
 Record coffee roasting sessions and calculate basic roast metrics in Python, presented through a browser-based UI instead of a terminal UI. This is an independent iteration of the coffeeroaster exercise (see coffeeroaster01-03); it carries forward the calculation and persistence logic from coffeeroaster03 and replaces only the UI layer.
 
 ## Implementation Phases
-This SPEC describes the full feature set, carried forward from coffeeroaster03 and extended. It was built in phases, each requested explicitly; Phases 1 through 12 are built; Phase 13 (mobile optimization) is in progress and is the current one. `to-do.md` tracks what was built for Phases 11 to 13 and what is still open.
+This SPEC describes the full feature set, carried forward from coffeeroaster03 and extended. It was built in phases, each requested explicitly; Phases 1 through 13 are built; Phase 14 (version and release notes) is in progress and is the current one. `to-do.md` tracks what was built for Phases 11 to 14 and what is still open.
 
 - **Phase 1**: View roasts (read-only table) and a roast detail page with a temperature chart. Uses data seeded from coffeeroaster03's existing JSON files.
 - **Phase 2**: Add roast form.
@@ -18,7 +18,8 @@ This SPEC describes the full feature set, carried forward from coffeeroaster03 a
 - **Phase 10**: Roast profile wizard. An opt-in helper on the Add roast profile page that recommends a starting Maillard-phase target-temperature curve plus target first-crack/development-time reference values, from bean characteristics, desired roast level, and the user's own observed first-crack temperature, which the user can then edit before saving. The target reference values also drive a live pull countdown timer on the Add Roast page once first crack is marked.
 - **Phase 11**: Roaster selection. A reference list of home coffee roasters (`data/roasters.json`) and a roaster dropdown on the roast profile form, shown alongside the profile name wherever profiles are listed or used — groundwork for later customizing profiles and the Add Roast experience per roaster.
 - **Phase 12**: Roaster-driven profiles. A profile belongs to one roaster, chosen first and locked afterward; that roaster's data supplies the profile's row count, the weight and time limits, and the temperature unit, and each saved roast records its roaster. Also part of this phase: an optional start condition and ambient temperature on each roast (see "Start condition and ambient temperature" under User Inputs), and a read-only calibration report that compares logged roasts with each roaster's stored values (see "Calibration report" under Roasters). See "Roaster-driven profiles" under Roasters.
-- **Phase 13 (current)**: Mobile optimization. Every page is usable on a phone without zooming or scrolling the page sideways, and Add Roast puts the timer and First Crack button first. See "Phone-sized screens" under User Interface.
+- **Phase 13**: Mobile optimization. Every page is usable on a phone without zooming or scrolling the page sideways, and Add Roast puts the timer and First Crack button first. See "Phone-sized screens" under User Interface.
+- **Phase 14 (current)**: App version and release notes. The app has a version number, shown in every page's footer, and a public What's new page listing what changed in each version in plain language. See "Versions and release notes".
 
 ## Requirements
 The code shall have a separate module for calculations (`calculations.py`, carried forward from coffeeroaster03 unchanged).
@@ -315,6 +316,18 @@ The `/roasts` list table's columns are unchanged from Phase 1 except for one add
 Cupping notes/rating are optional and have no bearing on any existing calculation (weight loss, DTR, classification).
 The fixed-height split-pane and wheel-forwarding behavior on Add Roast is desktop-only; below the existing 640px breakpoint the layout falls back to normal stacked columns and whole-page scrolling.
 
+## Versions and release notes **(Phase 14)**
+
+### Requirements
+The app has a version number in MAJOR.MINOR.PATCH form, shown in the footer of every page, and linked with "What's new" to a public `/whats-new` page. That page lists every release, newest first: its version, title, date (written out, e.g. "September 19, 2026"), and its changes, with the newest marked as the current version. With no release notes yet, the page says so and the footer shows no version.
+The release notes are written for the people using the app: a few plain-language lines per version (each at most 220 characters, plain text with no markup), not a commit log. Developer detail stays in `to-do.md` and git.
+A MINOR version is a user-visible feature; a PATCH is a fix; a MAJOR version is a change that alters existing data or behavior. A change users can see ships with its release-note entry and version bump in the same commit.
+
+### Constraints
+The single source of truth is `data/release_notes.json`: a list, newest first, of `{version, date, title, changes}` (`date` is ISO `YYYY-MM-DD`, `changes` a non-empty list of strings). The app's version is the newest entry's version, so the version and the notes cannot disagree. `pyproject.toml`'s `version` equals it, checked by a test that reads the file as plain text (PythonAnywhere runs Python 3.10, which has no `tomllib`); `uv.lock` carries the same version.
+`release_notes.json` is reference data like `roasters.json`: tracked in git and delivered with `git pull`, never gitignored. A missing file means no releases; a corrupted one stops the app with a message, like the other data files. Tests fail if the file's versions do not strictly rise toward the newest entry, a date is not real or a release is dated earlier than the one before it, an entry is missing a field or a title, has no changes, has an over-long or markup-containing change, or has an extra field.
+The first entries (0.1.0 through 1.0.0) were written afterward, on 2026-09-19, from the project's git history; 1.0.0 is the roaster-driven redesign, the point at which the app stopped being tied to one machine.
+
 ## Deferred Ideas
 
 These were considered and deliberately not scheduled — noted here so they aren't re-proposed as if new, and so a future decision to pursue one is a conscious choice rather than scope creep:
@@ -340,6 +353,7 @@ On startup, after checking the JSON files for corruption, the application shall 
 10. `/roasts/export` — CSV download of the current account's own roast records, same columns as the `/roasts` table. **(Phase 9, requires login and scoped to the current account)**
 11. `/roasts/<id>/cupping` (POST) — save or update cupping notes/rating on an existing roast, from its detail page. **(Phase 9, requires login and ownership)**
 12. `/profiles/<id>/favorite` (POST) — toggle a profile's favorite flag, from the Add roast profile picker. **(requires login and ownership)**
+13. `/whats-new` — the release history: every version, newest first. **(Phase 14, public like `/about`)**
 
 There is no "Exit" action for a web application; the process runs until the server is stopped.
 

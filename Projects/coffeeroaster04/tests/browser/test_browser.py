@@ -631,6 +631,7 @@ class TestBrowser(unittest.TestCase):
         "phoneChooser",
         "phoneProfileForm",
         "phoneAbout",
+        "phoneWhatsNew",
     )
 
     def test_every_page_lays_out_at_phone_width(self):
@@ -676,6 +677,19 @@ class TestBrowser(unittest.TestCase):
         page = self.scenario("phoneAddRoast")
         self.assertLessEqual(page["dateField"]["right"], page["card"]["right"])
         self.assertGreaterEqual(page["datePicker"]["width"], 100)
+
+    def test_the_whats_new_page_lists_the_real_release_history(self):
+        notes = json.loads(
+            (HERE.parents[1] / "data" / "release_notes.json").read_text()
+        )
+        page = self.scenario("whatsNew")
+        self.assertEqual(
+            page["releases"],
+            [f"Version {note['version']} — {note['title']}" for note in notes],
+        )
+        # Only the newest release is marked as the current version.
+        self.assertEqual(page["current"], [True] + [False] * (len(notes) - 1))
+        self.assertIn(f"v{notes[0]['version']} · What's new", page["footer"])
 
     def test_on_a_tablet_the_date_row_fits_inside_the_narrow_form_column(self):
         page = self.scenario("tabletAddRoast")

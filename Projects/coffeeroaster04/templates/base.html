@@ -350,7 +350,7 @@
     {% block content %}{% endblock %}
   </div>
   <footer class="site-footer">
-    <a href="/about">About</a>
+    <a href="/about">About</a>{% if app_version %} &middot; <a href="/whats-new">v{{ app_version }} &middot; What's new</a>{% endif %}
   </footer>
 </body>
 </html>

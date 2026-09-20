@@ -1,0 +1,75 @@
+[
+  {
+    "version": "1.2.0",
+    "date": "2026-09-19",
+    "title": "Version number and What's new",
+    "changes": [
+      "The current version now shows in the footer of every page.",
+      "This What's new page lists what changed in each version."
+    ]
+  },
+  {
+    "version": "1.1.0",
+    "date": "2026-09-19",
+    "title": "Works on your phone",
+    "changes": [
+      "Pages now fit a phone screen instead of shrinking down to a tiny desktop page.",
+      "On Add Roast, the timer, chart and First Crack Now! button come first, above the form.",
+      "Bigger buttons and fields, number pads for weights and temperatures, and taller charts."
+    ]
+  },
+  {
+    "version": "1.0.0",
+    "date": "2026-09-19",
+    "title": "Choose your roaster",
+    "changes": [
+      "Pick your roaster first when you make a profile. The profile then follows it: the number of temperature rows, the weight and time limits, and Fahrenheit or Celsius.",
+      "46 roasters to choose from. Your roaster is shown in the roast list and the CSV export.",
+      "The chart and the profile wizard follow your roaster. Only the Fresh Roast SR800 is calibrated; for the others the wizard says its values are estimates.",
+      "Optional start condition (cold, warm or preheated) and ambient temperature for each roast.",
+      "Existing profiles and roasts were assigned to the Fresh Roast SR800."
+    ]
+  },
+  {
+    "version": "0.4.0",
+    "date": "2026-09-18",
+    "title": "Pull countdown",
+    "changes": [
+      "After you mark first crack, a live countdown shows when to pull the roast.",
+      "The profile wizard now fills in target first-crack and development times instead of a temperature curve after first crack.",
+      "Wizard pacing was recalibrated for Fresh Roast machines."
+    ]
+  },
+  {
+    "version": "0.3.0",
+    "date": "2026-09-17",
+    "title": "Crackle, with roast insights",
+    "changes": [
+      "Renamed Crackle, with an About page and a feedback form.",
+      "Each roast shows weight loss, roast level, development time and development ratio. Search and sort the roast list, and export it to CSV.",
+      "A First Crack Now! button, bean origin, variety and process, and cupping notes with a rating.",
+      "A profile wizard that suggests a starting profile from a few questions.",
+      "Pick a profile from a card grid with your favorites on top."
+    ]
+  },
+  {
+    "version": "0.2.0",
+    "date": "2026-09-15",
+    "title": "Accounts and a live timer",
+    "changes": [
+      "A live roast timer and target-temperature graph on Add Roast.",
+      "Favorite profiles, and a warmer new look.",
+      "Accounts: your roasts and profiles are private to you, with password reset and email verification."
+    ]
+  },
+  {
+    "version": "0.1.0",
+    "date": "2026-09-14",
+    "title": "First version",
+    "changes": [
+      "See your roasts in a table, with a temperature chart for each roast.",
+      "Add a roast with a temperature entry for every minute.",
+      "Create, edit and delete roast profiles and roasts, from a main menu."
+    ]
+  }
+]

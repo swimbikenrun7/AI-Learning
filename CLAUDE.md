@@ -63,6 +63,7 @@ Iterations 01–03 persist to their own `data/roast_records.json` (git-tracked, 
 - **Layout:** `app.py` (Flask routes), `calculations.py` and `validators.py` (pure, no I/O), `data_persistence.py`, `roasters.py` (roaster-driven settings and units), `calibration_report.py` (a read-only script), `templates/`, `static/`, `tests/` (including `tests/browser/`).
 - **Scripts must not `import app`:** its startup migration rewrites the live profile and record files. Use `data_persistence` and `calculations` directly, as `calibration_report.py` does.
 - **Live data:** never `git checkout`, `git reset`, or recreate the gitignored data files; they are real users' data (see `DEPLOY.md`). Units are never converted: each roaster's temperatures stay in its own unit.
+- **Releases:** the app's version and its What's new page come from `data/release_notes.json`. A user-visible change adds an entry at the top and bumps `pyproject.toml` to match, in the same commit (see `README.md`'s Releasing section); tests guard the file and the version sync.
 - **Branches:** `main` is what gets deployed. Feature work (e.g. the roaster-driven redesign on `roaster-selection`) happens on a branch and is merged into `main` when Josh asks.
 
 ## Git workflow

@@ -4,7 +4,7 @@ import math
 import os
 import secrets
 import uuid
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from functools import wraps
 
 from flask import (
@@ -21,6 +21,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 import calculations as calc
 from data_persistence import (
+    load_release_notes,
     load_roast_profiles,
     load_roast_records,
     load_roasters,
@@ -79,6 +80,11 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or secrets.token_hex(32)
 
 
+def format_release_date(iso_date):
+    released = date.fromisoformat(iso_date)
+    return f"{released:%B} {released.day}, {released.year}"
+
+
 def format_mm_ss(total_seconds):
     minutes, seconds = divmod(total_seconds, 60)
     return f"{minutes}:{seconds:02d}"
@@ -93,6 +99,7 @@ DEFAULT_ROASTER_ID = "fresh-roast-sr800"
 roast_records = load_roast_records()
 roast_profiles = load_roast_profiles()
 roasters = load_roasters()
+release_notes = load_release_notes()
 users = load_users()
 
 # One-time, idempotent: profiles and records that predate roaster selection get a roaster.
@@ -188,6 +195,12 @@ def inject_current_user():
 @app.context_processor
 def inject_roaster_name():
     return {"roaster_name": roaster_name}
+
+
+@app.context_processor
+def inject_app_version():
+    # The newest release note is the app's version, so the two cannot disagree.
+    return {"app_version": release_notes[0]["version"] if release_notes else None}
 
 
 @app.route("/signup", methods=["GET", "POST"])
@@ -367,6 +380,15 @@ def reset_password(token):
 @app.route("/")
 def home():
     return render_template("home.html")
+
+
+@app.route("/whats-new")
+def whats_new():
+    releases = [
+        {**release, "date_text": format_release_date(release["date"])}
+        for release in release_notes
+    ]
+    return render_template("whats_new.html", releases=releases)
 
 
 @app.route("/about", methods=["GET", "POST"])

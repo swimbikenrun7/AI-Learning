@@ -15,13 +15,13 @@ A running list of planned feature updates and their detailed plans.
 
 ## Current status (as of 2026-09-19)
 
-- **Branches.** `roaster-selection` was merged into `main` by fast-forward (no merge commit, matching `main`'s linear history) and `main` was pushed: `main` and `origin/main` are both at `e068e85`. The `roaster-selection` branch still exists locally at that same commit and can be deleted (`git branch -d roaster-selection`). Whether PythonAnywhere has pulled and reloaded this is not recorded here; before its first reload, back up `data/` (the startup migration rewrites the profile and record files once; see `DEPLOY.md`).
-- **Tests.** 398 passing on `main` (409 on the `mobile-optimization` branch), including the browser check (22 tests on `main`, 30 on the branch; about 10 s; it skips itself without Chromium, Node 22, or the CDN). `ruff check`/`ruff format --check` are clean on every file added in this work; the 18 remaining `ruff check` findings (naive `datetime` calls and unused unpacked variables) and the unformatted `app.py` and `tests/test_app.py` were there before it started and are left for you to review.
+- **Branches.** `roaster-selection` was merged into `main` by fast-forward (no merge commit, matching `main`'s linear history) and pushed. Since then `origin/main` is at `ab0316b` (docs), and local `main` is one commit ahead (`1d0638d`, the T-11 to T-14 queue). T-11 is committed on `mobile-optimization` (`2ff59ad`, `64a1b3d`) and T-12 is built on `versioning`, cut from it (so it includes T-11); neither is merged to `main`. The old `roaster-selection` branch still exists locally and can be deleted (`git branch -d roaster-selection`). Whether PythonAnywhere has pulled and reloaded this is not recorded here; before its first reload, back up `data/` (the startup migration rewrites the profile and record files once; see `DEPLOY.md`).
+- **Tests.** 398 passing on `main`, 409 on `mobile-optimization`, 432 on `versioning`, including the browser check (22, 30, and 31 tests; about 10 s; it skips itself without Chromium, Node 22, or the CDN). `ruff check`/`ruff format --check` are clean on every file added in this work; the 18 remaining `ruff check` findings (naive `datetime` calls and unused unpacked variables) and the unformatted `app.py` and `tests/test_app.py` were there before it started and are left for you to review.
 - **Done:** T-00 through T-06 (1: start condition + ambient temperature), T-08 (calibration report), T-09 (browser check), T-10 (review follow-ups). Commit hashes are in each item.
 - **Not yet done or decided:**
   - The calibration report has only run on synthetic records; run it on your real SR800 roasts (see T-08) before trusting the thresholds.
   - `validate_green_weight("nan")` and `validate_temperature("nan")` accept NaN (found during T-06, not fixed; see Open decisions).
-  - **T-11 mobile optimization is built and committed** (`2ff59ad`) on branch `mobile-optimization`, not yet merged to `main`; it still needs a test on your phone. **Queued, not started:** T-12 app version and in-app release notes, T-13 espresso profile style, T-14 how-to/tutorial; each lists the decisions it needs from you.
+  - **T-11 mobile optimization is built and committed** (`2ff59ad`) on `mobile-optimization`; it still needs a test on your phone. **T-12 version and release notes is built** on `versioning` (uncommitted, awaiting your review). **Queued, not started:** T-13 espresso profile style and T-14 how-to/tutorial; each lists the decisions it needs from you.
   - Unscheduled: T-06 candidates 2–4 (charge/turning point, control-change log, cooling start) and T-07 (native profile formats, deferred).
   - `app.py` is 879 lines, so the Blueprint split (T-01, "revisit once it passes roughly 900 lines") is still not due.
 
@@ -359,31 +359,26 @@ Built and committed 2026-09-19 · commit `2ff59ad` on branch `mobile-optimizatio
 
 ---
 
-## T-12 [PLANNED] App version and in-app release notes
+## T-12 [BUILT, awaiting your review] App version and in-app release notes
 
-**Depends on:** none. Queued 2026-09-19.
-**Goal:** a version number the user can see in the app, and a short, plain-language "What's new" list, kept in the app (not only in `to-do.md`, `SPEC.md`, and git, which are written for the developer).
+Built 2026-09-19 on branch `versioning` (cut from `mobile-optimization` at `64a1b3d`, so it includes T-11; uncommitted). Suite: 432 passing (was 409); the browser check is 31 tests (was 30). Queued the same day.
 
-**What is there now.** `pyproject.toml` says `version = "0.1.0"`, which no longer means anything; nothing in the app shows a version or a change list; the footer has only an About link (`base.html`).
+**What it is.** The app now has a version, shown in every page's footer ("About · v1.2.0 · What's new"), and a public `/whats-new` page listing every release newest first: version, title, date written out, and a few plain-language changes, with the newest marked "current version". Everything comes from one tracked file, `data/release_notes.json` (a list, newest first, of `{version, date, title, changes}`), and **the app's version is the newest entry's version**, so the number and the notes cannot drift apart. `pyproject.toml` and `uv.lock` carry the same version (`uv lock --check` passes).
 
-**Proposed design** (say if you'd change any)
-- **One source of truth, so the version can't drift from the notes:** a tracked data file (for example `data/release_notes.json`, tracked like `roasters.json`), newest entry first: `{version, date, changes: [short user-facing lines]}`. The app's version is the first entry's version. (Reading `pyproject.toml` at runtime is out: PythonAnywhere is set up on Python 3.10, which has no `tomllib`.)
-- **Where it shows:** the version in the footer ("Crackle v1.3.0 · What's new"), linking to a public `/whats-new` page (public like `/about`) that lists the entries.
-- **Numbering:** MAJOR.MINOR.PATCH. MINOR for a user-visible feature (each roadmap item that reaches users), PATCH for a fix, MAJOR only for a change that alters existing data or behavior.
-- **Style:** a few plain lines per version ("Choose your roaster first; profiles now follow it"), not commit messages. Developer detail stays in `to-do.md`.
+**Decisions I made** (each easy to change; you did not answer the open points, so these are defaults)
+- **Where counting starts.** The first entries were written afterward from the git history (Sept 14–19, real dates): 0.1.0 the first version, 0.2.0 accounts and the live timer, 0.3.0 Crackle with roast insights and the wizard, 0.4.0 the pull countdown, **1.0.0 "Choose your roaster"** (the roaster-driven redesign, the point where the app stopped being tied to one machine), 1.1.0 mobile, and **1.2.0 this feature**. So the current version is 1.2.0. Say if you would draw the 1.0 line elsewhere or want fewer, coarser entries; it is one JSON file.
+- **Numbering:** MINOR for a user-visible feature, PATCH for a fix, MAJOR when existing data or behavior changes.
+- **Style:** plain language, each line at most 220 characters and no HTML, so it stays a summary and not the developer log (which stays here and in git). A test enforces the length and the no-markup rule.
+- **No git tags.** Tagging (`git tag v1.2.0`) is optional and nothing does it; it is one command if you want to see what was deployed when.
+- **The habit is written down** (SPEC, README "Releasing", CLAUDE.md): a change users can see adds an entry at the top and bumps `pyproject.toml` in the same commit. A test cannot tell whether a change is user-visible, so this part is a convention, not a check.
+- **`tomllib` is not used** to read `pyproject.toml`: PythonAnywhere is set up on Python 3.10, which lacks it, so the sync test reads the file as plain text.
+- `date.fromisoformat` rather than `strptime` for the dates (no naive-datetime lint findings added).
 
-**Tasks**
-- [ ] The data file and a small loader (missing or corrupt file: same rules as the other data files); footer version; `/whats-new` page.
-- [ ] Write the first entries from the project's history (see the open point below).
-- [ ] Guard tests: entries are valid and newest-first, versions strictly increase, each has a date and at least one change, `pyproject.toml`'s version equals the newest entry (a plain-text check, no `tomllib`), and the page and footer render.
-- [ ] Add the habit to the workflow: a user-visible item ships with its release-note line and version bump in the same commit (in `to-do.md`'s conventions, and `CLAUDE.md`).
+**Files:** `data/release_notes.json` (new), `data_persistence.py` (`load_release_notes`), `app.py` (`/whats-new`, the version in every template, the date formatter), `templates/whats_new.html` (new), `templates/base.html` (footer), `pyproject.toml` and `uv.lock` (version), `SPEC.md` ("Versions and release notes", Phase 14), `README.md` (Releasing), `DEPLOY.md` (the new tracked data file), `CLAUDE.md` (a Releases bullet), `tests/test_release_notes.py` (new), `tests/browser/{driver.mjs,test_browser.py}`.
 
-**Open design points**
-- **Where to start counting.** Either one retrospective entry per group of phases (0.x → 1.0), or a single "1.0.0" covering everything up to the roaster-driven redesign. Which release is "1.0"?
-- **Git tags** (`v1.3.0`) alongside the notes: optional; worth it if you want to see what was deployed when.
-- A "new since your last visit" marker: not proposed (needs per-user state for little gain).
+**Tests.** 23 new. `tests/test_release_notes.py` (22): the data file (fields, version form, strictly rising versions, real dates in order, short plain changes, and the `pyproject.toml` sync), the loader (missing file, valid, corrupted stops and leaves the file alone), the page (public, order, dates, only the newest marked current, text escaped, the empty state), and the footer (newest version, follows the newest entry, shown to logged-in users, absent with no releases). The browser check (1 new, plus the page in the phone-width set): the page's headings and footer match the real data file without hard-coding a version, and it loads with a clean console. Twenty-five deliberate breakages in a scratch copy were each caught, including bad edits to the data file itself (versions out of order or duplicated, an impossible date, a stale date, an empty or essay-length change, markup, an extra field, an empty title). **No existing test changed.**
 
-**Done when:** the footer shows the version, `/whats-new` lists the release history, and a test fails if the notes and version disagree.
+**For you:** read the seven entries in `data/release_notes.json` (they are your project's voice, and I wrote them from the commit history) and correct anything that overstates or misses.
 
 ---
 
@@ -442,4 +437,4 @@ I lean to (a), with (c)'s contextual links added once the page exists.
 
 T-01 ✓ → T-02a ✓ → T-03 ✓ → T-02b ✓ → T-09 ✓ → T-04 ✓ → T-05 ✓ → T-10 ✓ → T-06 (start condition + ambient) ✓ → T-08 ✓ → merged to `main` and pushed. The other T-06 candidates and T-07 stay unscheduled.
 
-**Queued 2026-09-19 (order not yet decided; T-11 has since been built, awaiting review):** T-11 mobile optimization, T-12 app version and release notes, T-13 espresso profile style, T-14 how-to. A suggestion, not a decision: T-11 first (the missing viewport tag is a one-line fix that helps every page), T-12 next (small, and gives later items somewhere to be announced), then T-13, and T-14 last because it documents the final screens.
+**Queued 2026-09-19 (order not yet decided; T-11 and T-12 have since been built):** T-11 mobile optimization, T-12 app version and release notes, T-13 espresso profile style, T-14 how-to. A suggestion, not a decision: T-11 first (the missing viewport tag is a one-line fix that helps every page), T-12 next (small, and gives later items somewhere to be announced), then T-13, and T-14 last because it documents the final screens.

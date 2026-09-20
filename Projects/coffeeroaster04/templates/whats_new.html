@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}What's new{% endblock %}
+{% block content %}
+  <style>
+    .release { margin-bottom: var(--space-4); }
+    .release h2 { margin-bottom: var(--space-1); }
+    .release__date { margin: 0 0 var(--space-2); color: var(--color-text-muted); font-size: var(--font-size-sm); }
+    .release ul { margin: 0; padding-left: 1.25rem; }
+    .release li { margin-bottom: var(--space-1); }
+  </style>
+  <h1>What's new</h1>
+
+  {% for release in releases %}
+    <section class="release">
+      <h2>Version {{ release.version }} &mdash; {{ release.title }}</h2>
+      <p class="release__date">{{ release.date_text }}{% if loop.first %} &middot; current version{% endif %}</p>
+      <ul>
+        {% for change in release.changes %}
+          <li>{{ change }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% else %}
+    <p>No release notes yet.</p>
+  {% endfor %}
+{% endblock %}
