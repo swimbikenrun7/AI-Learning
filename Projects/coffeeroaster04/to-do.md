@@ -15,13 +15,13 @@ A running list of planned feature updates and their detailed plans.
 
 ## Current status (as of 2026-09-19)
 
-- **Branches.** `roaster-selection` was merged into `main` by fast-forward (no merge commit, matching `main`'s linear history) and pushed. Since then `origin/main` is at `ab0316b` (docs), and local `main` is one commit ahead (`1d0638d`, the T-11 to T-14 queue). T-11 is committed on `mobile-optimization` (`2ff59ad`, `64a1b3d`) and T-12 is built on `versioning`, cut from it (so it includes T-11); neither is merged to `main`. The old `roaster-selection` branch still exists locally and can be deleted (`git branch -d roaster-selection`). Whether PythonAnywhere has pulled and reloaded this is not recorded here; before its first reload, back up `data/` (the startup migration rewrites the profile and record files once; see `DEPLOY.md`).
+- **Branches.** `roaster-selection` was merged into `main` by fast-forward (no merge commit, matching `main`'s linear history) and pushed. Since then `origin/main` is at `ab0316b` (docs), and local `main` is one commit ahead (`1d0638d`, the T-11 to T-14 queue). T-11 is committed on `mobile-optimization` (`2ff59ad`, `64a1b3d`) and T-12 is committed on `versioning` (`b18b677`), cut from it (so it includes T-11); neither is merged to `main`. The old `roaster-selection` branch still exists locally and can be deleted (`git branch -d roaster-selection`). Whether PythonAnywhere has pulled and reloaded this is not recorded here; before its first reload, back up `data/` (the startup migration rewrites the profile and record files once; see `DEPLOY.md`).
 - **Tests.** 398 passing on `main`, 409 on `mobile-optimization`, 432 on `versioning`, including the browser check (22, 30, and 31 tests; about 10 s; it skips itself without Chromium, Node 22, or the CDN). `ruff check`/`ruff format --check` are clean on every file added in this work; the 18 remaining `ruff check` findings (naive `datetime` calls and unused unpacked variables) and the unformatted `app.py` and `tests/test_app.py` were there before it started and are left for you to review.
 - **Done:** T-00 through T-06 (1: start condition + ambient temperature), T-08 (calibration report), T-09 (browser check), T-10 (review follow-ups). Commit hashes are in each item.
 - **Not yet done or decided:**
   - The calibration report has only run on synthetic records; run it on your real SR800 roasts (see T-08) before trusting the thresholds.
   - `validate_green_weight("nan")` and `validate_temperature("nan")` accept NaN (found during T-06, not fixed; see Open decisions).
-  - **T-11 mobile optimization is built and committed** (`2ff59ad`) on `mobile-optimization`; it still needs a test on your phone. **T-12 version and release notes is built** on `versioning` (uncommitted, awaiting your review). **Queued, not started:** T-13 espresso profile style and T-14 how-to/tutorial; each lists the decisions it needs from you.
+  - **T-11 mobile optimization is built and committed** (`2ff59ad`) on `mobile-optimization`; it still needs a test on your phone. **T-12 version and release notes is built and committed** (`b18b677`) on `versioning`. **Queued, not started:** T-13 espresso profile style and T-14 how-to/tutorial; each lists the decisions it needs from you.
   - Unscheduled: T-06 candidates 2–4 (charge/turning point, control-change log, cooling start) and T-07 (native profile formats, deferred).
   - `app.py` is 879 lines, so the Blueprint split (T-01, "revisit once it passes roughly 900 lines") is still not due.
 
@@ -359,9 +359,9 @@ Built and committed 2026-09-19 · commit `2ff59ad` on branch `mobile-optimizatio
 
 ---
 
-## T-12 [BUILT, awaiting your review] App version and in-app release notes
+## T-12 [COMPLETE] App version and in-app release notes
 
-Built 2026-09-19 on branch `versioning` (cut from `mobile-optimization` at `64a1b3d`, so it includes T-11; uncommitted). Suite: 432 passing (was 409); the browser check is 31 tests (was 30). Queued the same day.
+Completed 2026-09-19 · commit `b18b677` on branch `versioning` (cut from `mobile-optimization` at `64a1b3d`, so it includes T-11; not yet merged to `main`). Suite: 432 passing (was 409); the browser check is 31 tests (was 30). Queued the same day.
 
 **What it is.** The app now has a version, shown in every page's footer ("About · v1.2.0 · What's new"), and a public `/whats-new` page listing every release newest first: version, title, date written out, and a few plain-language changes, with the newest marked "current version". Everything comes from one tracked file, `data/release_notes.json` (a list, newest first, of `{version, date, title, changes}`), and **the app's version is the newest entry's version**, so the number and the notes cannot drift apart. `pyproject.toml` and `uv.lock` carry the same version (`uv lock --check` passes).
 
