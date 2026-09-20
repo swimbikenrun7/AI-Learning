@@ -35,6 +35,7 @@
         <td>
           <a href="{{ profile_link_prefix }}{{ profile_id }}">{{ profile.name }}</a>
           {% if roaster_name(profile) %}<span class="roaster-tag">&middot; {{ roaster_name(profile) }}</span>{% endif %}
+          <span class="style-tag">&middot; {{ style_label(profile) }}</span>
         </td>
       </tr>
     {% endfor %}

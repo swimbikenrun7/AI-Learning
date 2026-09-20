@@ -195,3 +195,12 @@ def validate_first_crack(value_str, total_roast_time, min_seconds=240):
             f"from {_mm_ss(min_seconds)} up to (not including) the total roast time."
         )
     return total_seconds
+
+
+def validate_profile_style(value_str, styles, default):
+    """A profile style from the given styles; blank means the default."""
+    if not value_str:
+        return default
+    if value_str not in styles:
+        raise ValueError("Choose a profile style from the list.")
+    return value_str

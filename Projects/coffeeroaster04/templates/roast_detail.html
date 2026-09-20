@@ -5,6 +5,7 @@
   <h1>{{ record.bean_name }} &mdash; {{ record.date }}</h1>
   <p>Roast profile: {{ profile_name }}</p>
   {% if roaster_name %}<p>Roaster: {{ roaster_name }}</p>{% endif %}
+  <p>Style: {{ style_text }}</p>
   {% if start_condition_label or record.get("ambient_temp") is not none %}
     <p class="roast-conditions">
       {% if start_condition_label %}{{ start_condition_label }}{% endif %}

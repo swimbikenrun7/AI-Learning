@@ -19,7 +19,7 @@ from pathlib import Path
 
 import calculations as calc
 import data_persistence
-from roasters import TEMP_UNITS
+from roasters import PROFILE_STYLES, TEMP_UNITS, profile_style, wizard_for_style
 
 # When to suggest that a roaster's stored values could be tuned from its own roasts. These are
 # starting points, not domain rules: the numbers are printed so the call stays with the owner.
@@ -103,17 +103,25 @@ def median_and_range(numbers, fmt):
     )
 
 
-def roaster_section(roaster_id, roaster, records):
+def record_style(record):
+    return profile_style({"style": record.get("profile_style")})
+
+
+def roaster_section(roaster_id, roaster, records, style="drip"):
     values = roaster["values"] if roaster else {}
     name = roaster["name"] if roaster else (roaster_id or "No roaster recorded")
+    if style != "drip":
+        name += f" ({PROFILE_STYLES[style]})"
     summary = summarize(records, values)
-    wizard = values.get("wizard") or {}
+    # Each style is compared with its own stored values, and only drip is ever calibrated.
+    wizard = wizard_for_style(values.get("wizard"), style) or {}
+    calibrated = bool(values.get("calibrated")) and style == "drip"
     unit = TEMP_UNITS.get(values.get("temp_unit"), {}).get("symbol", "")
     first_crack = summary["first_crack"]
     plural = "roast" if len(records) == 1 else "roasts"
     status = ""
     if roaster:
-        status = " — calibrated" if values.get("calibrated") else " — not calibrated"
+        status = " — calibrated" if calibrated else " — not calibrated"
     lines = [f"{name}: {len(records)} {plural}{status}"]
 
     def line(label, text):
@@ -155,7 +163,7 @@ def roaster_section(roaster_id, roaster, records):
             text += f"   stored {stored * 100:.1f}%   difference {difference:+.1f}"
         lines.append(f"    {level:<16}{text}")
 
-    if roaster and values.get("calibrated"):
+    if roaster and calibrated:
         lines.append("  Already calibrated: the differences above show any drift.")
     elif roaster:
         spread = max(first_crack) - min(first_crack)
@@ -173,24 +181,29 @@ def roaster_section(roaster_id, roaster, records):
 
 
 def build_report(records, roasters, source):
+    # One group per roaster and style: espresso roasts are never averaged into drip ones.
     by_roaster = {}
     for record in records.values():
-        by_roaster.setdefault(record.get("roaster_id"), []).append(record)
+        key = (record.get("roaster_id"), record_style(record))
+        by_roaster.setdefault(key, []).append(record)
     if not by_roaster:
         return f"No roasts logged in {source}."
 
-    def order(roaster_id):
+    def order(key):
+        roaster_id, style = key
         roaster = roasters.get(roaster_id)
         return (
-            -len(by_roaster[roaster_id]),
+            -len(by_roaster[key]),
             roaster is None,
             roaster["name"] if roaster else "",
+            style,
         )
 
     lines = [f"Calibration report: {len(records)} roasts from {source}", ""]
-    for roaster_id in sorted(by_roaster, key=order):
+    for key in sorted(by_roaster, key=order):
+        roaster_id, style = key
         lines += roaster_section(
-            roaster_id, roasters.get(roaster_id), by_roaster[roaster_id]
+            roaster_id, roasters.get(roaster_id), by_roaster[key], style
         )
         lines.append("")
     lines.append(

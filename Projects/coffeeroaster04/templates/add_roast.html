@@ -2,7 +2,7 @@
 {% block title %}Add roast{% endblock %}
 {% block content %}
   <button class="btn btn--ghost back-link" onclick="window.location='/roasts/new'">&larr; Back to profile selection</button>
-  <h1>Add roast &mdash; {{ profile.name }}{% if roaster_name(profile) %} <span class="roaster-tag">&middot; {{ roaster_name(profile) }}</span>{% endif %}</h1>
+  <h1>Add roast &mdash; {{ profile.name }}{% if roaster_name(profile) %} <span class="roaster-tag">&middot; {{ roaster_name(profile) }}</span>{% endif %} <span class="style-tag">&middot; {{ style_label(profile) }}</span></h1>
 
   {% if error %}
     <p style="color: var(--color-danger);">{{ error }}</p>

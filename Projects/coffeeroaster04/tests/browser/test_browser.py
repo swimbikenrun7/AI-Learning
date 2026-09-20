@@ -454,6 +454,45 @@ class TestBrowser(unittest.TestCase):
             },
         )
 
+    def test_the_espresso_wizard_says_its_values_are_estimates_and_develops_longer(
+        self,
+    ):
+        page = self.scenario("wizardEspresso")
+        self.assertEqual(page["styleInput"], "espresso")
+        self.assertIn("Espresso", page["styleLine"])
+        self.assertTrue(page["espressoNotice"])
+        # The SR800 is calibrated for drip only, so it gets no drip notice, just the espresso one.
+        self.assertFalse(page["dripNotice"])
+        output = page["output"]
+        # Same first crack and curve as drip; 19% instead of 16% development: 1:28, not 1:11.
+        self.assertEqual(output["firstCrack"], "6:15")
+        self.assertEqual(output["developmentTime"], "1:28")
+        self.assertEqual(
+            output["temps"][:6], ["315", "343", "366", "383", "394", "400"]
+        )
+
+    def test_choosing_espresso_and_saving_shows_the_style_tag(self):
+        page = self.scenario("createEspressoProfile")
+        self.assertEqual(page["styleOptions"], ["Drip", "Espresso"])
+        self.assertEqual(page["styleAtStart"], "drip")
+        self.assertEqual(page["search"], "?roaster=fresh-roast-sr800&style=espresso")
+        self.assertEqual(page["styleInput"], "espresso")
+        self.assertEqual(page["path"], "/profiles")
+        self.assertEqual(page["tags"], ["· Espresso"])
+        # Every other profile is drip.
+        self.assertTrue(page["otherTags"])
+        self.assertEqual(set(page["otherTags"]), {"· Drip"})
+
+    def test_roast_detail_shows_the_style(self):
+        for name in (
+            "detailSr800",
+            "detailCelsius",
+            "detailGeneCafe",
+            "detailNoReadout",
+        ):
+            with self.subTest(page=name):
+                self.assertEqual(self.scenario(name)["style"], "Drip")
+
     def test_an_sr_model_without_calibration_gets_the_same_curve_and_the_notice(self):
         wizard = self.scenario("wizardEstimatedCurve")
         self.assertTrue(wizard["notice"])
@@ -523,7 +562,7 @@ class TestBrowser(unittest.TestCase):
         self.assertEqual(page["optionCount"], len(load_roasters()) + 1)
         self.assertIn("Select a roaster", page["firstOption"])
         self.assertFalse(page["formShownAtStart"])
-        self.assertEqual(page["search"], "?roaster=gene-cafe-cbr-101")
+        self.assertEqual(page["search"], "?roaster=gene-cafe-cbr-101&style=drip")
         self.assertTrue(page["formShownAfter"])
         self.assertEqual(page["roasterInput"], "gene-cafe-cbr-101")
         self.assertTrue(page["showsRoaster"])

@@ -18,6 +18,9 @@
       {% if not profile_id %}<small>&mdash; <a href="/profiles/new">choose a roaster</a></small>{% endif %}
     {% endif %}
   </p>
+  <p>
+    Style: <strong>{{ style_text }}</strong> <small>&middot; fixed for this profile</small>
+  </p>
 
   {% if wizard_config %}
     <p>
@@ -25,6 +28,9 @@
     </p>
 
     <div id="wizard-panel" hidden>
+      {% if style == "espresso" %}
+        <p><strong>Espresso estimates</strong> &mdash; not calibrated for any roaster{% if settings.calibrated %}, including your {{ settings.roaster_name }} (its logged roasts are drip){% endif %}. Espresso usually gets a longer development than filter (one published guide puts it at about 25&ndash;30% of the roast, against 20&ndash;25% for filter), so the wizard sets a longer target development time than it would for drip.</p>
+      {% endif %}
       {% if not settings.calibrated %}
         <p><strong>Estimated for this roaster</strong> &mdash; not calibrated; expect to adjust. Only the Fresh Roast SR800 has been calibrated against real roasts; for {{ settings.roaster_name }} these are starting estimates from published guidance.</p>
       {% endif %}
@@ -76,6 +82,7 @@
   <form method="post" id="profile-form">
     {% if not profile_id %}
       <input type="hidden" name="roaster_id" value="{{ settings.roaster_id or '' }}">
+      <input type="hidden" name="style" value="{{ style }}">
     {% endif %}
     <p>
       <label>Profile name<br>

@@ -63,7 +63,7 @@
             <span class="profile-card__icon" aria-hidden="true">&#9749;</span>
             <span class="profile-card__name">
               {{ profile.name }}
-              {% if roaster_name(profile) %}<br><span class="roaster-tag">{{ roaster_name(profile) }}</span>{% endif %}
+              {% if roaster_name(profile) %}<br><span class="roaster-tag">{{ roaster_name(profile) }}</span>{% endif %} <span class="style-tag">&middot; {{ style_label(profile) }}</span>
             </span>
             <form
               class="profile-card__star-form"
@@ -97,7 +97,7 @@
             <span class="profile-card__icon" aria-hidden="true">&#9749;</span>
             <span class="profile-card__name">
               {{ profile.name }}
-              {% if roaster_name(profile) %}<br><span class="roaster-tag">{{ roaster_name(profile) }}</span>{% endif %}
+              {% if roaster_name(profile) %}<br><span class="roaster-tag">{{ roaster_name(profile) }}</span>{% endif %} <span class="style-tag">&middot; {{ style_label(profile) }}</span>
             </span>
             <form
               class="profile-card__star-form"

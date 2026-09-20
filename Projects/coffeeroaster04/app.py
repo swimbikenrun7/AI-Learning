@@ -32,11 +32,16 @@ from data_persistence import (
 )
 from email_sender import GMAIL_ADDRESS, send_email
 from roasters import (
+    DEFAULT_PROFILE_STYLE,
     LEGACY_SETTINGS,
+    PROFILE_STYLES,
     TEMP_UNITS,
     chart_opening,
+    migrate_profile_styles,
     migrate_roaster_ids,
+    profile_style,
     settings_for,
+    wizard_for_style,
 )
 from validators import (
     validate_ambient_temperature,
@@ -48,6 +53,7 @@ from validators import (
     validate_green_weight,
     validate_password,
     validate_profile_name,
+    validate_profile_style,
     validate_roast_time,
     validate_roaster_id,
     validate_start_condition,
@@ -106,9 +112,13 @@ users = load_users()
 _profiles_changed, _records_changed = migrate_roaster_ids(
     roasters, roast_profiles, roast_records, DEFAULT_ROASTER_ID
 )
-if _profiles_changed:
+# The same for the profile style (drip) that profiles and records predate.
+_styles_profiles_changed, _styles_records_changed = migrate_profile_styles(
+    roast_profiles, roast_records
+)
+if _profiles_changed or _styles_profiles_changed:
     save_roast_profiles(roast_profiles)
-if _records_changed:
+if _records_changed or _styles_records_changed:
     save_roast_records(roast_records)
 
 
@@ -123,9 +133,9 @@ def profile_settings(profile):
     )
 
 
-def wizard_config_for(settings, rows):
-    """What the profile wizard needs from its roaster, or None if it has no wizard."""
-    wizard = settings["wizard"]
+def wizard_config_for(settings, rows, style=DEFAULT_PROFILE_STYLE):
+    """What the profile wizard needs from its roaster and style, or None if it has none."""
+    wizard = wizard_for_style(settings["wizard"], style)
     if not wizard:
         return None
     start_temp = wizard["profile_start_temp"]
@@ -146,6 +156,10 @@ def wizard_config_for(settings, rows):
 def roaster_name(profile):
     roaster = roasters.get(profile.get("roaster_id"))
     return roaster["name"] if roaster else None
+
+
+def style_label(profile):
+    return PROFILE_STYLES[profile_style(profile)]
 
 
 def sorted_profiles():
@@ -194,7 +208,7 @@ def inject_current_user():
 
 @app.context_processor
 def inject_roaster_name():
-    return {"roaster_name": roaster_name}
+    return {"roaster_name": roaster_name, "style_label": style_label}
 
 
 @app.context_processor
@@ -521,6 +535,9 @@ def roast_detail(record_id):
         record_id=record_id,
         profile_name=profile["name"] if profile else "-",
         roaster_name=settings["roaster_name"],
+        style_text=PROFILE_STYLES[
+            profile_style({"style": record.get("profile_style")})
+        ],
         start_condition_label=START_CONDITION_LABELS.get(record.get("start_condition")),
         units=units,
         minutes=minutes,
@@ -678,6 +695,7 @@ def add_roast(profile_id):
                 "time_of_first_crack": time_of_first_crack,
                 "roast_profile_id": profile_id,
                 "roaster_id": profile.get("roaster_id"),
+                "profile_style": profile_style(profile),
                 "temp_unit": settings["temp_unit"],
                 "target_temps": target_temps,
                 "actual_temps": actual_temps,
@@ -752,24 +770,38 @@ def add_edit_profile(profile_id=None):
         if existing_profile is None or existing_profile.get("owner") != session["user_email"]:
             abort(404)
 
-    # A profile's roaster is chosen at creation and can never change afterwards: its
-    # rows, limits, and units all come from that roaster.
+    # A profile's roaster and style are chosen at creation and can never change
+    # afterwards: the roaster decides its rows, limits, and units, and the style what
+    # its targets are shaped for.
     if existing_profile:
         roaster_id = existing_profile.get("roaster_id")
-        if request.method == "POST" and request.form.get("roaster_id", roaster_id or "") != (
-            roaster_id or ""
+        style = profile_style(existing_profile)
+        if request.method == "POST" and (
+            request.form.get("roaster_id", roaster_id or "") != (roaster_id or "")
+            or request.form.get("style", style) != style
         ):
             abort(400)
     elif request.method == "POST":
         roaster_id = request.form.get("roaster_id", "").strip()
+        style_input = request.form.get("style", "").strip()
+        style = style_input if style_input in PROFILE_STYLES else DEFAULT_PROFILE_STYLE
     else:
         roaster_id = request.args.get("roaster", "").strip()
-        if not roaster_id or roaster_id not in roasters:
-            # Step 1 of adding a profile: pick the roaster, which decides the form's rows.
+        style_input = request.args.get("style", "").strip()
+        style = style_input or DEFAULT_PROFILE_STYLE
+        if not roaster_id or roaster_id not in roasters or style not in PROFILE_STYLES:
+            # Step 1 of adding a profile: pick the roaster, which decides the form's rows,
+            # and the style. A missing style means the default, so older links still work.
+            error = None
+            if roaster_id and roaster_id not in roasters:
+                error = "Choose a roaster from the list."
+            elif style not in PROFILE_STYLES:
+                error = "Choose a profile style from the list."
             return render_template(
                 "choose_roaster.html",
                 roaster_options=sorted_roasters(),
-                error="Choose a roaster from the list." if roaster_id else None,
+                style_options=PROFILE_STYLES,
+                error=error,
             )
 
     known_roaster_id = roaster_id if roaster_id in roasters else None
@@ -808,6 +840,11 @@ def add_edit_profile(profile_id=None):
             name = validate_profile_name(values["name"])
             if not existing_profile:
                 validate_roaster_id(roaster_id, roasters, required=True)
+                validate_profile_style(
+                    request.form.get("style", "").strip(),
+                    PROFILE_STYLES,
+                    DEFAULT_PROFILE_STYLE,
+                )
             if settings["has_temp_readout"]:
                 temps = [
                     validate_temperature(
@@ -832,6 +869,7 @@ def add_edit_profile(profile_id=None):
             roast_profiles[saved_profile_id] = {
                 "name": name,
                 "roaster_id": roaster_id or None,
+                "style": style,
                 "temps": temps,
                 "target_first_crack": target_first_crack,
                 "target_development_time": target_development_time,
@@ -845,7 +883,11 @@ def add_edit_profile(profile_id=None):
         "profile_form.html",
         profile_id=profile_id,
         settings=settings,
-        wizard_config=None if existing_profile else wizard_config_for(settings, rows),
+        wizard_config=None
+        if existing_profile
+        else wizard_config_for(settings, rows, style),
+        style=style,
+        style_text=PROFILE_STYLES[style],
         minutes=minutes,
         values=values,
         error=error,

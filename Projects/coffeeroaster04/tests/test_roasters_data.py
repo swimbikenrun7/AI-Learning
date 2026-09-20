@@ -47,6 +47,9 @@ WIZARD_FIELDS = [
     "profile_start_temp",
     "default_first_crack_temp",
 ]
+# The espresso style's own values; the temperatures stay with the base wizard block.
+ESPRESSO_FIELDS = ["time_to_first_crack_s", "natural_time_adjust_s", "dtr_by_level"]
+ESPRESSO_SOURCE = "https://www.ictcoffee.com/news/roasting-for-filter-vs-espresso-the-key-differences/"
 START_MODELS = {"ramp", "preheat_charge", "programmed", "none"}
 COOLING = {"internal", "external_tray", "manual"}
 # The six roast-level names, exactly as the app's own classification calls them.
@@ -111,7 +114,7 @@ class TestRoastersData(unittest.TestCase):
             for field in values["inferred"]:
                 if field.startswith("wizard."):
                     sub = field.split(".", 1)[1]
-                    self.assertIn(sub, WIZARD_FIELDS)
+                    self.assertIn(sub, [*WIZARD_FIELDS, "espresso"])
                     self.assertIsNotNone(values["wizard"])
                     self.assertIsNotNone(values["wizard"][sub], f"{field} is null")
                     continue
@@ -294,7 +297,7 @@ class TestRoastersTier2(unittest.TestCase):
             wizard = values["wizard"]
             if wizard is None:
                 return
-            self.assertEqual(set(wizard), set(WIZARD_FIELDS))
+            self.assertEqual(set(wizard), {*WIZARD_FIELDS, "espresso"})
             times = wizard["time_to_first_crack_s"]
             self.assertEqual(set(times), {"low", "medium", "high"})
             self.assertTrue(times["low"] <= times["medium"] <= times["high"])
@@ -375,6 +378,89 @@ class TestRoastersTier2(unittest.TestCase):
                             ("kaffelogic", "hottop", "kaldi", "quest", "sandbox")
                         )
                     )
+
+
+class TestEspressoWizardData(unittest.TestCase):
+    """Each roaster with a wizard also carries explicit espresso values (T-13)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.roasters = load_roasters()
+
+    def for_each_wizard(self, check):
+        for roaster_id, roaster in self.roasters.items():
+            values = roaster["values"]
+            if values["wizard"] is None:
+                continue
+            with self.subTest(roaster=roaster_id):
+                check(
+                    roaster_id, values, values["wizard"], values["wizard"]["espresso"]
+                )
+
+    def test_every_roaster_with_a_wizard_has_espresso_values_and_no_other_has_any(self):
+        for roaster_id, roaster in self.roasters.items():
+            values = roaster["values"]
+            with self.subTest(roaster=roaster_id):
+                if values["wizard"] is None:
+                    self.assertFalse(values["has_temp_readout"])
+                else:
+                    self.assertIn("espresso", values["wizard"])
+
+    def test_the_espresso_block_has_the_style_dependent_fields_only(self):
+        self.for_each_wizard(
+            lambda roaster_id, values, wizard, espresso: self.assertEqual(
+                list(espresso), ESPRESSO_FIELDS
+            )
+        )
+
+    def test_first_crack_times_are_ordered_and_inside_the_roasters_rows(self):
+        def check(roaster_id, values, wizard, espresso):
+            times = espresso["time_to_first_crack_s"]
+            self.assertEqual(set(times), {"low", "medium", "high"})
+            self.assertTrue(times["low"] <= times["medium"] <= times["high"])
+            self.assertTrue(0 < times["high"] < values["profile_grid_minutes"] * 60)
+
+        self.for_each_wizard(check)
+
+    def test_development_ratios_cover_the_six_levels_and_rise_with_the_level(self):
+        def check(roaster_id, values, wizard, espresso):
+            dtr = espresso["dtr_by_level"]
+            self.assertEqual(list(dtr), TIERS)
+            ratios = list(dtr.values())
+            self.assertEqual(ratios, sorted(ratios))
+            self.assertTrue(all(0 < ratio < 0.5 for ratio in ratios))
+
+        self.for_each_wizard(check)
+
+    def test_espresso_develops_longer_than_drip_at_every_level(self):
+        # The one thing the sources agree on: espresso gets more development than filter.
+        def check(roaster_id, values, wizard, espresso):
+            for level in TIERS:
+                self.assertGreater(
+                    espresso["dtr_by_level"][level], wizard["dtr_by_level"][level]
+                )
+
+        self.for_each_wizard(check)
+
+    def test_the_natural_adjustment_is_valid(self):
+        def check(roaster_id, values, wizard, espresso):
+            adjust = espresso["natural_time_adjust_s"]
+            if adjust is not None:
+                self.assertIsInstance(adjust, int)
+                self.assertLess(
+                    abs(adjust), espresso["time_to_first_crack_s"]["medium"]
+                )
+
+        self.for_each_wizard(check)
+
+    def test_the_values_are_marked_as_estimates_with_their_source(self):
+        def check(roaster_id, values, wizard, espresso):
+            # No roaster has calibrated espresso data, the SR800 included: its logged
+            # roasts are drip.
+            self.assertIn("wizard.espresso", values["inferred"])
+            self.assertIn(ESPRESSO_SOURCE, values["sources"])
+
+        self.for_each_wizard(check)
 
 
 if __name__ == "__main__":

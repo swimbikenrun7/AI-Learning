@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.3.0",
+    "date": "2026-09-19",
+    "title": "Espresso profiles",
+    "changes": [
+      "Choose Drip or Espresso when you create a profile, next to your roaster. Neither can be changed later.",
+      "For espresso, the profile wizard sets a longer target development time, since espresso usually develops longer than filter. These are estimates for every roaster, the SR800 included.",
+      "Each profile shows its style next to its roaster in the profile lists and on Add Roast, and each roast records its profile's style.",
+      "Existing profiles and roasts are Drip."
+    ]
+  },
+  {
     "version": "1.2.0",
     "date": "2026-09-19",
     "title": "Version number and What's new",

@@ -8,7 +8,7 @@
     <p style="color: var(--color-danger);">{{ error }}</p>
   {% endif %}
 
-  <p>Which roaster is this profile for? Its temperature rows, weight and time limits, and units all come from the roaster, so a profile belongs to one roaster and can't be moved to another later.</p>
+  <p>Which roaster is this profile for, and what is it for? The roaster decides the temperature rows, weight and time limits, and units; the style decides what the profile's targets are shaped for. A profile belongs to one roaster and one style, and neither can be changed later.</p>
   <form method="get" action="/profiles/new">
     <p>
       <label>Roaster<br>
@@ -19,6 +19,16 @@
           {% endfor %}
         </select>
       </label>
+    </p>
+    <p>
+      <label>Style<br>
+        <select name="style">
+          {% for style_key, style_name in style_options.items() %}
+            <option value="{{ style_key }}"{{ " selected" if style_key == "drip" else "" }}>{{ style_name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <br><small>Drip (filter) is what every profile was until now. Espresso develops longer after first crack; the profile wizard sets its target times accordingly.</small>
     </p>
     <button class="btn btn--primary" type="submit">Continue</button>
   </form>

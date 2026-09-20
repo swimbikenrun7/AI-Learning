@@ -208,6 +208,22 @@ await scenario("wizard", async () => {
   return state;
 });
 
+// The espresso style: the form knows its style, the wizard says its values are estimates,
+// and Generate fills in the (longer) espresso development time.
+await scenario("wizardEspresso", async () => {
+  await visit("/profiles/new?roaster=fresh-roast-sr800&style=espresso");
+  const state = {
+    styleInput: await ev("document.querySelector('[name=style]')?.value ?? null"),
+    styleLine: await ev("Array.from(document.querySelectorAll('p')).find((p) => p.textContent.includes('Style:'))?.textContent.replace(/\\s+/g, ' ').trim() ?? null"),
+  };
+  await click("wizard-toggle");
+  state.espressoNotice = await ev("document.body.innerText.includes('Espresso estimates')");
+  state.dripNotice = await ev("document.body.innerText.includes('Estimated for this roaster')");
+  await click("wizard-generate-btn");
+  state.output = await readWizardOutput();
+  return state;
+});
+
 // The wizard for any roaster with wizard data: what the panel shows, then what Generate fills in.
 async function wizardPage(path) {
   await visit(path);
@@ -267,6 +283,26 @@ await scenario("chooser", async () => {
   return state;
 });
 
+// ---- Making an espresso profile through the real pages: choose, fill in, save, see the tag ----
+await scenario("createEspressoProfile", async () => {
+  await visit("/profiles/new");
+  const state = {
+    styleOptions: await ev("Array.from(document.querySelectorAll('select[name=style] option')).map((o) => o.textContent.trim())"),
+    styleAtStart: await ev("document.querySelector('select[name=style]').value"),
+  };
+  await ev("document.querySelector('select[name=roaster]').value = 'fresh-roast-sr800'");
+  await ev("document.querySelector('select[name=style]').value = 'espresso'");
+  await clickAndWaitForLoad("form[action='/profiles/new'] button[type=submit]");
+  state.search = await ev("location.search");
+  state.styleInput = await ev("document.querySelector('[name=style]')?.value ?? null");
+  await ev("document.querySelector('[name=name]').value = 'Espresso browser profile'");
+  await clickAndWaitForLoad("#profile-form button[type=submit]");
+  state.path = await ev("location.pathname");
+  state.tags = await ev("(() => { const row = Array.from(document.querySelectorAll('tr')).find((r) => r.textContent.includes('Espresso browser profile')); return row ? Array.from(row.querySelectorAll('.style-tag')).map((t) => t.textContent.trim()) : null; })()");
+  state.otherTags = await ev("Array.from(document.querySelectorAll('.style-tag')).map((t) => t.textContent.trim()).filter((t) => t !== '\u00b7 Espresso')");
+  return state;
+});
+
 // ---- Roast list: the columns, client-side sort (including the Roaster column), and search ----
 await scenario("roastsList", async () => {
   await visit("/roasts");
@@ -298,6 +334,7 @@ async function roastDetail(path) {
     hasFahrenheit: await ev("document.body.innerText.includes('°F')"),
     hasCelsius: await ev("document.body.innerText.includes('°C')"),
     showsRoaster: await ev("/Roaster: /.test(document.body.innerText)"),
+    style: await ev("(document.body.innerText.match(/Style: (\\S+)/) || [])[1] ?? null"),
     conditions: await ev("document.querySelector('.roast-conditions')?.innerText.replace(/\\s+/g, ' ').trim() ?? null"),
     tableRows: await ev(`(() => {
       const table = Array.from(document.querySelectorAll('table')).find((t) => t.querySelector('th')?.textContent === 'Time');

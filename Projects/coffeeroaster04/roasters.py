@@ -3,6 +3,37 @@
 Pure functions over the roasters dict loaded from data/roasters.json; no Flask, no I/O.
 """
 
+# What a profile is for. "drip" is what every profile was before styles existed (and the
+# default); "espresso" develops longer. A profile's style, like its roaster, is chosen when it
+# is created and never changes.
+PROFILE_STYLES = {"drip": "Drip", "espresso": "Espresso"}
+DEFAULT_PROFILE_STYLE = "drip"
+
+
+def profile_style(profile):
+    """A saved profile's style; one saved before styles existed (or unknown) is drip."""
+    style = (profile or {}).get("style")
+    return style if style in PROFILE_STYLES else DEFAULT_PROFILE_STYLE
+
+
+def wizard_for_style(wizard, style):
+    """The wizard values to use for a profile style, or None if there are none.
+
+    Drip is the roaster's base `wizard` block. Espresso replaces the values that depend on
+    the style (first-crack time, natural adjustment, development-time ratios) with the
+    block's `espresso` values and keeps the roaster's start and first-crack temperatures,
+    which belong to the machine, not the style. A roaster with no espresso values has no
+    espresso wizard.
+    """
+    if not wizard:
+        return None
+    base = {key: value for key, value in wizard.items() if key != "espresso"}
+    if style == "espresso":
+        override = wizard.get("espresso")
+        return {**base, **override} if override else None
+    return base
+
+
 # What applied before roasters carried their own data. Used for a profile with no roaster
 # (or an unknown roaster id), and per field where a roaster's value is null.
 LEGACY_SETTINGS = {
@@ -161,5 +192,25 @@ def migrate_roaster_ids(roasters, profiles, records, default_roaster_id):
             record["temp_unit"] = settings_for(roasters, record["roaster_id"])[
                 "temp_unit"
             ]
+            records_changed = True
+    return profiles_changed, records_changed
+
+
+def migrate_profile_styles(profiles, records):
+    """Give every profile and record that predates styles the drip style. Idempotent.
+
+    A record takes its profile's style (drip when the profile is gone). Returns
+    (profiles_changed, records_changed) so the caller only rewrites the files that changed.
+    """
+    profiles_changed = records_changed = False
+    for profile in profiles.values():
+        if "style" not in profile:
+            profile["style"] = DEFAULT_PROFILE_STYLE
+            profiles_changed = True
+    for record in records.values():
+        if "profile_style" not in record:
+            record["profile_style"] = profile_style(
+                profiles.get(record.get("roast_profile_id"))
+            )
             records_changed = True
     return profiles_changed, records_changed
