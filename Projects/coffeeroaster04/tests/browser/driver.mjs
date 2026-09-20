@@ -369,6 +369,38 @@ await scenario("whatsNew", async () => {
   };
 });
 
+// ---- The how-to: it loads cleanly, its contents links scroll to their sections, and a "?" link lands on the right one ----
+async function sectionState(id) {
+  return ev(`(() => {
+    const section = document.getElementById(${JSON.stringify(id)});
+    const top = section ? section.getBoundingClientRect().top : null;
+    return { hash: location.hash, top, scrolled: window.scrollY > 0, inView: top !== null && top >= -1 && top < window.innerHeight };
+  })()`);
+}
+
+await scenario("help", async () => {
+  await visit("/help");
+  const state = {
+    title: await ev("document.querySelector('h1').textContent.trim()"),
+    sections: await ev("Array.from(document.querySelectorAll('.help-section h2')).map((h) => h.textContent.trim())"),
+    footer: await ev("document.querySelector('.site-footer').innerText.replace(/\\s+/g, ' ').trim()"),
+  };
+  await ev("document.querySelector('.help-toc a[href=\"#glossary\"]').click()");
+  await sleep(400);
+  state.afterContentsClick = await sectionState("glossary");
+  return state;
+});
+
+await scenario("helpLinkFromAddRoast", async () => {
+  await visit("/roasts/new/p-sr800");
+  const state = { linkText: await ev("document.querySelector('.help-link')?.textContent.trim() ?? null") };
+  await clickAndWaitForLoad(".help-link");
+  await sleep(400);
+  state.path = await ev("location.pathname");
+  state.section = await sectionState("logging");
+  return state;
+});
+
 // ---- Logging a roast through the real form: start condition and ambient temperature ----
 // Runs last because it saves a record into the fixture data.
 await scenario("submitRoast", async () => {
@@ -443,6 +475,7 @@ await scenario("phoneChooser", () => phonePage("/profiles/new"));
 await scenario("phoneProfileForm", () => phonePage("/profiles/new?roaster=fresh-roast-sr800", "document.getElementById('wizard-toggle').click()"));
 await scenario("phoneAbout", () => phonePage("/about"));
 await scenario("phoneWhatsNew", () => phonePage("/whats-new"));
+await scenario("phoneHelp", () => phonePage("/help"));
 
 // A tablet is wider than the 640 px phone breakpoint, so Add Roast keeps its two-column layout
 // there with a narrow form column.

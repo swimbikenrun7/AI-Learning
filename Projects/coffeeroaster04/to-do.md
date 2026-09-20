@@ -15,13 +15,13 @@ A running list of planned feature updates and their detailed plans.
 
 ## Current status (as of 2026-09-19)
 
-- **Branches.** `roaster-selection` was merged into `main` by fast-forward (no merge commit, matching `main`'s linear history) and pushed. Since then `origin/main` is at `ab0316b` (docs), and local `main` is one commit ahead (`1d0638d`, the T-11 to T-14 queue). T-11 is committed on `mobile-optimization` (`2ff59ad`, `64a1b3d`) and T-12 is committed on `versioning` (`b18b677`), cut from it (so it includes T-11); T-13 is built on `espresso-style`, cut from `versioning`; none of the three is merged to `main`. The old `roaster-selection` branch still exists locally and can be deleted (`git branch -d roaster-selection`). Whether PythonAnywhere has pulled and reloaded this is not recorded here; before its first reload, back up `data/` (the startup migration rewrites the profile and record files once; see `DEPLOY.md`).
-- **Tests.** 398 passing on `main`, 409 on `mobile-optimization`, 432 on `versioning`, 483 on `espresso-style`, including the browser check (22, 30, 31, and 34 tests; about 10 s; it skips itself without Chromium, Node 22, or the CDN). `ruff check`/`ruff format --check` are clean on every file added in this work; the 18 remaining `ruff check` findings (naive `datetime` calls and unused unpacked variables) and the unformatted `app.py` and `tests/test_app.py` were there before it started and are left for you to review.
+- **Branches.** `roaster-selection` was merged into `main` by fast-forward (no merge commit, matching `main`'s linear history) and pushed. Since then `origin/main` is at `ab0316b` (docs), and local `main` is one commit ahead (`1d0638d`, the T-11 to T-14 queue). T-11 is committed on `mobile-optimization` (`2ff59ad`, `64a1b3d`) and T-12 is committed on `versioning` (`b18b677`), cut from it (so it includes T-11); T-13 is committed on `espresso-style` (`94dc301`), cut from `versioning`; T-14 is built on `how-to`, cut from `espresso-style`; none of the four is merged to `main`. The old `roaster-selection` branch still exists locally and can be deleted (`git branch -d roaster-selection`). Whether PythonAnywhere has pulled and reloaded this is not recorded here; before its first reload, back up `data/` (the startup migration rewrites the profile and record files once; see `DEPLOY.md`).
+- **Tests.** 398 passing on `main`, 409 on `mobile-optimization`, 432 on `versioning`, 483 on `espresso-style`, 508 on `how-to`, including the browser check (22, 30, 31, 34 and 36 tests; about 11 s; it skips itself without Chromium, Node 22, or the CDN). `ruff check`/`ruff format --check` are clean on every file added in this work; the 18 remaining `ruff check` findings (naive `datetime` calls and unused unpacked variables) and the unformatted `app.py` and `tests/test_app.py` were there before it started and are left for you to review.
 - **Done:** T-00 through T-06 (1: start condition + ambient temperature), T-08 (calibration report), T-09 (browser check), T-10 (review follow-ups). Commit hashes are in each item.
 - **Not yet done or decided:**
   - The calibration report has only run on synthetic records; run it on your real SR800 roasts (see T-08) before trusting the thresholds.
   - `validate_green_weight("nan")` and `validate_temperature("nan")` accept NaN (found during T-06, not fixed; see Open decisions).
-  - **T-11 mobile optimization is built and committed** (`2ff59ad`) on `mobile-optimization`; it still needs a test on your phone. **T-12 version and release notes is built and committed** (`b18b677`) on `versioning`. **T-13 espresso style is built and committed** (`94dc301`) on `espresso-style`; it is awaiting your own espresso numbers. **Queued, not started:** T-14 how-to/tutorial.
+  - **T-11 mobile optimization is built and committed** (`2ff59ad`) on `mobile-optimization`; it still needs a test on your phone. **T-12 version and release notes is built and committed** (`b18b677`) on `versioning`. **T-13 espresso style is built and committed** (`94dc301`) on `espresso-style`; it is awaiting your own espresso numbers. **T-14 how-to is built** on `how-to` (uncommitted, awaiting your read-through). That completes the queue you set (T-11 to T-14).
   - Unscheduled: T-06 candidates 2–4 (charge/turning point, control-change log, cooling start) and T-07 (native profile formats, deferred).
   - `app.py` is 879 lines, so the Blueprint split (T-01, "revisit once it passes roughly 900 lines") is still not due.
 
@@ -411,29 +411,26 @@ Completed 2026-09-19 · commit `94dc301` on branch `espresso-style` (cut from `v
 
 ---
 
-## T-14 [PLANNED] How-to / tutorial
+## T-14 [BUILT, awaiting your read-through] How-to / tutorial
 
-**Depends on:** none, but best written **after T-11 and T-13** so it describes the final screens and the phone layout. Queued 2026-09-19.
-**Goal:** a new user can learn the app's flow without asking. It is not obvious today: choose your roaster → create a profile (optionally with the wizard) → Add Roast → run the live timer and mark first crack → save → read the result. The only help now is the About page.
+Built 2026-09-19 on branch `how-to` (cut from `espresso-style` at `2cc98ee`, so it includes T-11, T-12 and T-13; uncommitted). Suite: 508 passing (was 483); the browser check is 36 tests (was 34). Released as version **1.4.0** ("How-to guide"). Queued the same day; you started it without answering the open points, so I used my leans.
 
-**Options**
-- (a) A `/help` page: one readable page with sections and anchors, linked from the header or footer. Plain HTML in a template; cheap and easy to keep accurate.
-- (b) A first-run walkthrough or tooltips over the real pages. More engaging; more code and more to keep in sync with the UI.
-- (c) Both, with small "?" links from key pages (the wizard, the live panel) to the matching help section.
-- **Screenshots** are not proposed at first: they go stale with every UI change (the browser check could generate them later if you want them).
-I lean to (a), with (c)'s contextual links added once the page exists.
+**What it is.** A public `/help` page ("How to use Crackle") with a contents list and nine sections in the order a user meets things: getting started (the four-step flow), roast profiles, the profile wizard, drip or espresso, logging a roast (before, during and after, including the timer, First Crack Now! and the pull countdown), using it on a phone, reading roasts (the list, the roast page, a roast-level table, cupping notes), a glossary, and where to send feedback. It is linked as **Help** from the footer of every page, from a "New here?" line on the home page, and by small **?** links on the pages it describes: the roaster chooser (profiles; drip or espresso), the profile wizard, Add Roast, and the roast page.
 
-**Proposed contents:** 1. Getting started (roaster → profile → first roast). 2. Making a profile and using the wizard. 3. Logging a roast: the timer, First Crack Now!, the pull countdown, entering temperatures, start condition and ambient. 4. Reading a roast: weight loss, roast level, development ratio and time, cupping notes, CSV export. 5. Favorites. 6. A short glossary (first crack, development, DTR, rate of rise, profile). If T-13 happens: drip vs espresso.
+**Decisions I made** (each easy to reverse)
+- **One `/help` page plus contextual "?" links** (options (a) and (c) from the plan), not a first-run walkthrough or tooltips: cheapest to keep accurate.
+- **Public**, like `/about`, so a visitor can read it before signing up.
+- **A glossary is included** (first crack, development time, DTR, rate of rise, weight loss, profile, roaster and style, calibrated).
+- **No screenshots** (they go stale with every UI change); **no counts** that would drift (it says "a list of home roasters", not a number).
+- **It says only what the app does.** Checking the code first corrected my assumptions: the live temperature readout, chart dot and rate of rise follow the *profile's* targets (a guide, not a measurement); Stop pauses the clock but does **not** fill in the total roast time, so you type it; First Crack Now! fills in the first-crack time from the clock; the screen flashes at every minute mark. (I also fixed two errors of my own in the first draft: first crack is usually well past halfway through a roast, not "about midway"; and roasters with no readout have no temperature charts.)
 
-**Tasks**
-- [ ] Write the content (plain language; ask you to check it, since it is your app's voice).
-- [ ] The `/help` route and template; a header or footer link; public like `/about`.
-- [ ] Contextual links from the key pages to their sections (if (c)).
-- [ ] `SPEC.md`: the page and its links.
+**Keeping it from going stale** (the main risk of a tutorial). 23 tests in `tests/test_help.py` tie the page to the app: every button, field and message it names must appear in the template or script that writes it (matched as the exact button text or quoted string, so a word inside `startStopBtn` cannot satisfy "Stop"); the roast-level table must agree with `classify_roast` at every boundary; every link into the page must point at a section that exists; every section must be in the contents list; it may not write a temperature-unit symbol (the existing unit guard also covers it); the "?" links must render on the four pages. The browser check loads it with a clean console, clicks a contents link and confirms the section scrolls into view, follows a "?" link from Add Roast to the right section, and includes it in the phone-width set. **A future change that renames a label makes these fail; the habit (also written into `CLAUDE.md` and `SPEC.md`): update `templates/help.html` in the same change.**
 
-**One constraint to know:** `tests/test_no_hardcoded_units.py` fails if a template contains a hard-coded temperature unit, so the help page has to say "your roaster's unit" (or draw the symbol from the units table), not "°F".
-**Tests:** the page renders logged in and out; every in-page anchor and every "?" link points at a section that exists; the unit guard still passes.
-**Done when:** the page covers the flow above and you can follow it cold from a fresh account.
+**Tests.** 25 new (23 unit, 2 browser). Twenty-five deliberate breakages in a scratch copy were each caught (a renamed home button, timer message, field label or Stop button; a changed roast-level threshold or table row; a broken contents link, missing section id or heading; a contextual link to a missing section or removed; the page needing a login; a missing footer or home link; a unit symbol; the page not extending the base; a browser anchor and a lost link class). One was first missed because "Stop" appears inside `startStopBtn`; I tightened that test to match exact button text and quoted strings, and re-ran it with the Start, Reset, Stop and Pull-in renames. **No existing test changed.**
+
+**Files:** `templates/help.html` (new), `app.py` (`/help`), `templates/{base,home,choose_roaster,profile_form,add_roast,roast_detail}.html`, `data/release_notes.json`, `pyproject.toml`, `uv.lock`, `SPEC.md` ("How-to page", Phase 16), `CLAUDE.md`, `tests/test_help.py` (new), `tests/browser/{driver.mjs,test_browser.py}`.
+
+**For you:** read the page top to bottom. It is your app's voice, and I wrote it from the code, so a sentence that sounds wrong, or a step you would describe differently, is exactly what to correct.
 
 ---
 
@@ -441,4 +438,4 @@ I lean to (a), with (c)'s contextual links added once the page exists.
 
 T-01 ✓ → T-02a ✓ → T-03 ✓ → T-02b ✓ → T-09 ✓ → T-04 ✓ → T-05 ✓ → T-10 ✓ → T-06 (start condition + ambient) ✓ → T-08 ✓ → merged to `main` and pushed. The other T-06 candidates and T-07 stay unscheduled.
 
-**Queued 2026-09-19 (order not yet decided; T-11, T-12 and T-13 have since been built):** T-11 mobile optimization, T-12 app version and release notes, T-13 espresso profile style, T-14 how-to. A suggestion, not a decision: T-11 first (the missing viewport tag is a one-line fix that helps every page), T-12 next (small, and gives later items somewhere to be announced), then T-13, and T-14 last because it documents the final screens.
+**Queued 2026-09-19 (all four have since been built: T-11, T-12 and T-13 committed, T-14 awaiting review):** T-11 mobile optimization, T-12 app version and release notes, T-13 espresso profile style, T-14 how-to. A suggestion, not a decision: T-11 first (the missing viewport tag is a one-line fix that helps every page), T-12 next (small, and gives later items somewhere to be announced), then T-13, and T-14 last because it documents the final screens.

@@ -671,6 +671,7 @@ class TestBrowser(unittest.TestCase):
         "phoneProfileForm",
         "phoneAbout",
         "phoneWhatsNew",
+        "phoneHelp",
     )
 
     def test_every_page_lays_out_at_phone_width(self):
@@ -729,6 +730,23 @@ class TestBrowser(unittest.TestCase):
         # Only the newest release is marked as the current version.
         self.assertEqual(page["current"], [True] + [False] * (len(notes) - 1))
         self.assertIn(f"v{notes[0]['version']} · What's new", page["footer"])
+
+    def test_the_how_to_loads_and_its_contents_links_scroll_to_their_sections(self):
+        page = self.scenario("help")
+        self.assertEqual(page["title"], "How to use Crackle")
+        self.assertEqual(len(page["sections"]), 9)
+        self.assertIn("Help", page["footer"])
+        clicked = page["afterContentsClick"]
+        self.assertEqual(clicked["hash"], "#glossary")
+        self.assertTrue(clicked["scrolled"])
+        self.assertTrue(clicked["inView"])
+
+    def test_a_help_link_on_add_roast_lands_on_the_logging_section(self):
+        page = self.scenario("helpLinkFromAddRoast")
+        self.assertIn("How logging a roast works", page["linkText"])
+        self.assertEqual(page["path"], "/help")
+        self.assertEqual(page["section"]["hash"], "#logging")
+        self.assertTrue(page["section"]["inView"])
 
     def test_on_a_tablet_the_date_row_fits_inside_the_narrow_form_column(self):
         page = self.scenario("tabletAddRoast")

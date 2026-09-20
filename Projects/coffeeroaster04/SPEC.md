@@ -4,7 +4,7 @@
 Record coffee roasting sessions and calculate basic roast metrics in Python, presented through a browser-based UI instead of a terminal UI. This is an independent iteration of the coffeeroaster exercise (see coffeeroaster01-03); it carries forward the calculation and persistence logic from coffeeroaster03 and replaces only the UI layer.
 
 ## Implementation Phases
-This SPEC describes the full feature set, carried forward from coffeeroaster03 and extended. It was built in phases, each requested explicitly; Phases 1 through 14 are built; Phase 15 (profile styles) is in progress and is the current one. `to-do.md` tracks what was built for Phases 11 to 15 and what is still open.
+This SPEC describes the full feature set, carried forward from coffeeroaster03 and extended. It was built in phases, each requested explicitly; Phases 1 through 15 are built; Phase 16 (the how-to page) is in progress and is the current one. `to-do.md` tracks what was built for Phases 11 to 16 and what is still open.
 
 - **Phase 1**: View roasts (read-only table) and a roast detail page with a temperature chart. Uses data seeded from coffeeroaster03's existing JSON files.
 - **Phase 2**: Add roast form.
@@ -20,7 +20,8 @@ This SPEC describes the full feature set, carried forward from coffeeroaster03 a
 - **Phase 12**: Roaster-driven profiles. A profile belongs to one roaster, chosen first and locked afterward; that roaster's data supplies the profile's row count, the weight and time limits, and the temperature unit, and each saved roast records its roaster. Also part of this phase: an optional start condition and ambient temperature on each roast (see "Start condition and ambient temperature" under User Inputs), and a read-only calibration report that compares logged roasts with each roaster's stored values (see "Calibration report" under Roasters). See "Roaster-driven profiles" under Roasters.
 - **Phase 13**: Mobile optimization. Every page is usable on a phone without zooming or scrolling the page sideways, and Add Roast puts the timer and First Crack button first. See "Phone-sized screens" under User Interface.
 - **Phase 14**: App version and release notes. The app has a version number, shown in every page's footer, and a public What's new page listing what changed in each version in plain language. See "Versions and release notes".
-- **Phase 15 (current)**: Profile styles. A profile is for drip (filter, as every profile was before) or for espresso, chosen with the roaster when it is created and locked afterward; the wizard gives espresso a longer development. See "Profile styles" under Roast Profiles.
+- **Phase 15**: Profile styles. A profile is for drip (filter, as every profile was before) or for espresso, chosen with the roaster when it is created and locked afterward; the wizard gives espresso a longer development. See "Profile styles" under Roast Profiles.
+- **Phase 16 (current)**: How-to page. A public page that walks a new user through the app in plain language, with a glossary, linked from every page and from the pages it describes. See "How-to page".
 
 ## Requirements
 The code shall have a separate module for calculations (`calculations.py`, carried forward from coffeeroaster03 unchanged).
@@ -336,6 +337,17 @@ The single source of truth is `data/release_notes.json`: a list, newest first, o
 `release_notes.json` is reference data like `roasters.json`: tracked in git and delivered with `git pull`, never gitignored. A missing file means no releases; a corrupted one stops the app with a message, like the other data files. Tests fail if the file's versions do not strictly rise toward the newest entry, a date is not real or a release is dated earlier than the one before it, an entry is missing a field or a title, has no changes, has an over-long or markup-containing change, or has an extra field.
 The first entries (0.1.0 through 1.0.0) were written afterward, on 2026-09-19, from the project's git history; 1.0.0 is the roaster-driven redesign, the point at which the app stopped being tied to one machine.
 
+## How-to page **(Phase 16)**
+
+### Requirements
+A public `/help` page (reachable logged out, like `/about`) explains the app in plain language, in the order a user meets it: getting started (the four-step flow: choose the roaster and style, make a profile, log a roast, read the result), roast profiles, the profile wizard, drip or espresso, logging a roast (before, during, and after, including the timer, First Crack Now!, and the pull countdown), using it on a phone, reading roasts (the list, the roast page, the roast-level table, cupping notes), a glossary, and where to send feedback. It opens with a contents list linking to each section.
+It is linked as "Help" from the footer of every page, from the home page ("New here?"), and by small "?" links from the pages it describes: the roaster chooser (to "Roast profiles" and "Drip or espresso"), the profile form's wizard, Add Roast, and the roast page.
+
+### Constraints
+It describes only what the app does, and names each button, field, and message as the app shows it. Tests tie it to the app so it cannot go stale silently: every label it names must appear in the template or script that writes it (a word inside a longer name does not count), its roast-level table must agree with `classify_roast` at every boundary, every link into it must point at a section that exists, and every section must be in the contents list. It writes no temperature-unit symbol (the unit guard applies), quotes no counts that would drift, and uses no screenshots, which go stale with every change to the interface.
+A change to the flow it describes updates the page in the same change.
+Not part of this phase: a first-run walkthrough or tooltips over the real pages.
+
 ## Deferred Ideas
 
 These were considered and deliberately not scheduled — noted here so they aren't re-proposed as if new, and so a future decision to pursue one is a conscious choice rather than scope creep:
@@ -362,6 +374,7 @@ On startup, after checking the JSON files for corruption, the application shall 
 11. `/roasts/<id>/cupping` (POST) — save or update cupping notes/rating on an existing roast, from its detail page. **(Phase 9, requires login and ownership)**
 12. `/profiles/<id>/favorite` (POST) — toggle a profile's favorite flag, from the Add roast profile picker. **(requires login and ownership)**
 13. `/whats-new` — the release history: every version, newest first. **(Phase 14, public like `/about`)**
+14. `/help` — the how-to page. **(Phase 16, public like `/about`)**
 
 There is no "Exit" action for a web application; the process runs until the server is stopped.
 

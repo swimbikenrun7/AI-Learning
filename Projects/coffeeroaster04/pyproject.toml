@@ -1,6 +1,6 @@
 [project]
 name = "coffeeroaster04"
-version = "1.3.0"
+version = "1.4.0"
 description = "Crackle: a Flask web app for logging home coffee roasts and managing roast profiles."
 readme = "README.md"
 authors = [

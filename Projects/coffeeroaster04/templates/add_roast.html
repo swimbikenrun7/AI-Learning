@@ -3,6 +3,7 @@
 {% block content %}
   <button class="btn btn--ghost back-link" onclick="window.location='/roasts/new'">&larr; Back to profile selection</button>
   <h1>Add roast &mdash; {{ profile.name }}{% if roaster_name(profile) %} <span class="roaster-tag">&middot; {{ roaster_name(profile) }}</span>{% endif %} <span class="style-tag">&middot; {{ style_label(profile) }}</span></h1>
+  <p><a class="help-link" href="/help#logging" title="How to log a roast">? How logging a roast works</a></p>
 
   {% if error %}
     <p style="color: var(--color-danger);">{{ error }}</p>

@@ -1,5 +1,14 @@
 [
   {
+    "version": "1.4.0",
+    "date": "2026-09-19",
+    "title": "How-to guide",
+    "changes": [
+      "A new Help page, linked in the footer, walks through choosing a roaster, making a profile, logging a roast and reading the results, with a short glossary.",
+      "Small ? links on the roaster chooser, the profile wizard, Add Roast and the roast page jump to the matching section."
+    ]
+  },
+  {
     "version": "1.3.0",
     "date": "2026-09-19",
     "title": "Espresso profiles",

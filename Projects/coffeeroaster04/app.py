@@ -405,6 +405,11 @@ def whats_new():
     return render_template("whats_new.html", releases=releases)
 
 
+@app.route("/help")
+def help_page():
+    return render_template("help.html")
+
+
 @app.route("/about", methods=["GET", "POST"])
 def about():
     message = ""

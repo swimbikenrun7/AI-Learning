@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}How to use Crackle{% endblock %}
+{% block content %}
+  <style>
+    .help-intro { max-width: 40rem; }
+    .help-toc { margin: var(--space-3) 0 var(--space-4); padding: var(--space-3); background: #f7f1e9; border-radius: 8px; }
+    .help-toc ol { margin: 0; padding-left: 1.25rem; }
+    .help-toc li { margin-bottom: var(--space-1); }
+    .help-section { max-width: 40rem; margin-bottom: var(--space-4); scroll-margin-top: var(--space-3); }
+    .help-section h2 { margin-bottom: var(--space-2); }
+    .help-section ol, .help-section ul { padding-left: 1.25rem; }
+    .help-section li { margin-bottom: var(--space-1); }
+    .help-section dt { font-weight: 700; margin-top: var(--space-2); }
+    .help-section dd { margin: 0 0 var(--space-1); }
+    .help-section table { margin-top: var(--space-2); }
+  </style>
+
+  <h1>How to use Crackle</h1>
+
+  <p class="help-intro">Crackle logs your home coffee roasts and keeps a roast profile for each roaster you use. This page walks through it in the order you meet things. Each section is short, and the small <strong>?</strong> links around the app bring you back to the right one.</p>
+
+  <nav class="help-toc" aria-label="On this page">
+    <ol>
+      <li><a href="#getting-started">Getting started</a></li>
+      <li><a href="#profiles">Roast profiles</a></li>
+      <li><a href="#wizard">The profile wizard</a></li>
+      <li><a href="#drip-espresso">Drip or espresso</a></li>
+      <li><a href="#logging">Logging a roast</a></li>
+      <li><a href="#phone">Using it on a phone</a></li>
+      <li><a href="#reading">Reading your roasts</a></li>
+      <li><a href="#glossary">Glossary</a></li>
+      <li><a href="#feedback">Questions and feedback</a></li>
+    </ol>
+  </nav>
+
+  <section class="help-section" id="getting-started">
+    <h2>Getting started</h2>
+    <p>Sign up with an email address (it is also how a forgotten password is reset). Your roasts and profiles are private to your account.</p>
+    <p>The whole flow is four steps:</p>
+    <ol>
+      <li><strong>Choose your roaster</strong> when you make a profile, along with whether it is for drip or espresso.</li>
+      <li><strong>Make a profile</strong>: the temperatures you want to hit and, if you like, target times for first crack and development. The profile wizard can fill in a starting point.</li>
+      <li><strong>Log a roast</strong>: pick the profile, start the timer, mark first crack as it happens, and enter your numbers when the roast is done.</li>
+      <li><strong>Read the result</strong>: weight loss, roast level, development time, and charts.</li>
+    </ol>
+    <p>The home menu has three buttons: <strong>Add roast</strong>, <strong>View roasts</strong>, and <strong>View and edit roast profiles</strong>. To begin, open <strong>View and edit roast profiles</strong> and press <strong>+ Add new profile</strong>.</p>
+  </section>
+
+  <section class="help-section" id="profiles">
+    <h2>Roast profiles</h2>
+    <p>A profile is a plan for a roast: the temperature you want at the end of each minute, and, optionally, a target time for first crack and a target development time. The target times show up while you roast, so you can see whether you are on plan.</p>
+    <p><strong>Roaster and style come first.</strong> Adding a profile starts by choosing the roaster and the style. The roaster decides how many minutes of temperatures the profile has, the weight and time limits, and whether temperatures are in Fahrenheit or Celsius. Neither choice can be changed later, because the targets are built for them. To change one, make a new profile.</p>
+    <p>Some roasters have no temperature readout. Their profiles have no temperature rows, only the target times.</p>
+    <ul>
+      <li>Temperatures are optional. A minute you leave blank takes the last temperature entered before it.</li>
+      <li>Every temperature stays in your roaster's own unit; nothing is converted.</li>
+      <li>Editing a profile later does not change roasts you already logged with it: each roast keeps its own copy of the targets.</li>
+      <li>Press the star beside a profile to make it a favorite. Favorites are listed first, on the profile list and when you choose a profile for a roast.</li>
+    </ul>
+  </section>
+
+  <section class="help-section" id="wizard">
+    <h2>The profile wizard</h2>
+    <p>When you add a new profile, <strong>Want some help? Try the profile wizard</strong> opens a short form: the bean's density, its process (washed, or natural/honey), and the roast level you want. Some roasters also ask for the first crack temperature you usually see on your machine. Press <strong>Generate profile</strong> and the wizard fills in the target first crack time, the target development time, and, for roasters where it can, a temperature curve.</p>
+    <ul>
+      <li>Everything it fills in can be edited. Check it against how your roaster actually runs before you save.</li>
+      <li>A temperature curve needs start and first crack temperatures, which the data has for the Fresh Roast SR family. For other roasters the wizard fills in only the target times.</li>
+      <li>Only the Fresh Roast SR800 has been calibrated against real roasts. For every other roaster the wizard says its values are estimates: treat them as a starting point and adjust as you log roasts.</li>
+      <li>The wizard is offered when you add a profile, not when you edit one.</li>
+    </ul>
+  </section>
+
+  <section class="help-section" id="drip-espresso">
+    <h2>Drip or espresso</h2>
+    <p>Drip (filter) is the default. Choose <strong>Espresso</strong> for beans you plan to pull as espresso: espresso usually gets a longer development after first crack than filter does, so the wizard sets a longer target development time.</p>
+    <p>The espresso values are estimates for every roaster, including the SR800, until espresso roasts have been logged and compared. A profile's style appears as a faint tag beside its roaster's name, and each roast remembers the style it was made with.</p>
+  </section>
+
+  <section class="help-section" id="logging">
+    <h2>Logging a roast</h2>
+    <p>Press <strong>Add roast</strong> and pick a profile. On a computer the Add Roast page has two sides: your entries on the left, which scroll, and the timer, chart, and readouts on the right, which stay in place.</p>
+
+    <h3>Before you start</h3>
+    <ul>
+      <li><strong>Date</strong>: type the digits and they are formatted as MM/DD/YYYY, or use the calendar button.</li>
+      <li><strong>Bean name</strong> is required. Origin, variety, and process are optional.</li>
+      <li><strong>Start condition</strong> (cold, warm, or preheated) and <strong>ambient temperature</strong> are optional. A cold room or a still-warm roaster changes how fast a roast runs, so they are worth noting.</li>
+      <li><strong>Green weight</strong>: the allowed range for your roaster is shown beside the field.</li>
+    </ul>
+
+    <h3>During the roast</h3>
+    <ol>
+      <li>Press <strong>Start</strong>. The clock runs, and the screen flashes at each minute mark. The button becomes <strong>Stop</strong>, which pauses the clock. <strong>Reset</strong> sets it back to zero.</li>
+      <li>The temperature readout, the dot on the chart, and the rate of rise follow your <em>profile</em>: they show what the profile says the roast should be doing right now. They are a guide to follow, not a measurement.</li>
+      <li>Type your actual temperatures into the table, in the row for each minute. They are optional.</li>
+      <li>When you hear first crack, press <strong>First Crack Now!</strong>. It fills in the time of first crack from the clock.</li>
+      <li>If the profile has a target development time, a countdown appears once first crack is marked: <strong>Pull in</strong> a time, then <strong>Pull now!</strong>, with a flash. When your roaster's data says how long a roast keeps developing while it cools, the countdown allows for it.</li>
+    </ol>
+
+    <h3>After the roast</h3>
+    <ul>
+      <li>Stopping the clock does not fill in the total roast time, so type it as <strong>Total roast time</strong> (MM:SS). The time of first crack is filled in if you used the button.</li>
+      <li>Enter the <strong>Finished weight</strong>. It cannot be more than the green weight.</li>
+      <li>Press <strong>Submit</strong>. The roast is saved and you land on its page.</li>
+    </ul>
+    <p>If your roaster needs a rest between roasts and Crackle knows how long, a reminder is shown on this page. It is only a reminder; nothing is enforced.</p>
+  </section>
+
+  <section class="help-section" id="phone">
+    <h2>Using it on a phone</h2>
+    <p>Crackle fits a phone screen. On Add Roast, the timer, chart, and <strong>First Crack Now!</strong> button come first, above your entries, so they are the first thing on screen. Weights and temperatures bring up a number pad. The roast list is wide, so it scrolls sideways inside its own box.</p>
+  </section>
+
+  <section class="help-section" id="reading">
+    <h2>Reading your roasts</h2>
+    <p><strong>View roasts</strong> lists every roast. Type in the search box to find one by bean, profile, or date, and press a column heading to sort. <strong>Export CSV</strong> downloads the whole list.</p>
+    <p>Open a roast to see its page:</p>
+    <ul>
+      <li><strong>Weight loss</strong>: how much weight the beans lost, as a percentage of the green weight.</li>
+      <li><strong>Classification</strong>: the roast level, worked out from the weight loss (table below).</li>
+      <li><strong>Development time</strong>: from first crack to the end of the roast.</li>
+      <li><strong>DTR</strong>: the development time as a percentage of the total roast time.</li>
+      <li>A chart of your actual temperatures against the profile's targets, a rate of rise chart, and the table behind them (roasters with no temperature readout have no temperature charts).</li>
+    </ul>
+    <p>At the bottom of a roast's page you can save <strong>cupping notes</strong> and a rating after tasting it. <strong>Delete this roast</strong>, at the top, asks you to confirm.</p>
+
+    <table>
+      <thead>
+        <tr><th>Weight loss</th><th>Roast level</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>under 13.01%</td><td>City Roast</td></tr>
+        <tr><td>13.01% to under 14.51%</td><td>City Plus</td></tr>
+        <tr><td>14.51% to under 15.51%</td><td>Full City</td></tr>
+        <tr><td>15.51% to under 16.51%</td><td>Full City Plus</td></tr>
+        <tr><td>16.51% to under 18.01%</td><td>Vienna Roast</td></tr>
+        <tr><td>18.01% or more</td><td>Italian Roast</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="help-section" id="glossary">
+    <h2>Glossary</h2>
+    <dl>
+      <dt>First crack</dt>
+      <dd>The audible popping when the beans expand and crack, usually well past the halfway point of a roast. It is the marker most roast timing is measured from.</dd>
+      <dt>Development time</dt>
+      <dd>How long the roast runs after first crack begins, until you end it.</dd>
+      <dt>DTR (development time ratio)</dt>
+      <dd>Development time as a percentage of the total roast time. A handy way to compare roasts of different lengths.</dd>
+      <dt>Rate of rise</dt>
+      <dd>How fast the temperature is climbing, per minute. While you roast, Crackle shows the profile's target rate of rise; on a roast's page it is worked out from the temperatures you entered.</dd>
+      <dt>Weight loss</dt>
+      <dd>The weight the beans lose in roasting: green weight minus finished weight, as a percentage of the green weight.</dd>
+      <dt>Profile</dt>
+      <dd>Your plan for a roast: target temperatures by minute and, optionally, target times for first crack and development.</dd>
+      <dt>Roaster and style</dt>
+      <dd>The machine a profile is for, and whether it is for drip or espresso. Both are fixed when the profile is made.</dd>
+      <dt>Calibrated</dt>
+      <dd>Checked against real logged roasts. Only the Fresh Roast SR800's drip values are.</dd>
+    </dl>
+  </section>
+
+  <section class="help-section" id="feedback">
+    <h2>Questions and feedback</h2>
+    <p>If something is unclear, missing, or broken, or you have an idea, use the feedback form on the <a href="/about">About</a> page. To see what has changed, open <a href="/whats-new">What's new</a>.</p>
+  </section>
+{% endblock %}

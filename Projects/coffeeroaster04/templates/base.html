@@ -164,6 +164,7 @@
        data - faint, small, and italic so they read as secondary metadata. */
     .roaster-tag, .style-tag { color: var(--color-text-muted); font-size: var(--font-size-sm); font-weight: 400; font-style: italic; opacity: 0.85; }
     .back-link { margin-bottom: var(--space-3); }
+    .help-link { font-size: var(--font-size-sm); font-weight: 400; white-space: nowrap; }
     .site-footer { margin-top: var(--space-5); padding: var(--space-4); text-align: center; }
     .site-footer a { color: var(--color-text-muted); font-size: var(--font-size-sm); }
     .actions { display: flex; gap: var(--space-2); margin-bottom: var(--space-3); }
@@ -350,7 +351,7 @@
     {% block content %}{% endblock %}
   </div>
   <footer class="site-footer">
-    <a href="/about">About</a>{% if app_version %} &middot; <a href="/whats-new">v{{ app_version }} &middot; What's new</a>{% endif %}
+    <a href="/about">About</a> &middot; <a href="/help">Help</a>{% if app_version %} &middot; <a href="/whats-new">v{{ app_version }} &middot; What's new</a>{% endif %}
   </footer>
 </body>
 </html>
