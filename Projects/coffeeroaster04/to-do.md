@@ -21,7 +21,7 @@ A running list of planned feature updates and their detailed plans.
 - **Not yet done or decided:**
   - The calibration report has only run on synthetic records; run it on your real SR800 roasts (see T-08) before trusting the thresholds.
   - `validate_green_weight("nan")` and `validate_temperature("nan")` accept NaN (found during T-06, not fixed; see Open decisions).
-  - **T-11 mobile optimization is built and committed** (`2ff59ad`) on `mobile-optimization`; it still needs a test on your phone. **T-12 version and release notes is built and committed** (`b18b677`) on `versioning`. **T-13 espresso style is built** on `espresso-style` (uncommitted, awaiting your review and, ideally, your own espresso numbers). **Queued, not started:** T-14 how-to/tutorial.
+  - **T-11 mobile optimization is built and committed** (`2ff59ad`) on `mobile-optimization`; it still needs a test on your phone. **T-12 version and release notes is built and committed** (`b18b677`) on `versioning`. **T-13 espresso style is built and committed** (`94dc301`) on `espresso-style`; it is awaiting your own espresso numbers. **Queued, not started:** T-14 how-to/tutorial.
   - Unscheduled: T-06 candidates 2–4 (charge/turning point, control-change log, cooling start) and T-07 (native profile formats, deferred).
   - `app.py` is 879 lines, so the Blueprint split (T-01, "revisit once it passes roughly 900 lines") is still not due.
 
@@ -382,9 +382,9 @@ Completed 2026-09-19 · commit `b18b677` on branch `versioning` (cut from `mobil
 
 ---
 
-## T-13 [BUILT, awaiting your review and your numbers] Espresso profile style
+## T-13 [COMPLETE, awaiting your own espresso numbers] Espresso profile style
 
-Built 2026-09-19 on branch `espresso-style` (cut from `versioning` at `fcdbf69`, so it includes T-11 and T-12; uncommitted). Suite: 483 passing (was 432); the browser check is 34 tests (was 31). Released as version **1.3.0** ("Espresso profiles") in `data/release_notes.json`. Queued the same day; you started it without answering the five design points, so I used my leans, listed below.
+Completed 2026-09-19 · commit `94dc301` on branch `espresso-style` (cut from `versioning` at `fcdbf69`, so it includes T-11 and T-12; not yet merged to `main`). Suite: 483 passing (was 432); the browser check is 34 tests (was 31). Released as version **1.3.0** ("Espresso profiles") in `data/release_notes.json`. Queued the same day; you started it without answering the five design points, so I used my leans, listed below.
 
 **What it does.** A profile now has a **style**, Drip (what every profile was) or Espresso, chosen on the page where you choose the roaster and **locked afterward** (read-only on the edit form; a change is rejected with a 400). The wizard reads the roaster's new `wizard.espresso` values for an espresso profile, and always says they are estimates, the SR800 included. The style shows as a faint tag beside the roaster's tag in the profile lists, the Add Roast picker and the Add Roast heading, and as a "Style:" line on the profile form and the roast detail page. Each roast records its profile's style, and at startup every existing profile and roast becomes Drip (idempotent, like the roaster migration: back up `data/` first, per `DEPLOY.md`). The calibration report now groups by roaster **and** style, compares espresso with the espresso values, and never calls espresso calibrated, so espresso roasts are never averaged into the drip comparison.
 
